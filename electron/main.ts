@@ -15,6 +15,7 @@ import {
   stagePaths,
 } from './library'
 import { APP_ORIGIN, handleScheme, registerScheme } from './protocol'
+import { asciiUserAgent } from './userAgent'
 import { checkForUpdates, downloadUpdate, initUpdates, installUpdate, openDownloadPage, updateState } from './updates'
 
 const DEV_URL = process.env.GRIDO_DEV_URL
@@ -175,6 +176,8 @@ registerScheme()
 // App từng tên là Grido: giữ nguyên thư mục dữ liệu cũ để thư viện, thiết kế và cài đặt không mất khi đổi tên.
 // Phải đặt trước khi xin single-instance lock vì lock nằm trong thư mục này.
 app.setPath('userData', path.join(app.getPath('appData'), 'Grido'))
+// Tên app có dấu không được lọt vào header HTTP (xem userAgent.ts). Đặt trước khi tạo cửa sổ đầu tiên.
+app.userAgentFallback = asciiUserAgent(app.userAgentFallback, app.getVersion())
 
 // Trùng appId của bộ cài để Windows gộp cửa sổ với shortcut đã ghim và dùng đúng icon.
 app.setAppUserModelId('app.grido.desktop')
