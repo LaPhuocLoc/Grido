@@ -15,7 +15,7 @@ import {
   stagePaths,
 } from './library'
 import { APP_ORIGIN, handleScheme, registerScheme } from './protocol'
-import { checkForUpdates, initUpdates, installUpdate, updateState } from './updates'
+import { checkForUpdates, downloadUpdate, initUpdates, installUpdate, openDownloadPage, updateState } from './updates'
 
 const DEV_URL = process.env.GRIDO_DEV_URL
 const isMac = process.platform === 'darwin'
@@ -165,7 +165,9 @@ function registerIpc() {
   initUpdates((next) => win?.webContents.send('updates:state', next))
   ipcMain.handle('updates:state', () => updateState())
   ipcMain.handle('updates:check', () => checkForUpdates())
+  ipcMain.handle('updates:download', () => downloadUpdate())
   ipcMain.handle('updates:install', () => installUpdate())
+  ipcMain.handle('updates:openDownloadPage', () => openDownloadPage())
 }
 
 registerScheme()

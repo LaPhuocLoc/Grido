@@ -1,4 +1,4 @@
-import { Dices, FlipHorizontal2, ImageMinus, Move, Redo2, RotateCcw, RotateCw, Shuffle, Undo2, ZoomIn } from 'lucide-react'
+import { Dices, FlipHorizontal2, ImageMinus, Maximize, Move, Redo2, RotateCcw, RotateCw, Shuffle, Undo2, ZoomIn } from 'lucide-react'
 import { useEffect, useMemo, useRef, useState, type CSSProperties, type PointerEvent as ReactPointerEvent } from 'react'
 import { flushSync } from 'react-dom'
 import { useShallow } from 'zustand/react/shallow'
@@ -7,9 +7,10 @@ import { clamp, DEFAULT_ADJUST, isSideways, MAX_ZOOM, placeImage, type CellAdjus
 import { collageLayout } from '../lib/imaging/exportCollage'
 import { MIN_SHARE, moveDivider } from '../lib/layout/compute'
 import type { Divider, LayoutNode, Rect } from '../lib/layout/types'
-import { fontFamily, fontWeight, LINE_HEIGHT, textShadow, type TextItem } from '../lib/text'
 import { buildSpec } from '../lib/useCollage'
+import { clampPan, clampViewZoom, MAX_VIEW_ZOOM, MIN_VIEW_ZOOM, zoomByWheel } from '../lib/view'
 import { canvasSize, useStore } from '../store'
+import { TextLayer, TextToolbar } from './TextLayer'
 import { Button, cx, IconButton } from './ui'
 
 const STAGE_PADDING = 16
@@ -20,7 +21,7 @@ const SNAP = 6
 const GLIDE_MS = 320
 
 /** Đường gióng nét đứt, toạ độ tính trên khung xuất. 'v' = đường dọc tại x = pos, 'h' = đường ngang tại y = pos. */
-interface Guide {
+export interface Guide {
   dir: 'v' | 'h'
   pos: number
   from: number
@@ -78,6 +79,7 @@ export function Stage() {
   const layoutId = useStore((s) => s.layoutId)
   const activeCell = useStore((s) => s.activeCell)
   const activeText = useStore((s) => s.activeText)
+  const editingText = useStore((s) => s.editingText)
   const canUndo = useStore((s) => s.past.length > 0)
   const canRedo = useStore((s) => s.future.length > 0)
   const { setAdjust, setActiveCell, setActiveText, swapCells, setTree, shuffle, randomLayout, toggleSelect, undo, redo } =
@@ -85,9 +87,14 @@ export function Stage() {
   const { selected, tree } = source
   const size = canvasSize(source)
 
+  const root = useRef<HTMLDivElement>(null)
   const wrap = useRef<HTMLDivElement>(null)
   const stage = useRef<HTMLDivElement>(null)
+  // Lớp phủ để các dòng chữ gắn khung chọn + tay nắm vào (qua portal), vì lớp chứa chữ bị cắt theo khung.
+  const [overlay, setOverlay] = useState<HTMLDivElement | null>(null)
   const [box, setBox] = useState({ w: 0, h: 0 })
+  const [viewZoom, setViewZoom] = useState(1)
+  const [rawPan, setPan] = useState({ x: 0, y: 0 })
   useEffect(() => {
     const observer = new ResizeObserver(([entry]) =>
       setBox({ w: entry.contentRect.width, h: entry.contentRect.height }),
@@ -111,7 +118,11 @@ export function Stage() {
   }
 
   // k: px màn hình trên mỗi px ảnh xuất. Mọi toạ độ tính trên khung xuất rồi nhân k → preview khớp export.
-  const k = Math.max(0.01, Math.min((box.w - STAGE_PADDING * 2) / size.width, box.h / size.height))
+  // viewZoom = 1 là vừa khít vùng nhìn; lớn hơn thì khung tràn ra ngoài và dời được bằng lăn chuột.
+  const fitK = Math.max(0.01, Math.min((box.w - STAGE_PADDING * 2) / size.width, box.h / size.height))
+  const k = fitK * viewZoom
+  const pan = { x: clampPan(rawPan.x, size.width * k, box.w), y: clampPan(rawPan.y, size.height * k, box.h) }
+  const overflowing = size.width * k > box.w || size.height * k > box.h
   const spec = useMemo(() => {
     const base = buildSpec(liveTree ? { ...source, tree: liveTree } : source)
     if (base && live) base.cells = base.cells.map((c) => (c.photo.id === live.id ? { ...c, adjust: live.adjust } : c))
@@ -134,7 +145,6 @@ export function Stage() {
    * rời rạc (bắt đầu kéo, đường gióng hiện/ẩn, thả tay). Nhờ vậy thao tác chạy đúng tần số quét của màn hình.
    */
   const imgEls = useRef(new Map<string, HTMLImageElement>())
-  const ghostEl = useRef<HTMLImageElement>(null)
   const boundsEl = useRef<HTMLSpanElement>(null)
   const swapEl = useRef<HTMLImageElement>(null)
   const liveRef = useRef<{ id: string; adjust: CellAdjust } | null>(null)
@@ -149,8 +159,8 @@ export function Stage() {
     const { photo } = spec.cells[i]
     const placed = placeImage(photo.width, photo.height, rect.w * k, rect.h * k, next.adjust)
     const style = imageStyle(placed, next.adjust)
-    for (const el of [imgEls.current.get(next.id), ghostEl.current]) {
-      if (!el) continue
+    const el = imgEls.current.get(next.id)
+    if (el) {
       el.style.width = `${style.width}px`
       el.style.height = `${style.height}px`
       el.style.transform = style.transform as string
@@ -166,7 +176,7 @@ export function Stage() {
   const pushLive = (next: { id: string; adjust: CellAdjust }) => {
     const first = !liveRef.current
     liveRef.current = next
-    // Lần đầu: để React dựng lớp ảnh mờ ngay trong khung hình này, các lần sau chỉ ghi thẳng vào DOM.
+    // Lần đầu: để React dựng khung ảnh ngay trong khung hình này, các lần sau chỉ ghi thẳng vào DOM.
     if (first) flushSync(() => setLive(next))
     else paintLive(next)
   }
@@ -283,10 +293,22 @@ export function Stage() {
     zoomDrag.current = null
   }
 
-  // Cuộn chuột để zoom ảnh trong ô. Phải gắn listener native vì cần preventDefault (React gắn wheel dạng passive).
+  // Ctrl + cuộn: zoom cả khung làm việc. Cuộn thường: zoom ảnh trong ô; khi khung đang tràn vùng nhìn thì cuộn để dời khung.
+  // Phải gắn listener native vì cần preventDefault (React gắn wheel dạng passive).
   const wheelRef = useRef<(e: WheelEvent) => void>(() => {})
   wheelRef.current = (e) => {
     if (!spec || !layout || !stage.current) return
+    if (e.ctrlKey || e.metaKey) {
+      e.preventDefault()
+      settle()
+      setViewZoom((z) => zoomByWheel(z, e.deltaY))
+      return
+    }
+    if (overflowing) {
+      e.preventDefault()
+      setPan({ x: pan.x - (e.shiftKey ? e.deltaY : e.deltaX), y: pan.y - (e.shiftKey ? 0 : e.deltaY) })
+      return
+    }
     const p = toCanvas(e)
     const cell = hitCell(layout.cells, p.x, p.y)
     if (cell < 0) return
@@ -296,13 +318,14 @@ export function Stage() {
     setAdjust(photo.id, { zoom: clamp(a.zoom * Math.exp(-e.deltaY * 0.0015), 1, MAX_ZOOM) })
   }
   useEffect(() => {
-    const el = wrap.current!
+    const el = root.current!
     const handler = (e: WheelEvent) => wheelRef.current(e)
     el.addEventListener('wheel', handler, { passive: false })
     return () => el.removeEventListener('wheel', handler)
   }, [])
 
   const active = spec && activeCell !== null ? spec.cells[activeCell] : undefined
+  const activeItem = spec?.texts.find((t) => t.id === activeText)
   const deselect = () => {
     setActiveCell(null)
     setActiveText(null)
@@ -335,10 +358,12 @@ export function Stage() {
   const busy = dragging !== null || liveTree !== null || live !== null
   const hoverCell = !busy && hover !== null && hover !== activeCell && spec?.cells[hover] && layout?.cells[hover] ? hover : null
   const activeIndex = active && layout?.cells[activeCell!] ? activeCell! : null
+  // Ô đang hiện khung kích thước thật của ảnh: ô đang kéo, không thì ô đang chọn.
+  const frameCell = liveCell >= 0 && layout?.cells[liveCell] ? liveCell : dragging === null ? activeIndex : null
 
   return (
     // isolate: các lớp z-index của khung ghép chỉ so với nhau, không trèo lên menu của thanh tiêu đề.
-    <div className="relative isolate flex h-full min-h-0 flex-col overflow-hidden stage-bg">
+    <div ref={root} className="relative isolate flex h-full min-h-0 flex-col overflow-hidden stage-bg">
       <div className="pointer-events-none absolute inset-x-0 top-0 z-30 flex items-center justify-between gap-2 p-2.5 lg:p-3">
         <div className="pointer-events-auto flex items-center gap-1.5">
           <span className="rounded-full bg-card px-3 py-1.5 text-xs font-semibold tabular-nums text-soft shadow-sm">
@@ -366,6 +391,39 @@ export function Stage() {
               <Redo2 className="size-4" />
             </IconButton>
           </span>
+          {spec && (
+            <span className="flex items-center rounded-full bg-card pl-3 shadow-sm">
+              <input
+                type="range"
+                aria-label="Thu phóng khung làm việc"
+                title="Thu phóng khung làm việc (Ctrl + lăn chuột)"
+                className="hidden w-20 lg:block"
+                min={MIN_VIEW_ZOOM}
+                max={MAX_VIEW_ZOOM}
+                step={0.05}
+                value={viewZoom}
+                style={{ '--fill': `${((viewZoom - MIN_VIEW_ZOOM) / (MAX_VIEW_ZOOM - MIN_VIEW_ZOOM)) * 100}%` } as CSSProperties}
+                onChange={(e) => {
+                  settle()
+                  setViewZoom(clampViewZoom(Number(e.target.value)))
+                }}
+              />
+              <span className="w-11 text-center text-xs font-semibold tabular-nums text-soft lg:ml-1.5" title="Tỉ lệ so với kích thước ảnh xuất">
+                {Math.round(k * 100)}%
+              </span>
+              <IconButton
+                label="Vừa khung"
+                disabled={viewZoom === 1 && pan.x === 0 && pan.y === 0}
+                onClick={() => {
+                  bump()
+                  setViewZoom(1)
+                  setPan({ x: 0, y: 0 })
+                }}
+              >
+                <Maximize className="size-4" />
+              </IconButton>
+            </span>
+          )}
         </div>
         {spec && (
           <div className="pointer-events-auto flex gap-1.5 lg:gap-2">
@@ -377,7 +435,7 @@ export function Stage() {
               className="h-9 px-3 text-[13px]"
             >
               <Shuffle className="size-4" />
-              <span className="hidden xl:inline">Trộn ảnh</span>
+              <span className="hidden 2xl:inline">Trộn ảnh</span>
             </Button>
             <Button
               onClick={randomLayout}
@@ -386,7 +444,7 @@ export function Stage() {
               className="h-9 px-3 text-[13px]"
             >
               <Dices className="size-4" />
-              <span className="hidden xl:inline">Bố cục ngẫu nhiên</span>
+              <span className="hidden 2xl:inline">Bố cục ngẫu nhiên</span>
             </Button>
           </div>
         )}
@@ -397,7 +455,7 @@ export function Stage() {
         className={cx(
           'relative mt-14 grid min-h-0 flex-1 place-items-center',
           // Chỉ chừa chỗ cho thanh công cụ ảnh khi nó đang hiện, để khung ghép được to nhất có thể trên mobile.
-          active ? 'mb-16' : 'mb-3 lg:mb-12',
+          active || activeItem ? 'mb-16' : 'mb-3 lg:mb-12',
         )}
         onPointerDown={(e) => e.target === e.currentTarget && deselect()}
       >
@@ -407,8 +465,8 @@ export function Stage() {
           <div
             ref={stage}
             // absolute: kích thước khung không được ảnh hưởng ngược lại vùng chứa (tránh vòng lặp đo ↔ vẽ).
-            className={cx('absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 touch-none select-none', glide && 'glide')}
-            style={{ width: size.width * k, height: size.height * k }}
+            className={cx('absolute left-1/2 top-1/2 touch-none select-none', glide && 'glide')}
+            style={{ width: size.width * k, height: size.height * k, translate: `calc(-50% + ${pan.x}px) calc(-50% + ${pan.y}px)` }}
           >
             <div
               className="absolute inset-0 overflow-hidden shadow-lift"
@@ -493,75 +551,41 @@ export function Stage() {
                 <TextLayer
                   key={item.id}
                   item={item}
-                  px={(Math.min(size.width, size.height) * item.size * k) / 100}
                   width={size.width}
                   height={size.height}
                   k={k}
                   active={activeText === item.id}
+                  editing={editingText === item.id}
+                  overlay={overlay}
                   onGuides={setGuides}
                 />
               ))}
             </div>
 
             {/* Lớp phủ: không bị cắt theo khung, nên vẽ được phần ảnh tràn ra ngoài ô và các tay nắm. */}
-            <div className="pointer-events-none absolute inset-0 z-20">
+            <div ref={setOverlay} className="pointer-events-none absolute inset-0 z-20">
+              {/* Đang kéo ảnh của một ô: viền ô đó, để thấy mình đang cắt tới đâu. */}
               {liveCell >= 0 &&
                 layout.cells[liveCell] &&
                 (() => {
                   const f = frames(liveCell)
-                  return (
-                    <>
-                      {/* Phần ảnh nằm ngoài ô hiện mờ để thấy mình đang cắt tới đâu. */}
-                      <div className="absolute overflow-visible" style={{ left: f.box.left, top: f.box.top }}>
-                        <img
-                          ref={ghostEl}
-                          src={fileUrl(f.cell.photo.id)}
-                          alt=""
-                          draggable={false}
-                          className="absolute left-0 top-0 max-w-none opacity-35 will-change-transform"
-                          style={imageStyle(f.placed, f.cell.adjust)}
-                        />
-                      </div>
-                      <span ref={boundsEl} className="absolute outline-[1.5px] outline-dashed outline-coral" style={f.image} />
-                      <span
-                        className="absolute shadow-[0_0_0_2px_var(--color-coral)]"
-                        style={{ ...f.box, borderRadius: f.radius }}
-                      />
-                    </>
-                  )
+                  return <span className="absolute shadow-[0_0_0_2px_var(--color-coral)]" style={{ ...f.box, borderRadius: f.radius }} />
                 })()}
 
               {hoverCell !== null &&
                 (() => {
                   const f = frames(hoverCell)
-                  return (
-                    <>
-                      {f.overflows && <span className="absolute outline-[1.5px] outline-dashed outline-coral/80" style={f.image} />}
-                      <span
-                        className="absolute shadow-[0_0_0_2px_var(--color-coral)]"
-                        style={{ ...f.box, borderRadius: f.radius }}
-                      />
-                    </>
-                  )
+                  return <span className="absolute shadow-[0_0_0_2px_var(--color-coral)]" style={{ ...f.box, borderRadius: f.radius }} />
                 })()}
 
-              {/* Giữ nguyên trong lúc kéo tay nắm góc (tay nắm đang giữ con trỏ); chỉ ẩn khi kéo ảnh. */}
               {activeIndex !== null &&
                 dragging === null &&
                 (() => {
                   const f = frames(activeIndex)
                   const sides = adjacentDividers(f.rect, layout.dividers)
-                  const corner = 'pointer-events-auto absolute grid size-7 -translate-x-1/2 -translate-y-1/2 touch-none place-items-center'
-                  const dot = 'size-3 rounded-full bg-white shadow-[0_1px_4px_rgb(0_0_0/0.4)] ring-2 ring-coral transition-transform group-hover:scale-125'
                   const pill = 'absolute rounded-full bg-white shadow-[0_1px_4px_rgb(0_0_0/0.4)] ring-2 ring-coral -translate-x-1/2 -translate-y-1/2'
                   return (
                     <div className={cx('absolute', glide && 'glide')} style={f.box}>
-                      {!live && f.overflows && (
-                        <span
-                          className="absolute outline-[1.5px] outline-dashed outline-coral/80"
-                          style={{ left: f.placed.left, top: f.placed.top, width: f.placed.dw, height: f.placed.dh }}
-                        />
-                      )}
                       <span
                         className="absolute inset-0 shadow-[0_0_0_2.5px_var(--color-coral)]"
                         style={{ borderRadius: f.radius }}
@@ -571,6 +595,27 @@ export function Stage() {
                       {sides.right && <span className={cx(pill, 'h-6 w-1.5')} style={{ left: '100%', top: '50%' }} />}
                       {sides.top && <span className={cx(pill, 'h-1.5 w-6')} style={{ left: '50%', top: 0 }} />}
                       {sides.bottom && <span className={cx(pill, 'h-1.5 w-6')} style={{ left: '50%', top: '100%' }} />}
+                      {!live && Math.min(f.box.width, f.box.height) > 90 && (
+                        <span
+                          className="absolute left-1/2 top-1/2 grid size-8 -translate-x-1/2 -translate-y-1/2 animate-pop place-items-center rounded-full bg-black/55 text-white"
+                          title="Kéo để di chuyển ảnh trong ô"
+                        >
+                          <Move className="size-4" />
+                        </span>
+                      )}
+                    </div>
+                  )
+                })()}
+
+              {/*
+                Khung nét liền = kích thước thật của ảnh, kể cả phần bị ô cắt mất. Bốn nút tròn nằm ở góc ảnh (thường là ngoài ô),
+                kéo để phóng to / thu nhỏ. Trong lúc kéo, paintLive ghi thẳng vị trí vào khung này nên các nút đi theo.
+              */}
+              {frameCell !== null &&
+                (() => {
+                  const f = frames(frameCell)
+                  return (
+                    <span ref={boundsEl} className={cx('absolute shadow-[0_0_0_1.5px_var(--color-coral)]', glide && 'glide')} style={f.image}>
                       {(
                         [
                           ['0%', '0%', 'cursor-nwse-resize'],
@@ -587,25 +632,17 @@ export function Stage() {
                           aria-valuemax={MAX_ZOOM}
                           aria-valuenow={f.cell.adjust.zoom}
                           title="Kéo để phóng to / thu nhỏ ảnh"
-                          className={cx(corner, cursor, 'group')}
+                          className={cx('group pointer-events-auto absolute grid size-7 -translate-x-1/2 -translate-y-1/2 touch-none place-items-center', cursor)}
                           style={{ left, top }}
-                          onPointerDown={(e) => onZoomDown(e, activeIndex)}
+                          onPointerDown={(e) => onZoomDown(e, frameCell)}
                           onPointerMove={onZoomMove}
                           onPointerUp={onZoomUp}
                           onPointerCancel={onZoomUp}
                         >
-                          <span className={dot} />
+                          <span className="size-3 rounded-full bg-white shadow-[0_1px_4px_rgb(0_0_0/0.4)] ring-2 ring-coral transition-transform group-hover:scale-125" />
                         </span>
                       ))}
-                      {!live && Math.min(f.box.width, f.box.height) > 90 && (
-                        <span
-                          className="absolute left-1/2 top-1/2 grid size-8 -translate-x-1/2 -translate-y-1/2 animate-pop place-items-center rounded-full bg-black/55 text-white"
-                          title="Kéo để di chuyển ảnh trong ô"
-                        >
-                          <Move className="size-4" />
-                        </span>
-                      )}
-                    </div>
+                    </span>
                   )
                 })()}
 
@@ -690,6 +727,8 @@ export function Stage() {
             </IconButton>
           </div>
         </div>
+      ) : activeItem ? (
+        <TextToolbar item={activeItem} unit={Math.min(size.width, size.height) / 100} />
       ) : (
         spec && (
           <p className="pointer-events-none absolute inset-x-0 bottom-3 hidden text-center text-xs text-muted lg:block">
@@ -712,87 +751,6 @@ function adjacentDividers(rect: Rect, dividers: Divider[]) {
     top: dividers.some((d) => d.dir === 'v' && near(d.rect.y + d.rect.h, rect.y) && spansX(d)),
     bottom: dividers.some((d) => d.dir === 'v' && near(d.rect.y, rect.y + rect.h) && spansX(d)),
   }
-}
-
-function TextLayer({
-  item,
-  px,
-  width,
-  height,
-  k,
-  active,
-  onGuides,
-}: {
-  item: TextItem
-  px: number
-  /** Kích thước khung xuất (px ảnh). */
-  width: number
-  height: number
-  k: number
-  active: boolean
-  onGuides: (guides: Guide[]) => void
-}) {
-  const start = useRef<{ x: number; y: number; itemX: number; itemY: number } | null>(null)
-  // Vị trí trong lúc kéo giữ cục bộ, thả tay mới ghi vào store.
-  const [pos, setPos] = useState<{ x: number; y: number } | null>(null)
-  const { updateText, setActiveText } = useStore.getState()
-  const shadow = textShadow(px)
-  const x = pos?.x ?? item.x
-  const y = pos?.y ?? item.y
-  const end = () => {
-    if (start.current && pos) updateText(item.id, pos)
-    start.current = null
-    setPos(null)
-    onGuides([])
-  }
-  return (
-    <div
-      onPointerDown={(e) => {
-        e.stopPropagation()
-        e.currentTarget.setPointerCapture(e.pointerId)
-        start.current = { x: e.clientX, y: e.clientY, itemX: item.x, itemY: item.y }
-        setActiveText(item.id)
-      }}
-      onPointerMove={(e) => {
-        const s = start.current
-        if (!s) return
-        let nx = clamp(s.itemX + (e.clientX - s.x) / (width * k), 0, 1)
-        let ny = clamp(s.itemY + (e.clientY - s.y) / (height * k), 0, 1)
-        const guides: Guide[] = []
-        if (Math.abs(nx - 0.5) * width * k < SNAP) {
-          nx = 0.5
-          guides.push({ dir: 'v', pos: width / 2, from: 0, to: height })
-        }
-        if (Math.abs(ny - 0.5) * height * k < SNAP) {
-          ny = 0.5
-          guides.push({ dir: 'h', pos: height / 2, from: 0, to: width })
-        }
-        flushSync(() => {
-          onGuides(guides)
-          setPos({ x: nx, y: ny })
-        })
-      }}
-      onPointerUp={end}
-      onPointerCancel={end}
-      className={cx(
-        'absolute z-20 cursor-move whitespace-pre text-center',
-        active && 'outline-2 outline-dashed outline-offset-4 outline-coral',
-      )}
-      style={{
-        left: x * width * k,
-        top: y * height * k,
-        transform: 'translate(-50%, -50%)',
-        fontFamily: fontFamily(item.font),
-        fontWeight: fontWeight(item.bold),
-        fontSize: px,
-        lineHeight: LINE_HEIGHT,
-        color: item.color,
-        textShadow: item.shadow ? `0 ${shadow.offsetY}px ${shadow.blur}px ${shadow.color}` : undefined,
-      }}
-    >
-      {item.text || ' '}
-    </div>
-  )
 }
 
 const dividerCenter = (d: Divider) => (d.dir === 'h' ? d.rect.x + d.rect.w / 2 : d.rect.y + d.rect.h / 2)

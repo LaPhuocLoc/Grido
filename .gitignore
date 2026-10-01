@@ -5,6 +5,10 @@ release
 *.local
 *.tsbuildinfo
 
+# Font gốc tải từ fontvn.com (nặng); bản đã tối ưu nằm ở public/fonts, dựng bằng scripts/build-fonts.py
+fontvn/downloads
+fontvn/fonts
+
 # Tàn dư của bản web cũ (Cloudflare / Netlify)
 .wrangler
 .dev.vars

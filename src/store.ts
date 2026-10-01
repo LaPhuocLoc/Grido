@@ -7,7 +7,8 @@ import { POOL_SIZE, prepareImport } from './lib/imaging/tasks'
 import { countCells, parseLayout } from './lib/layout/dsl'
 import { getLayouts, MAX_PHOTOS } from './lib/layout/registry'
 import type { LayoutNode } from './lib/layout/types'
-import type { TextItem } from './lib/text'
+import { albumName, pruneAlbumMap, type Album } from './lib/albums'
+import { normalizeText, type TextItem } from './lib/text'
 import { CUSTOM_PRESET_ID, MAX_CANVAS, MIN_CANVAS, SIZE_PRESETS } from './lib/presets'
 
 /** Ảnh đang được nhập vào thư viện (tạo bản xem trước + thumbnail). */
@@ -16,6 +17,8 @@ export interface ImportItem {
   name: string
   status: 'processing' | 'error'
   error?: string
+  /** Album sẽ nhận ảnh này khi chuẩn bị xong. */
+  albumId?: string
 }
 
 export interface Toast {
@@ -60,6 +63,11 @@ interface Settings {
   exportScale: number
   exportSharpen: ExportSharpen
   theme: Theme
+  /** Panel thư viện (trái) / panel công cụ (phải) đang thu gọn. */
+  leftCollapsed: boolean
+  rightCollapsed: boolean
+  /** Người dùng đã đóng dải mẹo thao tác ở cuối thư viện. */
+  libraryTipSeen: boolean
 }
 
 /** Những trường tạo nên một ảnh ghép — là thứ được undo/redo và lưu nháp. */
@@ -95,20 +103,35 @@ interface State extends Settings {
   tab: Tab
   texts: TextItem[]
   activeText: string | null
+  /** Dòng chữ đang được gõ trực tiếp trên khung ghép. */
+  editingText: string | null
   past: Snapshot[]
   future: Snapshot[]
   toasts: Toast[]
   /** Id các bố cục có sẵn được thả tim. */
   favorites: string[]
   savedLayouts: SavedLayout[]
+  albums: Album[]
+  /** Id ảnh → id album. Ảnh không có ở đây là "Chưa phân loại". */
+  photoAlbum: Record<string, string>
+  /** Id các mục đang thu gọn trong thư viện (UNCATEGORIZED cho mục "Chưa phân loại"). */
+  collapsedAlbums: string[]
 
   loadPhotos: () => Promise<void>
   /** Mở hộp thoại chọn ảnh của hệ điều hành. */
-  pickPhotos: () => Promise<void>
+  pickPhotos: (albumId?: string) => Promise<void>
   /** Nhận file kéo thả hoặc dán vào cửa sổ. */
-  importFiles: (files: File[]) => Promise<void>
+  importFiles: (files: File[], albumId?: string) => Promise<void>
   dismissImport: (key: number) => void
   deletePhotos: (ids: string[]) => Promise<void>
+  /** Tạo album; trả về id. Không truyền tên thì đặt "Album N". */
+  createAlbum: (name?: string) => string
+  renameAlbum: (id: string, name: string) => void
+  /** Xoá album; ảnh bên trong quay về "Chưa phân loại", không bị xoá khỏi thư viện. */
+  removeAlbum: (id: string) => void
+  /** Chuyển ảnh vào album, hoặc về "Chưa phân loại" khi albumId là null. */
+  movePhotos: (ids: string[], albumId: string | null) => void
+  toggleAlbumCollapsed: (id: string) => void
   toggleSelect: (id: string) => void
   clearSelection: () => void
   shuffle: () => void
@@ -123,10 +146,14 @@ interface State extends Settings {
   setTree: (tree: LayoutNode) => void
   setAdjust: (photoId: string, patch: Partial<CellAdjust>) => void
   setActiveCell: (index: number | null) => void
+  /** Bỏ ảnh ở ô đang chọn khỏi bố cục; ảnh vẫn nằm trong thư viện. */
+  removeActiveCell: () => void
   addText: () => void
   updateText: (id: string, patch: Partial<TextItem>) => void
   removeText: (id: string) => void
+  duplicateText: (id: string) => void
   setActiveText: (id: string | null) => void
+  setEditingText: (id: string | null) => void
   undo: () => void
   redo: () => void
   set: (patch: Partial<Settings>) => void
@@ -135,7 +162,7 @@ interface State extends Settings {
 
 let seq = 1
 
-type Persisted = Settings & Snapshot & Pick<State, 'favorites' | 'savedLayouts'>
+type Persisted = Settings & Snapshot & Pick<State, 'favorites' | 'savedLayouts' | 'albums' | 'photoAlbum' | 'collapsedAlbums'>
 
 /**
  * Ghi localStorage có trì hoãn: kéo slider hay cuộn zoom đổi state hàng chục lần mỗi giây,
@@ -213,6 +240,9 @@ export const useStore = create<State>()(
       exportScale: 1,
       exportSharpen: 'standard',
       theme: 'system',
+      leftCollapsed: false,
+      rightCollapsed: false,
+      libraryTipSeen: false,
 
       photos: [],
       imports: [],
@@ -224,17 +254,21 @@ export const useStore = create<State>()(
       tab: 'library',
       texts: [],
       activeText: null,
+      editingText: null,
       past: [],
       future: [],
       toasts: [],
       favorites: [],
       savedLayouts: [],
+      albums: [],
+      photoAlbum: {},
+      collapsedAlbums: [],
 
       loadPhotos: async () => {
         try {
           const photos = await desktop.library.list()
           const alive = new Set(photos.map((p) => p.id))
-          set((s) => ({ photos, ...withoutMissing(s, (id) => alive.has(id)) }))
+          set((s) => ({ photos, photoAlbum: pruneAlbumMap(s.photoAlbum, (id) => alive.has(id)), ...withoutMissing(s, (id) => alive.has(id)) }))
           // Đối chiếu bản nháp với thư viện không phải thao tác của user → không tính vào lịch sử undo.
           set({ past: [], future: [] })
         } catch (err) {
@@ -242,9 +276,9 @@ export const useStore = create<State>()(
         }
       },
 
-      pickPhotos: async () => importStaged(await desktop.library.pick(), true),
+      pickPhotos: async (albumId) => importStaged(await desktop.library.pick(), true, albumId),
 
-      importFiles: async (files) => {
+      importFiles: async (files, albumId) => {
         const paths: string[] = []
         const staged: StageResult = { candidates: [], duplicates: 0 }
         const merge = (r: StageResult) => {
@@ -262,7 +296,7 @@ export const useStore = create<State>()(
         } catch (err) {
           return get().toast((err as Error).message, 'error')
         }
-        await importStaged(staged, false)
+        await importStaged(staged, false, albumId)
       },
 
       dismissImport: (key) => set((s) => ({ imports: s.imports.filter((u) => u.key !== key) })),
@@ -270,11 +304,46 @@ export const useStore = create<State>()(
       deletePhotos: async (ids) => {
         try {
           const deleted = new Set(await desktop.library.remove(ids))
-          set((s) => ({ photos: s.photos.filter((p) => !deleted.has(p.id)), ...withoutMissing(s, (id) => !deleted.has(id)) }))
+          set((s) => ({
+            photos: s.photos.filter((p) => !deleted.has(p.id)),
+            photoAlbum: pruneAlbumMap(s.photoAlbum, (id) => !deleted.has(id)),
+            ...withoutMissing(s, (id) => !deleted.has(id)),
+          }))
         } catch (err) {
           get().toast((err as Error).message, 'error')
         }
       },
+
+      createAlbum: (name) => {
+        const id = `a${Date.now().toString(36)}${seq++}`
+        set((s) => ({ albums: [...s.albums, { id, name: albumName(name, s.albums) }] }))
+        return id
+      },
+
+      renameAlbum: (id, name) => {
+        const next = name.trim()
+        if (next) set((s) => ({ albums: s.albums.map((a) => (a.id === id ? { ...a, name: next } : a)) }))
+      },
+
+      removeAlbum: (id) =>
+        set((s) => ({
+          albums: s.albums.filter((a) => a.id !== id),
+          photoAlbum: Object.fromEntries(Object.entries(s.photoAlbum).filter(([, album]) => album !== id)),
+          collapsedAlbums: s.collapsedAlbums.filter((c) => c !== id),
+        })),
+
+      movePhotos: (ids, albumId) =>
+        set((s) => {
+          const next = { ...s.photoAlbum }
+          for (const id of ids) {
+            if (albumId === null) delete next[id]
+            else next[id] = albumId
+          }
+          return { photoAlbum: next }
+        }),
+
+      toggleAlbumCollapsed: (id) =>
+        set((s) => ({ collapsedAlbums: s.collapsedAlbums.includes(id) ? s.collapsedAlbums.filter((c) => c !== id) : [...s.collapsedAlbums, id] })),
 
       toggleSelect: (id) => {
         const s = get()
@@ -358,30 +427,48 @@ export const useStore = create<State>()(
       setAdjust: (photoId, patch) =>
         set((s) => ({ adjust: { ...s.adjust, [photoId]: { ...(s.adjust[photoId] ?? DEFAULT_ADJUST), ...patch } } })),
 
-      setActiveCell: (activeCell) => set(activeCell === null ? { activeCell } : { activeCell, activeText: null }),
+      setActiveCell: (activeCell) => set(activeCell === null ? { activeCell } : { activeCell, activeText: null, editingText: null }),
+
+      removeActiveCell: () => {
+        const s = get()
+        const id = s.activeCell === null ? undefined : s.selected[s.activeCell]
+        if (id) s.toggleSelect(id)
+      },
 
       addText: () => {
         const id = `t${Date.now().toString(36)}${seq++}`
-        const item: TextItem = {
-          id,
-          text: 'Chữ của bạn',
-          x: 0.5,
-          y: 0.5,
-          size: 8,
-          color: '#ffffff',
-          font: 'round',
-          bold: true,
-          shadow: true,
-        }
-        set((s) => ({ texts: [...s.texts, item], activeText: id, activeCell: null, tab: 'text' }))
+        const item = normalizeText({ id, text: 'Chữ của bạn' })
+        // Vào luôn chế độ gõ để người dùng thay chữ mẫu ngay trên ảnh.
+        set((s) => ({ texts: [...s.texts, item], activeText: id, editingText: id, activeCell: null, tab: 'text' }))
       },
 
       updateText: (id, patch) => set((s) => ({ texts: s.texts.map((t) => (t.id === id ? { ...t, ...patch } : t)) })),
 
       removeText: (id) =>
-        set((s) => ({ texts: s.texts.filter((t) => t.id !== id), activeText: s.activeText === id ? null : s.activeText })),
+        set((s) => ({
+          texts: s.texts.filter((t) => t.id !== id),
+          activeText: s.activeText === id ? null : s.activeText,
+          editingText: s.editingText === id ? null : s.editingText,
+        })),
 
-      setActiveText: (activeText) => set(activeText === null ? { activeText } : { activeText, activeCell: null, tab: 'text' }),
+      duplicateText: (id) => {
+        const source = get().texts.find((t) => t.id === id)
+        if (!source) return
+        const copy: TextItem = {
+          ...source,
+          id: `t${Date.now().toString(36)}${seq++}`,
+          // Lệch nhẹ để thấy bản sao; sát mép thì lệch ngược lại cho khỏi ra ngoài khung.
+          x: source.x + (source.x > 0.9 ? -0.04 : 0.04),
+          y: source.y + (source.y > 0.9 ? -0.04 : 0.04),
+        }
+        set((s) => ({ texts: [...s.texts, copy], activeText: copy.id, editingText: null, activeCell: null, tab: 'text' }))
+      },
+
+      setActiveText: (activeText) =>
+        set(activeText === null ? { activeText, editingText: null } : { activeText, editingText: null, activeCell: null, tab: 'text' }),
+
+      setEditingText: (editingText) =>
+        set(editingText === null ? { editingText } : { editingText, activeText: editingText, activeCell: null, tab: 'text' }),
 
       undo: () => step('past', 'future'),
       redo: () => step('future', 'past'),
@@ -417,15 +504,26 @@ export const useStore = create<State>()(
         exportScale: s.exportScale,
         exportSharpen: s.exportSharpen,
         theme: s.theme,
+        leftCollapsed: s.leftCollapsed,
+        rightCollapsed: s.rightCollapsed,
+        libraryTipSeen: s.libraryTipSeen,
         favorites: s.favorites,
         savedLayouts: s.savedLayouts,
+        albums: s.albums,
+        photoAlbum: s.photoAlbum,
+        collapsedAlbums: s.collapsedAlbums,
       }),
+      merge: (saved, current) => {
+        const persisted = (saved ?? {}) as Partial<Persisted>
+        return { ...current, ...persisted, texts: (persisted.texts ?? []).map(normalizeText) }
+      },
     },
   ),
 )
 
 /** Tạo bản xem trước + thumbnail cho từng file đã được main process nhận rồi đưa vào thư viện. */
-async function importStaged({ candidates, duplicates }: StageResult, fromDialog: boolean): Promise<void> {
+/** `albumId`: album nhận ảnh mới; bỏ trống thì ảnh nằm ở "Chưa phân loại". */
+async function importStaged({ candidates, duplicates }: StageResult, fromDialog: boolean, albumId?: string): Promise<void> {
   const { toast } = useStore.getState()
   if (duplicates) toast(`${duplicates} ảnh đã có sẵn trong thư viện nên được bỏ qua.`)
   // Hộp thoại bị huỷ thì im lặng; kéo thả mà không có ảnh nào thì báo cho người dùng biết.
@@ -434,7 +532,7 @@ async function importStaged({ candidates, duplicates }: StageResult, fromDialog:
 
   const items = candidates.map((candidate) => ({ candidate, key: seq++ }))
   useStore.setState((s) => ({
-    imports: [...s.imports, ...items.map(({ candidate, key }) => ({ key, name: candidate.name, status: 'processing' as const }))],
+    imports: [...s.imports, ...items.map(({ candidate, key }) => ({ key, name: candidate.name, status: 'processing' as const, albumId }))],
   }))
 
   const queue = [...items]
@@ -443,7 +541,12 @@ async function importStaged({ candidates, duplicates }: StageResult, fromDialog:
       const { key } = item
       try {
         const photo = await importOne(item.candidate)
-        useStore.setState((s) => ({ photos: [photo, ...s.photos], imports: s.imports.filter((u) => u.key !== key) }))
+        useStore.setState((s) => ({
+          photos: [photo, ...s.photos],
+          imports: s.imports.filter((u) => u.key !== key),
+          // Album có thể đã bị xoá trong lúc ảnh đang được chuẩn bị.
+          ...(albumId && s.albums.some((a) => a.id === albumId) ? { photoAlbum: { ...s.photoAlbum, [photo.id]: albumId } } : {}),
+        }))
       } catch (err) {
         useStore.setState((s) => ({
           imports: s.imports.map((u) => (u.key === key ? { ...u, status: 'error', error: (err as Error).message } : u)),
@@ -484,6 +587,7 @@ function step(from: 'past' | 'future', to: 'past' | 'future'): void {
     [to]: [...s[to], snapshot(s)].slice(-HISTORY_LIMIT),
     activeCell: null,
     activeText: null,
+    editingText: null,
   } as Partial<State>)
   restoring = false
 }

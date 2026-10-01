@@ -1,4 +1,6 @@
 import {
+  ChevronLeft,
+  ChevronRight,
   Crop,
   Download,
   FolderCog,
@@ -14,8 +16,10 @@ import {
   type LucideIcon,
 } from 'lucide-react'
 import { useEffect, useLayoutEffect, useRef, useState, useSyncExternalStore } from 'react'
+import { createPortal } from 'react-dom'
 import type { UpdateState } from '../shared/types'
 import { Library } from './components/Library'
+import { toggleStyle } from './components/TextLayer'
 import { ExportPanel, LayoutPanel, SizePanel, StylePanel, TextPanel } from './components/Panels'
 import { Stage } from './components/Stage'
 import { Button, cx, IconButton, Logo, ThemeToggle, Toasts } from './components/ui'
@@ -113,6 +117,9 @@ function Editor() {
   const tab = useStore((s) => s.tab)
   const setTab = (tab: Tab) => useStore.setState({ tab })
   const loadPhotos = useStore((s) => s.loadPhotos)
+  const leftCollapsed = useStore((s) => s.leftCollapsed)
+  const rightCollapsed = useStore((s) => s.rightCollapsed)
+  const setSettings = useStore((s) => s.set)
   useEffect(() => void loadPhotos(), [loadPhotos])
 
   useEffect(() => {
@@ -134,8 +141,17 @@ function Editor() {
       } else if (mod && (key === 'e' || key === 's')) {
         e.preventDefault()
         void exportToFile()
+      } else if (mod && (key === 'b' || key === 'i' || key === 'u') && !typing(e) && s.activeText) {
+        e.preventDefault()
+        toggleStyle(s.activeText, key)
+      } else if (mod && key === 'd' && !typing(e) && s.activeText) {
+        e.preventDefault()
+        s.duplicateText(s.activeText)
       } else if ((e.key === 'Delete' || e.key === 'Backspace') && !typing(e) && s.activeText) {
         s.removeText(s.activeText)
+      } else if ((e.key === 'Delete' || e.key === 'Backspace') && !typing(e) && s.activeCell !== null) {
+        // Chỉ bỏ ảnh khỏi bố cục; ảnh vẫn còn trong thư viện.
+        s.removeActiveCell()
       } else if (e.key === 'Escape') {
         s.setActiveCell(null)
         s.setActiveText(null)
@@ -178,16 +194,26 @@ function Editor() {
     <div className="flex h-dvh animate-app flex-col">
       <TitleBar />
       {isDesktop ? (
-        <div className="grid min-h-0 flex-1 grid-cols-[300px_minmax(0,1fr)_384px] grid-rows-[minmax(0,1fr)]">
-          <aside className="min-h-0 border-r border-line bg-paper">
-            <Library />
+        <div
+          className="grid min-h-0 flex-1 grid-rows-[minmax(0,1fr)] transition-[grid-template-columns] duration-300 ease-glide"
+          style={{ gridTemplateColumns: `${leftCollapsed ? 0 : 300}px minmax(0, 1fr) ${rightCollapsed ? 0 : 384}px` }}
+        >
+          {/* Nội dung giữ nguyên bề rộng, cột bao ngoài co lại và cắt bớt → panel trượt vào thay vì bị bóp méo. */}
+          <aside inert={leftCollapsed} className={cx('min-h-0 overflow-hidden bg-paper', !leftCollapsed && 'border-r border-line')}>
+            <div className="h-full w-[299px]">
+              <Library />
+            </div>
           </aside>
-          <main className="min-h-0">
+          <main className="relative min-h-0">
             <Stage />
+            <PanelToggle side="left" collapsed={leftCollapsed} onToggle={() => setSettings({ leftCollapsed: !leftCollapsed })} />
+            <PanelToggle side="right" collapsed={rightCollapsed} onToggle={() => setSettings({ rightCollapsed: !rightCollapsed })} />
           </main>
-          <aside className="flex min-h-0 flex-col border-l border-line bg-paper">
-            {tabBar}
-            <div className="scroll-soft min-h-0 flex-1 overflow-y-auto">{panel}</div>
+          <aside inert={rightCollapsed} className={cx('min-h-0 overflow-hidden bg-paper', !rightCollapsed && 'border-l border-line')}>
+            <div className="ml-auto flex h-full w-[383px] flex-col">
+              {tabBar}
+              <div className="scroll-soft min-h-0 flex-1 overflow-y-auto">{panel}</div>
+            </div>
           </aside>
         </div>
       ) : (
@@ -200,6 +226,29 @@ function Editor() {
         </>
       )}
     </div>
+  )
+}
+
+/** Nút nhỏ ở mép khung làm việc để thu gọn / mở lại panel thư viện (trái) hoặc panel công cụ (phải). */
+function PanelToggle({ side, collapsed, onToggle }: { side: 'left' | 'right'; collapsed: boolean; onToggle: () => void }) {
+  const name = side === 'left' ? 'thư viện ảnh' : 'bảng công cụ'
+  const label = `${collapsed ? 'Mở' : 'Thu gọn'} ${name}`
+  // Mũi tên chỉ về hướng panel sẽ di chuyển.
+  const Icon = (side === 'left') === collapsed ? ChevronRight : ChevronLeft
+  return (
+    <button
+      type="button"
+      aria-label={label}
+      aria-expanded={!collapsed}
+      title={label}
+      onClick={onToggle}
+      className={cx(
+        'absolute top-1/2 z-40 grid h-12 w-5 -translate-y-1/2 place-items-center border border-line bg-card text-muted shadow-sm transition-colors hover:bg-surface hover:text-ink',
+        side === 'left' ? 'left-0 rounded-r-lg border-l-0' : 'right-0 rounded-l-lg border-r-0',
+      )}
+    >
+      <Icon className="size-4" />
+    </button>
   )
 }
 
@@ -256,19 +305,28 @@ function TabBar({ tabs, active, wide, onSelect }: { tabs: typeof TABS; active: T
 
 const UPDATE_CHECK_EVERY = 4 * 60 * 60 * 1000
 
-/** Trạng thái tự cập nhật. `manual` = người dùng vừa tự bấm kiểm tra nên cần báo kết quả kể cả khi không có gì mới. */
+/**
+ * Trạng thái cập nhật. Có bản mới thì hỏi người dùng trước; đồng ý rồi app mới tải, tải xong tự cài và mở lại.
+ * `manual` = người dùng vừa tự bấm kiểm tra nên cần báo kết quả kể cả khi không có gì mới.
+ */
 function useUpdates() {
   const [state, setState] = useState<UpdateState>({ status: 'idle' })
+  /** Hộp thoại hỏi "cập nhật ngay?" đang mở. */
+  const [asking, setAsking] = useState(false)
   const manual = useRef(false)
 
   useEffect(() => {
     const off = desktop.updates.onState((next) => {
       setState(next)
       const { toast } = useStore.getState()
-      if (next.status === 'ready')
-        toast(`Grido ${next.version} đã tải xong.`, 'success', { label: 'Khởi động lại', run: () => void desktop.updates.install() })
+      // Tự bấm kiểm tra mà có bản mới thì hỏi luôn; app tự kiểm tra ở nền thì chỉ hiện nút trên thanh tiêu đề.
+      if (next.status === 'available' && manual.current) setAsking(true)
       else if (manual.current && next.status === 'latest') toast('Bạn đang dùng bản mới nhất.', 'success')
+      // Lỗi lúc tải / cài luôn phải báo, vì người dùng đã bấm đồng ý và đang chờ.
+      else if (next.status === 'error' && next.manual)
+        toast(next.message, 'error', { label: 'Tải thủ công', run: () => void desktop.updates.openDownloadPage() })
       else if (manual.current && next.status === 'error') toast(next.message, 'error')
+      if (next.status !== 'available') setAsking(false)
       if (next.status !== 'checking') manual.current = false
     })
     // Tự kiểm tra sau khi app đã mở xong, rồi định kỳ nếu app được để mở cả ngày.
@@ -284,12 +342,54 @@ function useUpdates() {
   const check = () => {
     const { toast } = useStore.getState()
     if (state.status === 'unsupported') return toast('Bản chạy từ mã nguồn không tự cập nhật.')
+    if (state.status === 'available') return setAsking(true)
     if (state.status === 'downloading') return toast(`Đang tải Grido ${state.version}…`)
     if (state.status === 'ready') return void desktop.updates.install()
     manual.current = true
     void desktop.updates.check()
   }
-  return { state, check }
+  const confirm = () => {
+    setAsking(false)
+    void desktop.updates.download()
+  }
+  return { state, check, asking, confirm, dismiss: () => setAsking(false) }
+}
+
+/** Hỏi người dùng trước khi cập nhật: đồng ý thì app tải về, tự cài và mở lại. */
+function UpdateDialog({ version, current, onConfirm, onCancel }: { version: string; current: string; onConfirm: () => void; onCancel: () => void }) {
+  useEffect(() => {
+    const key = (e: KeyboardEvent) => e.key === 'Escape' && onCancel()
+    window.addEventListener('keydown', key)
+    return () => window.removeEventListener('keydown', key)
+  }, [onCancel])
+  // Gắn vào body: nằm trong thanh tiêu đề thì bị các nút nổi của khung làm việc đè lên.
+  return createPortal(
+    <div className="no-drag fixed inset-0 z-[70] grid animate-overlay place-items-center bg-black/45 p-6" onPointerDown={onCancel}>
+      <div
+        role="alertdialog"
+        aria-labelledby="update-title"
+        className="w-full max-w-sm animate-pop rounded-3xl border border-line bg-card p-6 shadow-lift"
+        onPointerDown={(e) => e.stopPropagation()}
+      >
+        <h2 id="update-title" className="font-display text-lg font-bold text-ink">
+          Đã có Grido {version}
+        </h2>
+        <p className="mt-2 text-sm leading-relaxed text-soft">
+          {current && <>Bạn đang dùng bản {current}. </>}
+          Grido sẽ tải bản mới về, tự cài rồi mở lại. Ảnh ghép đang làm dở và thư viện ảnh được giữ nguyên.
+        </p>
+        <div className="mt-5 flex gap-2">
+          <Button className="flex-1" onClick={onCancel}>
+            Để sau
+          </Button>
+          <Button variant="primary" className="flex-1" autoFocus onClick={onConfirm}>
+            Cập nhật ngay
+          </Button>
+        </div>
+      </div>
+    </div>,
+    document.body,
+  )
 }
 
 /**
@@ -301,9 +401,15 @@ function TitleBar() {
   const progress = useExportProgress((s) => s.progress)
   const [menu, setMenu] = useState(false)
   const [version, setVersion] = useState('')
-  const { state: update, check } = useUpdates()
+  const { state: update, check, asking, confirm, dismiss } = useUpdates()
 
   useEffect(() => void desktop.app.info().then((info) => setVersion(info.version)), [])
+
+  // Người dùng đã đồng ý cập nhật từ trước: tải xong là cài và mở lại ngay. Đang xuất ảnh dở thì đợi xuất xong.
+  const ready = update.status === 'ready'
+  useEffect(() => {
+    if (ready && progress === null) void desktop.updates.install()
+  }, [ready, progress])
 
   const checking = update.status === 'checking'
   const item = 'flex w-full items-center gap-2.5 rounded-xl px-3 py-2.5 text-left text-sm font-medium text-soft transition-colors hover:bg-sand hover:text-ink disabled:opacity-50'
@@ -320,16 +426,22 @@ function TitleBar() {
             </span>
           </span>
         )}
-        {update.status === 'ready' && (
+        {update.status === 'available' && (
           <button
             type="button"
-            onClick={() => void desktop.updates.install()}
-            title={`Cài Grido ${update.version} và mở lại app`}
+            onClick={check}
+            title={`Cập nhật lên Grido ${update.version}`}
             className="flex h-8 animate-pop items-center gap-1.5 rounded-full bg-blush px-3 text-[12.5px] font-semibold text-coral-dark transition hover:brightness-95 active:scale-95"
           >
             <RotateCw className="size-3.5" />
-            Khởi động lại để cập nhật
+            Có bản mới {update.version}
           </button>
+        )}
+        {update.status === 'ready' && (
+          <span className="flex h-8 animate-pop items-center gap-1.5 rounded-full bg-blush px-3 text-[12.5px] font-semibold text-coral-dark">
+            <LoaderCircle className="size-3.5 animate-spin" />
+            {progress === null ? `Đang cài bản ${update.version}…` : `Sẽ cài bản ${update.version} khi xuất ảnh xong`}
+          </span>
         )}
         <ThemeToggle className="size-8" />
         <div className="relative">
@@ -344,9 +456,23 @@ function TitleBar() {
                   <p className="text-sm font-semibold">Grido</p>
                   <p className="text-xs text-muted">Phiên bản {version}</p>
                 </div>
-                <button type="button" disabled={checking} className={item} onClick={check}>
+                <button
+                  type="button"
+                  disabled={checking}
+                  className={item}
+                  onClick={() => {
+                    setMenu(false)
+                    check()
+                  }}
+                >
                   <RefreshCw className={cx('size-4', checking && 'animate-spin')} />
-                  {checking ? 'Đang kiểm tra…' : update.status === 'ready' ? `Cài bản ${update.version} ngay` : 'Kiểm tra cập nhật'}
+                  {checking
+                    ? 'Đang kiểm tra…'
+                    : update.status === 'available'
+                      ? `Cập nhật lên bản ${update.version}`
+                      : update.status === 'downloading'
+                        ? `Đang tải bản ${update.version}…`
+                        : 'Kiểm tra cập nhật'}
                 </button>
                 <button type="button" className={item} onClick={() => void desktop.app.openDataDir()}>
                   <FolderCog className="size-4" />
@@ -361,6 +487,9 @@ function TitleBar() {
           <span className="tabular-nums">{progress !== null ? `${Math.round(progress * 100)}%` : 'Xuất ảnh'}</span>
         </Button>
       </div>
+      {asking && update.status === 'available' && (
+        <UpdateDialog version={update.version} current={version} onConfirm={confirm} onCancel={dismiss} />
+      )}
       {/* Tiến độ xuất ảnh chạy dọc mép dưới thanh tiêu đề. */}
       <span
         aria-hidden

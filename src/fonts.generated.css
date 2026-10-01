@@ -1,0 +1,106 @@
+/* Sinh bởi scripts/build-fonts.py — đừng sửa tay. */
+@font-face{font-family:'vn-geist';src:url('/fonts/vn/vn-geist.woff2') format('woff2');font-weight:400;font-display:swap}
+@font-face{font-family:'vn-geist';src:url('/fonts/vn/vn-geist-bold.woff2') format('woff2');font-weight:700;font-display:swap}
+@font-face{font-family:'vn-ps-bolden';src:url('/fonts/vn/vn-ps-bolden.woff2') format('woff2');font-weight:100 600;font-display:swap}
+@font-face{font-family:'vn-questrial';src:url('/fonts/vn/vn-questrial.woff2') format('woff2');font-weight:100 600;font-display:swap}
+@font-face{font-family:'vn-ps-bigger';src:url('/fonts/vn/vn-ps-bigger.woff2') format('woff2');font-weight:100 600;font-display:swap}
+@font-face{font-family:'vn-allura';src:url('/fonts/vn/vn-allura.woff2') format('woff2');font-weight:100 600;font-display:swap}
+@font-face{font-family:'vn-ps-anton';src:url('/fonts/vn/vn-ps-anton.woff2') format('woff2');font-weight:100 600;font-display:swap}
+@font-face{font-family:'vn-young';src:url('/fonts/vn/vn-young.woff2') format('woff2');font-weight:100 600;font-display:swap}
+@font-face{font-family:'vn-young-display';src:url('/fonts/vn/vn-young-display.woff2') format('woff2');font-weight:100 600;font-display:swap}
+@font-face{font-family:'vn-prata';src:url('/fonts/vn/vn-prata.woff2') format('woff2');font-weight:100 600;font-display:swap}
+@font-face{font-family:'vn-anybody';src:url('/fonts/vn/vn-anybody.woff2') format('woff2');font-weight:400;font-display:swap}
+@font-face{font-family:'vn-anybody';src:url('/fonts/vn/vn-anybody-bold.woff2') format('woff2');font-weight:700;font-display:swap}
+@font-face{font-family:'vn-montserrat';src:url('/fonts/vn/vn-montserrat.woff2') format('woff2');font-weight:400;font-display:swap}
+@font-face{font-family:'vn-montserrat';src:url('/fonts/vn/vn-montserrat-bold.woff2') format('woff2');font-weight:700;font-display:swap}
+@font-face{font-family:'vn-anek-latin';src:url('/fonts/vn/vn-anek-latin.woff2') format('woff2');font-weight:400;font-display:swap}
+@font-face{font-family:'vn-anek-latin';src:url('/fonts/vn/vn-anek-latin-bold.woff2') format('woff2');font-weight:700;font-display:swap}
+@font-face{font-family:'vn-ephesis';src:url('/fonts/vn/vn-ephesis.woff2') format('woff2');font-weight:100 600;font-display:swap}
+@font-face{font-family:'vn-merienda';src:url('/fonts/vn/vn-merienda.woff2') format('woff2');font-weight:400;font-display:swap}
+@font-face{font-family:'vn-merienda';src:url('/fonts/vn/vn-merienda-bold.woff2') format('woff2');font-weight:700;font-display:swap}
+@font-face{font-family:'vn-google-sans-flex-9pt';src:url('/fonts/vn/vn-google-sans-flex-9pt.woff2') format('woff2');font-weight:400;font-display:swap}
+@font-face{font-family:'vn-google-sans-flex-9pt';src:url('/fonts/vn/vn-google-sans-flex-9pt-bold.woff2') format('woff2');font-weight:700;font-display:swap}
+@font-face{font-family:'vn-pacifico';src:url('/fonts/vn/vn-pacifico.woff2') format('woff2');font-weight:100 600;font-display:swap}
+@font-face{font-family:'vn-dancing-script';src:url('/fonts/vn/vn-dancing-script.woff2') format('woff2');font-weight:400 700;font-display:swap}
+@font-face{font-family:'vn-fahkwang';src:url('/fonts/vn/vn-fahkwang.woff2') format('woff2');font-weight:400;font-display:swap}
+@font-face{font-family:'vn-fahkwang';src:url('/fonts/vn/vn-fahkwang-bold.woff2') format('woff2');font-weight:700;font-display:swap}
+@font-face{font-family:'vn-1k-reey';src:url('/fonts/vn/vn-1k-reey.woff2') format('woff2');font-weight:100 600;font-display:swap}
+@font-face{font-family:'vn-dvn-parasi';src:url('/fonts/vn/vn-dvn-parasi.woff2') format('woff2');font-weight:100 600;font-display:swap}
+@font-face{font-family:'vn-protest-strike';src:url('/fonts/vn/vn-protest-strike.woff2') format('woff2');font-weight:100 600;font-display:swap}
+@font-face{font-family:'vn-milestone-script';src:url('/fonts/vn/vn-milestone-script.woff2') format('woff2');font-weight:100 600;font-display:swap}
+@font-face{font-family:'vn-nata-sans';src:url('/fonts/vn/vn-nata-sans.woff2') format('woff2');font-weight:100 900;font-display:swap}
+@font-face{font-family:'vn-vl-angelline';src:url('/fonts/vn/vn-vl-angelline.woff2') format('woff2');font-weight:100 600;font-display:swap}
+@font-face{font-family:'vn-meow-script';src:url('/fonts/vn/vn-meow-script.woff2') format('woff2');font-weight:100 600;font-display:swap}
+@font-face{font-family:'vn-wind-script';src:url('/fonts/vn/vn-wind-script.woff2') format('woff2');font-weight:100 600;font-display:swap}
+@font-face{font-family:'vn-saira';src:url('/fonts/vn/vn-saira.woff2') format('woff2');font-weight:100 900;font-display:swap}
+@font-face{font-family:'vn-fraunces';src:url('/fonts/vn/vn-fraunces.woff2') format('woff2');font-weight:100 900;font-display:swap}
+@font-face{font-family:'vn-dvn-poetsen-one';src:url('/fonts/vn/vn-dvn-poetsen-one.woff2') format('woff2');font-weight:100 600;font-display:swap}
+@font-face{font-family:'vn-lexend';src:url('/fonts/vn/vn-lexend.woff2') format('woff2');font-weight:100 900;font-display:swap}
+@font-face{font-family:'vn-mtd-antro-vectra';src:url('/fonts/vn/vn-mtd-antro-vectra.woff2') format('woff2');font-weight:100 600;font-display:swap}
+@font-face{font-family:'vn-agu-display';src:url('/fonts/vn/vn-agu-display.woff2') format('woff2');font-weight:100 600;font-display:swap}
+@font-face{font-family:'vn-the-nautigal';src:url('/fonts/vn/vn-the-nautigal.woff2') format('woff2');font-weight:400;font-display:swap}
+@font-face{font-family:'vn-the-nautigal';src:url('/fonts/vn/vn-the-nautigal-bold.woff2') format('woff2');font-weight:700;font-display:swap}
+@font-face{font-family:'vn-mtd-st-friska';src:url('/fonts/vn/vn-mtd-st-friska.woff2') format('woff2');font-weight:100 600;font-display:swap}
+@font-face{font-family:'vn-birthstone-bounce';src:url('/fonts/vn/vn-birthstone-bounce.woff2') format('woff2');font-weight:100 600;font-display:swap}
+@font-face{font-family:'vn-dvn-autography';src:url('/fonts/vn/vn-dvn-autography.woff2') format('woff2');font-weight:100 600;font-display:swap}
+@font-face{font-family:'vn-mtd-hummington';src:url('/fonts/vn/vn-mtd-hummington.woff2') format('woff2');font-weight:100 600;font-display:swap}
+@font-face{font-family:'vn-manrope';src:url('/fonts/vn/vn-manrope.woff2') format('woff2');font-weight:200 800;font-display:swap}
+@font-face{font-family:'vn-dvn-praise';src:url('/fonts/vn/vn-dvn-praise.woff2') format('woff2');font-weight:100 600;font-display:swap}
+@font-face{font-family:'vn-hp-dns-gibsons-one';src:url('/fonts/vn/vn-hp-dns-gibsons-one.woff2') format('woff2');font-weight:100 600;font-display:swap}
+@font-face{font-family:'vn-harmonyos-sans';src:url('/fonts/vn/vn-harmonyos-sans.woff2') format('woff2');font-weight:400;font-display:swap}
+@font-face{font-family:'vn-harmonyos-sans';src:url('/fonts/vn/vn-harmonyos-sans-bold.woff2') format('woff2');font-weight:700;font-display:swap}
+@font-face{font-family:'vn-dvn-loveya-script';src:url('/fonts/vn/vn-dvn-loveya-script.woff2') format('woff2');font-weight:100 600;font-display:swap}
+@font-face{font-family:'vn-acumin-pro';src:url('/fonts/vn/vn-acumin-pro.woff2') format('woff2');font-weight:400;font-display:swap}
+@font-face{font-family:'vn-acumin-pro';src:url('/fonts/vn/vn-acumin-pro-bold.woff2') format('woff2');font-weight:700;font-display:swap}
+@font-face{font-family:'vn-iciel-lovestory';src:url('/fonts/vn/vn-iciel-lovestory.woff2') format('woff2');font-weight:100 600;font-display:swap}
+@font-face{font-family:'vn-playfair-display';src:url('/fonts/vn/vn-playfair-display.woff2') format('woff2');font-weight:400;font-display:swap}
+@font-face{font-family:'vn-playfair-display';src:url('/fonts/vn/vn-playfair-display-bold.woff2') format('woff2');font-weight:700;font-display:swap}
+@font-face{font-family:'vn-dvn-a-dong-bladerunner';src:url('/fonts/vn/vn-dvn-a-dong-bladerunner.woff2') format('woff2');font-weight:100 600;font-display:swap}
+@font-face{font-family:'vn-philosopher';src:url('/fonts/vn/vn-philosopher.woff2') format('woff2');font-weight:400;font-display:swap}
+@font-face{font-family:'vn-philosopher';src:url('/fonts/vn/vn-philosopher-bold.woff2') format('woff2');font-weight:700;font-display:swap}
+@font-face{font-family:'vn-lnth-water-dragon';src:url('/fonts/vn/vn-lnth-water-dragon.woff2') format('woff2');font-weight:100 600;font-display:swap}
+@font-face{font-family:'vn-lnth-awesome-south-korea';src:url('/fonts/vn/vn-lnth-awesome-south-korea.woff2') format('woff2');font-weight:100 600;font-display:swap}
+@font-face{font-family:'vn-kd-hidayatullah';src:url('/fonts/vn/vn-kd-hidayatullah.woff2') format('woff2');font-weight:100 600;font-display:swap}
+@font-face{font-family:'vn-fz-fzshitiansongs-cloud';src:url('/fonts/vn/vn-fz-fzshitiansongs-cloud.woff2') format('woff2');font-weight:100 600;font-display:swap}
+@font-face{font-family:'vn-lnth-ceria-lebaran';src:url('/fonts/vn/vn-lnth-ceria-lebaran.woff2') format('woff2');font-weight:100 600;font-display:swap}
+@font-face{font-family:'vn-lnth-deborstel';src:url('/fonts/vn/vn-lnth-deborstel.woff2') format('woff2');font-weight:100 600;font-display:swap}
+@font-face{font-family:'vn-dvn-cinzel-decorative';src:url('/fonts/vn/vn-dvn-cinzel-decorative.woff2') format('woff2');font-weight:100 600;font-display:swap}
+@font-face{font-family:'vn-paris-2024';src:url('/fonts/vn/vn-paris-2024.woff2') format('woff2');font-weight:1 1000;font-display:swap}
+@font-face{font-family:'vn-lnth-kids-chinese-font';src:url('/fonts/vn/vn-lnth-kids-chinese-font.woff2') format('woff2');font-weight:100 600;font-display:swap}
+@font-face{font-family:'vn-lnth-symphonie-cat';src:url('/fonts/vn/vn-lnth-symphonie-cat.woff2') format('woff2');font-weight:100 600;font-display:swap}
+@font-face{font-family:'vn-lnth-blackoninaut-bold-brk';src:url('/fonts/vn/vn-lnth-blackoninaut-bold-brk.woff2') format('woff2');font-weight:100 600;font-display:swap}
+@font-face{font-family:'vn-dvn-milkshake';src:url('/fonts/vn/vn-dvn-milkshake.woff2') format('woff2');font-weight:100 600;font-display:swap}
+@font-face{font-family:'vn-lnthfc-balinos';src:url('/fonts/vn/vn-lnthfc-balinos.woff2') format('woff2');font-weight:100 600;font-display:swap}
+@font-face{font-family:'vn-lnth-sugiono';src:url('/fonts/vn/vn-lnth-sugiono.woff2') format('woff2');font-weight:100 600;font-display:swap}
+@font-face{font-family:'vn-ubuntu';src:url('/fonts/vn/vn-ubuntu.woff2') format('woff2');font-weight:400;font-display:swap}
+@font-face{font-family:'vn-ubuntu';src:url('/fonts/vn/vn-ubuntu-bold.woff2') format('woff2');font-weight:700;font-display:swap}
+@font-face{font-family:'vn-lnth-sweet-hazel';src:url('/fonts/vn/vn-lnth-sweet-hazel.woff2') format('woff2');font-weight:100 600;font-display:swap}
+@font-face{font-family:'vn-lnth-ralline';src:url('/fonts/vn/vn-lnth-ralline.woff2') format('woff2');font-weight:100 600;font-display:swap}
+@font-face{font-family:'vn-vl-selfie';src:url('/fonts/vn/vn-vl-selfie.woff2') format('woff2');font-weight:100 600;font-display:swap}
+@font-face{font-family:'vn-dvn-fat';src:url('/fonts/vn/vn-dvn-fat.woff2') format('woff2');font-weight:100 600;font-display:swap}
+@font-face{font-family:'vn-dvn-north-land';src:url('/fonts/vn/vn-dvn-north-land.woff2') format('woff2');font-weight:100 600;font-display:swap}
+@font-face{font-family:'vn-dvn-tahu';src:url('/fonts/vn/vn-dvn-tahu.woff2') format('woff2');font-weight:100 600;font-display:swap}
+@font-face{font-family:'vn-lnth-blobby-chug';src:url('/fonts/vn/vn-lnth-blobby-chug.woff2') format('woff2');font-weight:100 600;font-display:swap}
+@font-face{font-family:'vn-lnth-hotel-lorint';src:url('/fonts/vn/vn-lnth-hotel-lorint.woff2') format('woff2');font-weight:100 600;font-display:swap}
+@font-face{font-family:'vn-lnth-manis-banget';src:url('/fonts/vn/vn-lnth-manis-banget.woff2') format('woff2');font-weight:100 600;font-display:swap}
+@font-face{font-family:'vn-dongle';src:url('/fonts/vn/vn-dongle.woff2') format('woff2');font-weight:400;font-display:swap}
+@font-face{font-family:'vn-dongle';src:url('/fonts/vn/vn-dongle-bold.woff2') format('woff2');font-weight:700;font-display:swap}
+@font-face{font-family:'vn-lnth-getcoffee';src:url('/fonts/vn/vn-lnth-getcoffee.woff2') format('woff2');font-weight:100 600;font-display:swap}
+@font-face{font-family:'vn-lnth-christmas-in-brighton';src:url('/fonts/vn/vn-lnth-christmas-in-brighton.woff2') format('woff2');font-weight:100 600;font-display:swap}
+@font-face{font-family:'vn-helvetica';src:url('/fonts/vn/vn-helvetica.woff2') format('woff2');font-weight:400;font-display:swap}
+@font-face{font-family:'vn-helvetica';src:url('/fonts/vn/vn-helvetica-bold.woff2') format('woff2');font-weight:700;font-display:swap}
+@font-face{font-family:'vn-dvn-photograph';src:url('/fonts/vn/vn-dvn-photograph.woff2') format('woff2');font-weight:100 600;font-display:swap}
+@font-face{font-family:'vn-dvn-colus';src:url('/fonts/vn/vn-dvn-colus.woff2') format('woff2');font-weight:100 600;font-display:swap}
+@font-face{font-family:'vn-dfvn-rubra-costa';src:url('/fonts/vn/vn-dfvn-rubra-costa.woff2') format('woff2');font-weight:100 600;font-display:swap}
+@font-face{font-family:'vn-eb-garamond';src:url('/fonts/vn/vn-eb-garamond.woff2') format('woff2');font-weight:400;font-display:swap}
+@font-face{font-family:'vn-eb-garamond';src:url('/fonts/vn/vn-eb-garamond-bold.woff2') format('woff2');font-weight:700;font-display:swap}
+@font-face{font-family:'vn-tnh-xuong';src:url('/fonts/vn/vn-tnh-xuong.woff2') format('woff2');font-weight:100 600;font-display:swap}
+@font-face{font-family:'vn-dvn-bakbak-one';src:url('/fonts/vn/vn-dvn-bakbak-one.woff2') format('woff2');font-weight:100 600;font-display:swap}
+@font-face{font-family:'vn-oswald';src:url('/fonts/vn/vn-oswald.woff2') format('woff2');font-weight:200 700;font-display:swap}
+@font-face{font-family:'vn-raleway';src:url('/fonts/vn/vn-raleway.woff2') format('woff2');font-weight:400;font-display:swap}
+@font-face{font-family:'vn-raleway';src:url('/fonts/vn/vn-raleway-bold.woff2') format('woff2');font-weight:700;font-display:swap}
+@font-face{font-family:'vn-dvn-dune-rise';src:url('/fonts/vn/vn-dvn-dune-rise.woff2') format('woff2');font-weight:100 600;font-display:swap}
+@font-face{font-family:'vn-dfvn-bagel-fat-one';src:url('/fonts/vn/vn-dfvn-bagel-fat-one.woff2') format('woff2');font-weight:100 600;font-display:swap}
+@font-face{font-family:'vn-mtd-barakah';src:url('/fonts/vn/vn-mtd-barakah.woff2') format('woff2');font-weight:100 600;font-display:swap}
+@font-face{font-family:'vn-dvn-uefa-euro';src:url('/fonts/vn/vn-dvn-uefa-euro.woff2') format('woff2');font-weight:100 600;font-display:swap}
+@font-face{font-family:'vn-dvn-retrowarp';src:url('/fonts/vn/vn-dvn-retrowarp.woff2') format('woff2');font-weight:100 600;font-display:swap}

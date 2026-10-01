@@ -184,6 +184,33 @@ describe('saved layouts', () => {
   })
 })
 
+describe('removing a photo from the collage', () => {
+  it('takes the photo in the selected cell out of the collage but keeps it in the library', () => {
+    ids(3).forEach((id) => get().toggleSelect(id))
+    get().setActiveCell(1)
+    get().removeActiveCell()
+    expect(get().selected).toEqual(['p1', 'p3'])
+    expect(get().activeCell).toBeNull()
+    expect(get().photos).toHaveLength(14)
+  })
+
+  it('does nothing when no cell is selected', () => {
+    ids(2).forEach((id) => get().toggleSelect(id))
+    get().removeActiveCell()
+    expect(get().selected).toEqual(['p1', 'p2'])
+  })
+})
+
+describe('side panels', () => {
+  it('remembers which panels are collapsed the next time the app opens', async () => {
+    expect(get()).toMatchObject({ leftCollapsed: false, rightCollapsed: false })
+    get().set({ leftCollapsed: true })
+    vi.advanceTimersByTime(1000)
+    await boot()
+    expect(get()).toMatchObject({ leftCollapsed: true, rightCollapsed: false })
+  })
+})
+
 describe('text', () => {
   it('adds, edits and removes a caption', () => {
     get().toggleSelect('p1')
@@ -194,6 +221,144 @@ describe('text', () => {
     expect(get().texts[0].text).toBe('Đà Lạt 2026')
     get().removeText(id)
     expect(get()).toMatchObject({ texts: [], activeText: null })
+  })
+
+  it('opens a new caption straight in typing mode, centred and unrotated', () => {
+    get().toggleSelect('p1')
+    get().addText()
+    const item = get().texts[0]
+    expect(get().editingText).toBe(item.id)
+    expect(item).toMatchObject({ x: 0.5, y: 0.5, italic: false, underline: false, strike: false, align: 'center', rotation: 0, width: null })
+  })
+
+  it('leaves typing mode when the caption is deselected, removed or another one is picked', () => {
+    get().toggleSelect('p1')
+    get().addText()
+    get().setActiveText(null)
+    expect(get().editingText).toBeNull()
+
+    get().addText()
+    const [first, second] = get().texts
+    get().setActiveText(first.id)
+    expect(get().editingText).toBeNull()
+
+    get().setEditingText(second.id)
+    expect(get()).toMatchObject({ activeText: second.id, editingText: second.id })
+    get().removeText(second.id)
+    expect(get().editingText).toBeNull()
+  })
+
+  it('duplicates a caption next to the original and selects the copy', () => {
+    get().toggleSelect('p1')
+    get().addText()
+    const original = get().texts[0]
+    get().updateText(original.id, { text: 'Gió Mây', italic: true, rotation: 15 })
+    get().duplicateText(original.id)
+    const [, copy] = get().texts
+    expect(get().texts).toHaveLength(2)
+    expect(copy).toMatchObject({ text: 'Gió Mây', italic: true, rotation: 15 })
+    expect(copy.id).not.toBe(original.id)
+    expect(copy.x).toBeGreaterThan(original.x)
+    expect(copy.y).toBeGreaterThan(original.y)
+    expect(get()).toMatchObject({ activeText: copy.id, editingText: null })
+  })
+
+  it('upgrades captions from a draft saved before the style fields existed', async () => {
+    const old = { id: 't1', text: 'Đà Lạt', x: 0.5, y: 0.5, size: 8, color: '#ffffff', font: 'round', bold: true, shadow: true }
+    localStorage.setItem('grido-settings', JSON.stringify({ state: { texts: [old] }, version: 0 }))
+    await boot()
+    expect(get().texts).toEqual([{ ...old, italic: false, underline: false, strike: false, align: 'center', rotation: 0, width: null }])
+  })
+})
+
+describe('library tips', () => {
+  it('shows the tips until they are dismissed, and remembers that after a restart', async () => {
+    expect(get().libraryTipSeen).toBe(false)
+    get().set({ libraryTipSeen: true })
+    vi.advanceTimersByTime(1000)
+    await boot()
+    expect(get().libraryTipSeen).toBe(true)
+  })
+})
+
+describe('albums', () => {
+  it('creates an album with the given name, or a numbered default', () => {
+    const first = get().createAlbum('Đà Lạt')
+    const second = get().createAlbum()
+    expect(get().albums).toEqual([
+      { id: first, name: 'Đà Lạt' },
+      { id: second, name: 'Album 2' },
+    ])
+  })
+
+  it('renames an album and ignores a blank name', () => {
+    const id = get().createAlbum('Cũ')
+    get().renameAlbum(id, '  Mới  ')
+    expect(get().albums[0].name).toBe('Mới')
+    get().renameAlbum(id, '   ')
+    expect(get().albums[0].name).toBe('Mới')
+  })
+
+  it('moves photos into an album and back out to uncategorised', () => {
+    const id = get().createAlbum('Đà Lạt')
+    get().movePhotos(['p1', 'p2'], id)
+    expect(get().photoAlbum).toEqual({ p1: id, p2: id })
+    get().movePhotos(['p1'], null)
+    expect(get().photoAlbum).toEqual({ p2: id })
+  })
+
+  it('removing an album sends its photos back to uncategorised without deleting them', () => {
+    const keep = get().createAlbum('Giữ')
+    const gone = get().createAlbum('Bỏ')
+    get().movePhotos(['p1'], keep)
+    get().movePhotos(['p2', 'p3'], gone)
+    get().toggleAlbumCollapsed(gone)
+    get().removeAlbum(gone)
+    expect(get().albums.map((a) => a.id)).toEqual([keep])
+    expect(get().photoAlbum).toEqual({ p1: keep })
+    expect(get().collapsedAlbums).toEqual([])
+    expect(get().photos).toHaveLength(14)
+  })
+
+  it('forgets the album of a photo that is deleted from the library', async () => {
+    const id = get().createAlbum('Đà Lạt')
+    get().movePhotos(['p1', 'p2'], id)
+    await get().deletePhotos(['p1'])
+    expect(get().photoAlbum).toEqual({ p2: id })
+  })
+
+  it('remembers which sections are collapsed', () => {
+    const id = get().createAlbum('Đà Lạt')
+    get().toggleAlbumCollapsed(id)
+    get().toggleAlbumCollapsed('none')
+    expect(get().collapsedAlbums).toEqual([id, 'none'])
+    get().toggleAlbumCollapsed(id)
+    expect(get().collapsedAlbums).toEqual(['none'])
+  })
+
+  it('keeps albums and their photos after the app is reopened', async () => {
+    const id = get().createAlbum('Đà Lạt')
+    get().movePhotos(['p1'], id)
+    vi.advanceTimersByTime(1000)
+    await boot()
+    expect(get().albums).toEqual([{ id, name: 'Đà Lạt' }])
+    expect(get().photoAlbum).toEqual({ p1: id })
+  })
+
+  it('puts photos picked from an album straight into that album', async () => {
+    const id = get().createAlbum('Thẻ nhớ')
+    fake.state.pickResult = ['E:\card\DSC001.JPG', 'E:\card\DSC002.JPG']
+    await get().pickPhotos(id)
+    const added = get().photos.slice(0, 2).map((p) => p.id)
+    expect(Object.keys(get().photoAlbum).sort()).toEqual([...added].sort())
+    expect(Object.values(get().photoAlbum)).toEqual([id, id])
+  })
+
+  it('leaves photos added without an album uncategorised', async () => {
+    get().createAlbum('Thẻ nhớ')
+    fake.state.pickResult = ['E:\card\DSC003.JPG']
+    await get().pickPhotos()
+    expect(get().photoAlbum).toEqual({})
   })
 })
 

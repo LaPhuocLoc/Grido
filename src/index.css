@@ -248,10 +248,9 @@ img {
     shimmer 1.3s linear infinite;
 }
 
-/* Thư viện dài: trình duyệt bỏ qua việc vẽ những ô nằm ngoài vùng nhìn thấy. */
-.tile {
+/* Thư viện dài: trình duyệt bỏ qua việc dàn trang + vẽ những khối ảnh nằm ngoài vùng nhìn thấy (chiều cao ước lượng đặt inline). */
+.tile-chunk {
   content-visibility: auto;
-  contain-intrinsic-size: auto 84px;
 }
 
 /* Khung thả file: viền nét đứt màu thương hiệu. */

@@ -25,7 +25,9 @@ const bridge: GridoBridge = {
   },
   updates: {
     check: () => ipcRenderer.invoke('updates:check'),
+    download: () => ipcRenderer.invoke('updates:download'),
     install: () => ipcRenderer.invoke('updates:install'),
+    openDownloadPage: () => ipcRenderer.invoke('updates:openDownloadPage'),
     onState: (listener) => {
       const handler = (_e: unknown, state: UpdateState) => listener(state)
       ipcRenderer.on('updates:state', handler)

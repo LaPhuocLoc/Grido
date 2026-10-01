@@ -73,6 +73,7 @@ export async function renderCollage(spec: CollageSpec, sharpen: number, onProgre
   )
   const unit = Math.min(spec.width, spec.height) / 100
   for (const item of spec.texts)
-    if (item.text.trim()) await drawText(ctx, item, item.x * spec.width, item.y * spec.height, item.size * unit)
+    if (item.text.trim())
+      await drawText(ctx, item, item.x * spec.width, item.y * spec.height, item.size * unit, item.width ? item.width * spec.width : null)
   return canvas
 }

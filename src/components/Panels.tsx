@@ -1,4 +1,4 @@
-import { ArrowLeftRight, Bookmark, Download, Heart, LoaderCircle, Plus, Trash2, TriangleAlert, X } from 'lucide-react'
+import { ArrowLeftRight, Bookmark, Download, Heart, LoaderCircle, Plus, TriangleAlert, X } from 'lucide-react'
 import { memo, useMemo, useState } from 'react'
 import { placeImage } from '../lib/geometry'
 import { collageLayout } from '../lib/imaging/exportCollage'
@@ -7,9 +7,9 @@ import { parseLayout } from '../lib/layout/dsl'
 import { getLayouts, totalLayoutCount } from '../lib/layout/registry'
 import type { LayoutCategory, LayoutNode } from '../lib/layout/types'
 import { BACKGROUNDS, CUSTOM_PRESET_ID, MAX_CANVAS, MIN_CANVAS, SIZE_PRESETS } from '../lib/presets'
-import { FONTS, TEXT_COLORS, fontFamily } from '../lib/text'
 import { buildSpec, exportToFile, maxExportScale, useExportProgress } from '../lib/useCollage'
 import { canvasSize, pctToPx, useStore, type ExportFormat, type ExportSharpen } from '../store'
+import { FontPicker } from './FontPicker'
 import { Button, cx, Section, Segmented, Slider } from './ui'
 
 /* ───────────── Khung ảnh ───────────── */
@@ -166,7 +166,7 @@ const tile = (active: boolean) =>
 
 // Nút nhỏ nằm ở góc ô bố cục (tim / xoá). Màn cảm ứng không có hover nên luôn hiện mờ.
 const tileAction =
-  'absolute right-0.5 top-0.5 grid size-6 place-items-center rounded-full bg-card/90 shadow-sm backdrop-blur transition-all hover:scale-110 active:scale-90 focus-visible:opacity-100'
+  'absolute right-0.5 top-0.5 grid size-6 place-items-center rounded-full bg-card shadow-sm transition-all hover:scale-110 active:scale-90 focus-visible:opacity-100'
 
 export function LayoutPanel() {
   const n = useStore((s) => s.selected.length)
@@ -394,28 +394,11 @@ export function StylePanel() {
 
 /* ───────────── Chữ ───────────── */
 
-function Toggle({ label, checked, onChange }: { label: string; checked: boolean; onChange: (v: boolean) => void }) {
-  return (
-    <button
-      type="button"
-      role="switch"
-      aria-checked={checked}
-      onClick={() => onChange(!checked)}
-      className={cx(
-        'h-9 flex-1 rounded-full border text-[13px] font-semibold transition-colors',
-        checked ? 'border-coral bg-blush text-coral-dark' : 'border-line bg-card text-soft hover:text-ink',
-      )}
-    >
-      {label}
-    </button>
-  )
-}
-
 export function TextPanel() {
   const texts = useStore((s) => s.texts)
   const activeText = useStore((s) => s.activeText)
   const hasCollage = useStore((s) => !!s.tree)
-  const { addText, updateText, removeText, setActiveText } = useStore.getState()
+  const { addText, updateText, setActiveText } = useStore.getState()
   const item = texts.find((t) => t.id === activeText)
 
   if (!hasCollage)
@@ -452,91 +435,13 @@ export function TextPanel() {
       </Section>
 
       {item ? (
-        <>
-          <Section title="Nội dung">
-            <textarea
-              aria-label="Nội dung chữ"
-              value={item.text}
-              rows={2}
-              maxLength={300}
-              onChange={(e) => updateText(item.id, { text: e.target.value })}
-              className="w-full resize-y rounded-2xl border border-line bg-surface px-3.5 py-2.5 text-[15px] focus:border-coral focus:outline-none focus:ring-4 focus:ring-coral/15"
-            />
-          </Section>
-
-          <Section title="Kiểu chữ">
-            <div className="grid grid-cols-2 gap-2">
-              {FONTS.map((f) => (
-                <button
-                  key={f.id}
-                  type="button"
-                  aria-pressed={item.font === f.id}
-                  onClick={() => updateText(item.id, { font: f.id })}
-                  className={cx(
-                    'h-11 rounded-2xl border text-base transition-colors',
-                    item.font === f.id ? 'border-coral bg-blush text-coral-dark' : 'border-line bg-card hover:bg-surface',
-                  )}
-                  style={{ fontFamily: fontFamily(f.id), fontWeight: 700 }}
-                >
-                  {f.label}
-                </button>
-              ))}
-            </div>
-            <div className="flex gap-2">
-              <Toggle label="Chữ đậm" checked={item.bold} onChange={(bold) => updateText(item.id, { bold })} />
-              <Toggle label="Đổ bóng" checked={item.shadow} onChange={(shadow) => updateText(item.id, { shadow })} />
-            </div>
-            <Slider
-              label="Cỡ chữ"
-              value={item.size}
-              min={2}
-              max={30}
-              step={0.5}
-              display={`${item.size}%`}
-              onChange={(size) => updateText(item.id, { size })}
-            />
-          </Section>
-
-          <Section title="Màu chữ">
-            <div className="flex flex-wrap items-center gap-2">
-              {TEXT_COLORS.map((color) => (
-                <button
-                  key={color}
-                  type="button"
-                  aria-label={`Màu chữ ${color}`}
-                  aria-pressed={item.color === color}
-                  onClick={() => updateText(item.id, { color })}
-                  className={cx(
-                    'size-9 rounded-full border border-black/10 transition-transform hover:scale-110',
-                    item.color === color && 'ring-2 ring-coral ring-offset-2 ring-offset-card',
-                  )}
-                  style={{ background: color }}
-                />
-              ))}
-              <label
-                className="relative grid size-9 cursor-pointer overflow-hidden rounded-full border border-black/10"
-                style={{ background: 'conic-gradient(#f2603c, #ffb23e, #8fe0a8, #6aa8ff, #c58bff, #f2603c)' }}
-                title="Chọn màu khác"
-              >
-                <input
-                  type="color"
-                  aria-label="Chọn màu chữ khác"
-                  value={item.color}
-                  onChange={(e) => updateText(item.id, { color: e.target.value })}
-                  className="absolute inset-0 size-full cursor-pointer opacity-0"
-                />
-              </label>
-            </div>
-          </Section>
-
-          <Button variant="ghost" className="w-full text-coral-dark" onClick={() => removeText(item.id)}>
-            <Trash2 className="size-4" />
-            Xoá dòng chữ này
-          </Button>
-        </>
+        <Section title="Kiểu chữ">
+          <FontPicker value={item.font} onChange={(font) => updateText(item.id, { font })} />
+        </Section>
       ) : (
         <p className="rounded-2xl bg-sand p-4 text-[13px] leading-relaxed text-soft">
-          Bấm <b className="text-ink">Thêm chữ</b>, rồi kéo chữ trên khung ảnh để đặt vị trí. Bấm vào một dòng chữ để sửa.
+          Bấm <b className="text-ink">Thêm chữ</b> rồi gõ thẳng trên ảnh. Bấm vào một dòng chữ để chọn, bấm lần nữa để sửa nội dung; kéo các
+          tay nắm để đổi cỡ, bề rộng và xoay.
         </p>
       )}
     </div>

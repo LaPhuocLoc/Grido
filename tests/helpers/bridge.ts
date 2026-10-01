@@ -77,7 +77,9 @@ export function fakeBridge(initial: Photo[] = []) {
     },
     updates: {
       check: async () => {},
+      download: async () => {},
       install: async () => {},
+      openDownloadPage: async () => {},
       onState: (_listener: (state: UpdateState) => void) => () => {},
     },
   }

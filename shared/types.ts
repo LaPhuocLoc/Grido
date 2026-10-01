@@ -49,11 +49,14 @@ export type UpdateState =
   | { status: 'idle' }
   | { status: 'checking' }
   | { status: 'latest' }
-  /** Đã tìm thấy bản mới và đang tải về ở nền. */
+  /** Đã tìm thấy bản mới, đang chờ người dùng đồng ý cập nhật. */
+  | { status: 'available'; version: string }
+  /** Người dùng đã đồng ý, đang tải về. */
   | { status: 'downloading'; version: string; percent: number }
-  /** Đã tải xong: khởi động lại là cài (hoặc tự cài khi thoát app). */
+  /** Đã tải xong: giao diện gọi `install` để cài và mở lại (hoặc tự cài khi thoát app). */
   | { status: 'ready'; version: string }
-  | { status: 'error'; message: string }
+  /** `manual`: không tự cài được nhưng vẫn tải bộ cài về cài tay được. */
+  | { status: 'error'; message: string; manual: boolean }
   /** Bản chạy từ mã nguồn (npm run dev) không tự cập nhật. */
   | { status: 'unsupported' }
 
@@ -92,10 +95,14 @@ export interface GridoBridge {
     openDataDir: () => Promise<void>
   }
   updates: {
-    /** Kiểm tra bản mới; có thì tự tải về. Kết quả đến qua `onState`. */
+    /** Kiểm tra bản mới. Kết quả đến qua `onState`; có bản mới thì chờ người dùng đồng ý, không tự tải. */
     check: () => Promise<void>
+    /** Người dùng đồng ý cập nhật: tải bản mới về. */
+    download: () => Promise<void>
     /** Thoát app, cài bản vừa tải rồi mở lại. */
     install: () => Promise<void>
+    /** Mở trang tải bộ cài trong trình duyệt, để cài thủ công khi không tự cài được. */
+    openDownloadPage: () => Promise<void>
     /** Nghe thay đổi trạng thái (gọi ngay một lần với trạng thái hiện tại). Trả về hàm huỷ. */
     onState: (listener: (state: UpdateState) => void) => () => void
   }

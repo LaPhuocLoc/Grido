@@ -23,6 +23,7 @@ const STATIC_TYPES: Record<string, string> = {
   woff2: 'font/woff2',
   woff: 'font/woff',
   png: 'image/png',
+  webp: 'image/webp',
   wasm: 'application/wasm',
 }
 
@@ -62,7 +63,11 @@ export function handleScheme(staticDir: string) {
 
     if (parts[0] === 'photo') {
       const file = photoFile(parts[1], parts[2])
-      return file ? serve(file, imageType(file), { 'Cache-Control': 'no-cache' }) : new Response('Not found', { status: 404 })
+      if (!file) return new Response('Not found', { status: 404 })
+      // Thumbnail và bản xem trước gắn với id ảnh và không bao giờ đổi nội dung → cho trình duyệt giữ lại, khỏi đọc đĩa
+      // mỗi lần ô ảnh được dựng lại (cuộn, chuyển album, đổi tab). File gốc thì người dùng có thể sửa bất cứ lúc nào.
+      const cache = parts[2] === 'original' ? 'no-cache' : 'private, max-age=31536000, immutable'
+      return serve(file, imageType(file), { 'Cache-Control': cache })
     }
     if (parts[0] === 'import') {
       const file = stagedPath(parts[1])
