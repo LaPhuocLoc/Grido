@@ -64,8 +64,8 @@ function createWindow() {
     minWidth: 1024,
     minHeight: 640,
     show: false,
-    title: 'Grido',
-    // Icon gắn thẳng vào cửa sổ: thanh taskbar hiện logo Grido kể cả khi chạy từ mã nguồn (electron.exe).
+    title: 'Tiệm Ghép Ảnh',
+    // Icon gắn thẳng vào cửa sổ: thanh taskbar hiện logo app kể cả khi chạy từ mã nguồn (electron.exe).
     icon: path.join(__dirname, '..', DEV_URL ? 'public' : 'dist', 'icon.png'),
     backgroundColor: chrome.background,
     // Không dùng khung cửa sổ mặc định: thanh trên cùng của giao diện là thanh tiêu đề,
@@ -171,6 +171,10 @@ function registerIpc() {
 }
 
 registerScheme()
+
+// App từng tên là Grido: giữ nguyên thư mục dữ liệu cũ để thư viện, thiết kế và cài đặt không mất khi đổi tên.
+// Phải đặt trước khi xin single-instance lock vì lock nằm trong thư mục này.
+app.setPath('userData', path.join(app.getPath('appData'), 'Grido'))
 
 // Trùng appId của bộ cài để Windows gộp cửa sổ với shortcut đã ghim và dùng đúng icon.
 app.setAppUserModelId('app.grido.desktop')

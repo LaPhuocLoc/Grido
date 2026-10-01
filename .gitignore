@@ -13,3 +13,6 @@ fontvn/fonts
 .wrangler
 .dev.vars
 .netlify
+
+# Ghi chú tài khoản tải font, không đưa lên repo
+font/

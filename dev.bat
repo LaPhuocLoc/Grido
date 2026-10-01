@@ -1,5 +1,5 @@
 @echo off
-rem Bật Grido ở chế độ phát triển (Vite + Electron). Bấm đúp file này hoặc chạy `dev.bat` trong terminal.
+rem Bật Tiệm Ghép Ảnh ở chế độ phát triển (Vite + Electron). Bấm đúp file này hoặc chạy `dev.bat` trong terminal.
 cd /d "%~dp0"
 if not exist node_modules (
   echo Chua co node_modules, dang cai dat...

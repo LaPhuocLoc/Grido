@@ -1,4 +1,4 @@
-"""Dựng bộ font Việt hoá cho app từ fontvn/ (font gốc + thumbnail tải về từ fontvn.com):
+"""Dựng bộ font Việt hoá cho app từ fontvn/ (font gốc + thumbnail tải về từ fontvn.com, piklab.vn và lengnef.github.io):
   public/fonts/vn/<id>[-bold].woff2   font đã cắt còn chữ Latin + tiếng Việt, nén woff2
   public/fonts/thumbs/<id>.webp       thumbnail thu nhỏ cho ô chọn font
   src/fonts.generated.css             @font-face (trình duyệt chỉ tải file khi font được dùng)
@@ -23,6 +23,9 @@ KEEP = [*range(0x20, 0x7F), *range(0xA0, 0x250), *range(0x2B0, 0x370), *range(0x
 # Nhóm theo danh mục của fontvn.com; nhóm đứng trước được ưu tiên khi font thuộc nhiều danh mục.
 GROUPS = [('script', ('script', 'calligraphy', 'brush')), ('serif', ('serif',)), ('sans', ('sans-serif',)),
           ('display', ('display', 'gothic', 'cartoon', 'typography', 'text-effect'))]
+# piklab.vn và lengnef không có danh mục: đoán nhóm theo tên font, trừ khi mục trong piklab.json / lengnef.json ghi sẵn "group".
+NAME_GROUPS = [('script', ('script', 'brush', 'hand', 'signature', 'calligraph', 'viet tay')), ('serif', ('serif',)), ('sans', ('sans', 'grotesk', 'gothic'))]
+BOLD = re.compile(r'\bbold\b', re.I)
 UA = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/126 Safari/537.36'}
 
 
@@ -36,8 +39,11 @@ def clean_label(name):
     return re.sub(r'\s+', ' ', name)
 
 
-def category(item):
+def category(item, label):
     """Danh mục fontvn của một font; tải trang sản phẩm một lần rồi lưu lại vào manifest."""
+    if item.get('extra'):
+        name = slugify(label + ' ' + item['title']).replace('-', ' ')
+        return item.get('group') or next((g for g, keys in NAME_GROUPS if any(k in name for k in keys) and not (g == 'sans' and 'serif' in name.replace('sans serif', ''))), 'display')
     if 'categories' not in item:
         html = urllib.request.urlopen(urllib.request.Request(item['url'], headers=UA), timeout=60).read().decode('utf-8', 'ignore')
         m = re.search(r'id="product-\d+" class="([^"]*)"', html)
@@ -59,7 +65,8 @@ def describe(path):
     return {
         'path': path,
         'family': (english.toUnicode() if english else None) or name.getDebugName(16) or name.getDebugName(1) or os.path.basename(path),
-        'weight': os2.usWeightClass if os2 else 400,
+        # Nhiều font Việt hoá để nguyên độ đậm 400 cho mặt Bold: tin tên kiểu chữ và tên file hơn.
+        'weight': max(os2.usWeightClass if os2 else 400, 700 if BOLD.search(sub + ' ' + os.path.basename(path)) else 0),
         'italic': bool(os2 and os2.fsSelection & 1) or 'italic' in sub or 'oblique' in sub,
         'width': os2.usWidthClass if os2 else 5,
         'range': (int(wght.minValue), int(wght.maxValue)) if wght and wght.maxValue > wght.minValue else None,
@@ -111,12 +118,15 @@ def to_woff2(src, dst, caps_only=False):
 def main():
     manifest_path = os.path.join(SRC, 'manifest.json')
     items = json.load(open(manifest_path, encoding='utf-8'))
+    # Nguồn ngoài fontvn.com; font trùng tên giữa các nguồn chỉ lấy bản gặp trước.
+    extra = [{**i, 'extra': True} for name in ('piklab.json', 'lengnef.json') if os.path.exists(os.path.join(SRC, name))
+             for i in json.load(open(os.path.join(SRC, name), encoding='utf-8'))]
     for d in (OUT_FONTS, OUT_THUMBS):
         shutil.rmtree(d, ignore_errors=True)
         os.makedirs(d)
 
     catalog, css, skipped, used = [], [], [], set()
-    for item in items:
+    for item in items + extra:
         if not item.get('fontFiles'):
             continue
         faces = []
@@ -130,6 +140,8 @@ def main():
             skipped.append((item['slug'], 'thiếu dấu tiếng Việt'))
             continue
         label = clean_label(regular['family'])
+        if item.get('extra'):
+            label = re.sub(r'^LF\s*(?=[A-Z])', '', label)  # tiền tố của người Việt hoá (lengnef)
         fid = 'vn-' + slugify(label)
         if fid in used:
             skipped.append((item['slug'], f'trùng font {label}'))
@@ -162,7 +174,7 @@ def main():
         left, top = (thumb.width - THUMB_W) // 2, (thumb.height - THUMB_H) // 2
         thumb.crop((left, top, left + THUMB_W, top + THUMB_H)).save(os.path.join(OUT_THUMBS, fid + '.webp'), 'WEBP', quality=72, method=6)
 
-        catalog.append({'id': fid, 'label': label, 'group': category(item)})
+        catalog.append({'id': fid, 'label': label, 'group': category(item, label)})
         print(f"{fid:44} {'variable' if regular['range'] else 'đậm' if bold else 'một mặt':9} {os.path.basename(regular['path'])}")
 
     json.dump(items, open(manifest_path, 'w', encoding='utf-8'), ensure_ascii=False, indent=2)

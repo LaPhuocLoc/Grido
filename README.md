@@ -1,4 +1,4 @@
-# Grido
+# Tiệm Ghép Ảnh
 
 Ứng dụng desktop (Windows, macOS, Linux) ghép ảnh nhiều bố cục cho photographer: thêm ảnh từ máy vào thư viện, chọn ảnh, chọn khung (Instagram, Story/Reels/TikTok, Facebook…), chọn bố cục, tinh chỉnh rồi xuất ra file với chất lượng cao nhất có thể.
 
@@ -10,9 +10,9 @@ Tải bộ cài ở trang Releases của repo rồi chạy:
 
 | Hệ điều hành | File |
 | --- | --- |
-| Windows | `Grido-Setup-<phiên bản>.exe` (cài cho riêng người dùng, không cần quyền admin) |
-| macOS | `Grido-<phiên bản>-mac-<arm64 hoặc x64>.dmg` |
-| Linux | `Grido-<phiên bản>-linux-x86_64.AppImage` |
+| Windows | `TiemGhepAnh-Setup-<phiên bản>.exe` (cài cho riêng người dùng, không cần quyền admin) |
+| macOS | `TiemGhepAnh-<phiên bản>-mac-<arm64 hoặc x64>.dmg` |
+| Linux | `TiemGhepAnh-<phiên bản>-linux-x86_64.AppImage` |
 
 **Tự cập nhật**: app tự kiểm tra bản mới khi mở (và mỗi 4 giờ), tải về ở nền rồi hiện nút **Khởi động lại để cập nhật** trên thanh tiêu đề. Không bấm cũng được: bản mới tự cài khi thoát app. Thư viện và cài đặt nằm riêng trong thư mục dữ liệu của hệ điều hành nên không mất khi cập nhật.
 
@@ -82,6 +82,8 @@ Workflow tự ký khi repo có các secret dưới đây; không có thì vẫn 
 Chứng chỉ Windows hiện nay thường nằm trên token cứng / HSM đám mây chứ không xuất được `.pfx`; khi đó cấu hình `win.azureSignOptions` (Azure Trusted Signing) hoặc `win.signtoolOptions.sign` (lệnh ký riêng của nhà cung cấp) trong `package.json` thay cho hai secret trên.
 
 ## Dữ liệu trên máy
+
+App từng tên là Grido. Thư mục dữ liệu, `appId`, scheme `grido://` và khoá localStorage vẫn giữ tên cũ để người dùng cập nhật lên không mất thư viện và thiết kế.
 
 | Hệ điều hành | Thư mục dữ liệu |
 | --- | --- |

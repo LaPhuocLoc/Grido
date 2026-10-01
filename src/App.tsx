@@ -1,9 +1,11 @@
 import {
+  Check,
   ChevronLeft,
   ChevronRight,
   Crop,
   Download,
   FolderCog,
+  FolderHeart,
   ImagePlus,
   Images,
   LayoutGrid,
@@ -18,16 +20,19 @@ import {
 import { useEffect, useLayoutEffect, useRef, useState, useSyncExternalStore } from 'react'
 import { createPortal } from 'react-dom'
 import type { UpdateState } from '../shared/types'
+import { DesignsPanel } from './components/Designs'
 import { Library } from './components/Library'
+import { designTitle } from './lib/designs'
 import { toggleStyle } from './components/TextLayer'
 import { ExportPanel, LayoutPanel, SizePanel, StylePanel, TextPanel } from './components/Panels'
 import { Stage } from './components/Stage'
-import { Button, cx, IconButton, Logo, ThemeToggle, Toasts } from './components/ui'
+import { Button, cx, IconButton, Logo, ThemeToggle, Toasts, Tooltip } from './components/ui'
 import { desktop } from './lib/desktop'
 import { exportToFile, useExportProgress } from './lib/useCollage'
-import { useStore, type Tab } from './store'
+import { PANEL_WIDTH, PANEL_WIDTH_WIDE, useStore, type Tab } from './store'
 
 const TABS: { id: Tab; label: string; icon: LucideIcon }[] = [
+  { id: 'designs', label: 'Thiết kế', icon: FolderHeart },
   { id: 'library', label: 'Ảnh', icon: Images },
   { id: 'layout', label: 'Bố cục', icon: LayoutGrid },
   { id: 'size', label: 'Khung', icon: Crop },
@@ -35,6 +40,9 @@ const TABS: { id: Tab; label: string; icon: LucideIcon }[] = [
   { id: 'text', label: 'Chữ', icon: Type },
   { id: 'export', label: 'Xuất', icon: Download },
 ]
+
+/** Bề rộng dải biểu tượng của sidebar trái (px). */
+const RAIL_WIDTH = 72
 
 const desktopQuery = window.matchMedia('(min-width: 1024px)')
 const useIsDesktop = () =>
@@ -52,6 +60,7 @@ export default function App() {
       <Editor />
       <DropOverlay />
       <Toasts />
+      <Tooltip />
     </>
   )
 }
@@ -117,8 +126,11 @@ function Editor() {
   const tab = useStore((s) => s.tab)
   const setTab = (tab: Tab) => useStore.setState({ tab })
   const loadPhotos = useStore((s) => s.loadPhotos)
-  const leftCollapsed = useStore((s) => s.leftCollapsed)
-  const rightCollapsed = useStore((s) => s.rightCollapsed)
+  const collapsed = useStore((s) => s.leftCollapsed)
+  const panelWidth = useStore((s) => s.panelWidth)
+  const [resizing, setResizing] = useState(false)
+  // Bảng không hẹp hơn mặc định và không chiếm quá nửa cửa sổ, để khung ảnh luôn còn đủ chỗ.
+  const panelCss = `clamp(${PANEL_WIDTH}px, ${panelWidth}px, 50vw)`
   const setSettings = useStore((s) => s.set)
   useEffect(() => void loadPhotos(), [loadPhotos])
 
@@ -172,49 +184,48 @@ function Editor() {
     }
   }, [])
 
-  // Cửa sổ đủ rộng thì thư viện luôn hiện ở cột trái nên panel phải không có tab "Ảnh".
-  const activeTab = isDesktop && tab === 'library' ? 'layout' : tab
-  const tabs = isDesktop ? TABS.filter((t) => t.id !== 'library') : TABS
   const panel =
-    activeTab === 'library' ? (
+    tab === 'library' ? (
       <Library />
     ) : (
-      <div key={activeTab} className="animate-fade p-4">
-        {activeTab === 'size' && <SizePanel />}
-        {activeTab === 'layout' && <LayoutPanel />}
-        {activeTab === 'style' && <StylePanel />}
-        {activeTab === 'text' && <TextPanel />}
-        {activeTab === 'export' && <ExportPanel />}
+      <div key={tab} className="animate-fade p-4">
+        {tab === 'designs' && <DesignsPanel />}
+        {tab === 'size' && <SizePanel />}
+        {tab === 'layout' && <LayoutPanel />}
+        {tab === 'style' && <StylePanel />}
+        {tab === 'text' && <TextPanel />}
+        {tab === 'export' && <ExportPanel />}
       </div>
     )
 
-  const tabBar = <TabBar tabs={tabs} active={activeTab} wide={isDesktop} onSelect={setTab} />
+  // Bấm mục đang mở thì thu gọn sidebar (chỉ còn dải biểu tượng); bấm mục khác thì mở ra ở mục đó.
+  const openTab = (id: Tab) => {
+    if (id === tab && !collapsed) return setSettings({ leftCollapsed: true })
+    setTab(id)
+    if (collapsed) setSettings({ leftCollapsed: false })
+  }
 
   return (
     <div className="flex h-dvh animate-app flex-col">
       <TitleBar />
       {isDesktop ? (
         <div
-          className="grid min-h-0 flex-1 grid-rows-[minmax(0,1fr)] transition-[grid-template-columns] duration-300 ease-glide"
-          style={{ gridTemplateColumns: `${leftCollapsed ? 0 : 300}px minmax(0, 1fr) ${rightCollapsed ? 0 : 384}px` }}
+          // Đang kéo mép để đổi bề rộng thì bảng phải bám tay ngay, không trượt theo hiệu ứng.
+          className={cx('grid min-h-0 flex-1 grid-rows-[minmax(0,1fr)]', !resizing && 'transition-[grid-template-columns] duration-300 ease-glide')}
+          style={{ gridTemplateColumns: `${RAIL_WIDTH}px ${collapsed ? '0px' : panelCss} minmax(0, 1fr)` }}
         >
+          <Rail active={collapsed ? null : tab} onSelect={openTab} />
           {/* Nội dung giữ nguyên bề rộng, cột bao ngoài co lại và cắt bớt → panel trượt vào thay vì bị bóp méo. */}
-          <aside inert={leftCollapsed} className={cx('min-h-0 overflow-hidden bg-paper', !leftCollapsed && 'border-r border-line')}>
-            <div className="h-full w-[299px]">
-              <Library />
+          <aside inert={collapsed} className={cx('min-h-0 overflow-hidden bg-paper', !collapsed && 'border-r border-line')}>
+            <div className="ml-auto flex h-full flex-col" style={{ width: `calc(${panelCss} - 1px)` }}>
+              {tab === 'library' ? panel : <div className="scroll-soft min-h-0 flex-1 overflow-y-auto">{panel}</div>}
             </div>
           </aside>
           <main className="relative min-h-0">
             <Stage />
-            <PanelToggle side="left" collapsed={leftCollapsed} onToggle={() => setSettings({ leftCollapsed: !leftCollapsed })} />
-            <PanelToggle side="right" collapsed={rightCollapsed} onToggle={() => setSettings({ rightCollapsed: !rightCollapsed })} />
+            {!collapsed && <PanelResizer width={panelWidth} onResize={(w) => setSettings({ panelWidth: w })} onActive={setResizing} />}
+            <PanelToggle collapsed={collapsed} onToggle={() => setSettings({ leftCollapsed: !collapsed })} />
           </main>
-          <aside inert={rightCollapsed} className={cx('min-h-0 overflow-hidden bg-paper', !rightCollapsed && 'border-l border-line')}>
-            <div className="ml-auto flex h-full w-[383px] flex-col">
-              {tabBar}
-              <div className="scroll-soft min-h-0 flex-1 overflow-y-auto">{panel}</div>
-            </div>
-          </aside>
         </div>
       ) : (
         <>
@@ -222,37 +233,95 @@ function Editor() {
             <Stage />
           </main>
           <div className="scroll-soft min-h-0 flex-1 overflow-y-auto border-t border-line bg-paper">{panel}</div>
-          {tabBar}
+          <TabBar active={tab} onSelect={setTab} />
         </>
       )}
     </div>
   )
 }
 
-/** Nút nhỏ ở mép khung làm việc để thu gọn / mở lại panel thư viện (trái) hoặc panel công cụ (phải). */
-function PanelToggle({ side, collapsed, onToggle }: { side: 'left' | 'right'; collapsed: boolean; onToggle: () => void }) {
-  const name = side === 'left' ? 'thư viện ảnh' : 'bảng công cụ'
-  const label = `${collapsed ? 'Mở' : 'Thu gọn'} ${name}`
-  // Mũi tên chỉ về hướng panel sẽ di chuyển.
-  const Icon = (side === 'left') === collapsed ? ChevronRight : ChevronLeft
+/** Dải biểu tượng luôn hiện ở mép trái: chọn mục nào thì bảng bên cạnh mở ra mục đó. */
+function Rail({ active, onSelect }: { active: Tab | null; onSelect: (tab: Tab) => void }) {
+  return (
+    <nav aria-label="Công cụ" className="scroll-soft flex min-h-0 flex-col gap-1 overflow-y-auto border-r border-line bg-card px-1.5 py-2.5">
+      {TABS.map(({ id, label, icon: Icon }) => {
+        const current = active === id
+        return (
+          <button
+            key={id}
+            type="button"
+            aria-pressed={current}
+            aria-expanded={current}
+            onClick={() => onSelect(id)}
+            className={cx(
+              'group flex w-full shrink-0 flex-col items-center gap-1 rounded-xl py-1.5 text-[11px] font-semibold transition-colors focus-visible:-outline-offset-2',
+              current ? 'text-coral-dark' : 'text-soft hover:text-ink',
+            )}
+          >
+            <span className={cx('grid h-8 w-11 place-items-center rounded-xl transition-colors duration-200', current ? 'bg-blush' : 'group-hover:bg-sand')}>
+              <Icon className={cx('size-5 transition-transform duration-300 ease-glide', current && 'scale-110')} />
+            </span>
+            {label}
+          </button>
+        )
+      })}
+    </nav>
+  )
+}
+
+/**
+ * Mép phải của bảng công cụ: kéo để đổi bề rộng (xem được nhiều font / ảnh / thiết kế cùng lúc hơn mà không che khung ảnh),
+ * bấm đúp để nhảy giữa bề rộng thường và rộng.
+ */
+function PanelResizer({ width, onResize, onActive }: { width: number; onResize: (width: number) => void; onActive: (active: boolean) => void }) {
+  const drag = useRef(false)
+  const limit = (w: number) => Math.round(Math.min(Math.max(w, PANEL_WIDTH), window.innerWidth / 2))
+  const end = () => {
+    drag.current = false
+    onActive(false)
+  }
+  return (
+    <div
+      role="separator"
+      aria-orientation="vertical"
+      aria-label="Kéo để đổi bề rộng bảng công cụ"
+      onPointerDown={(e) => {
+        if (e.button !== 0) return
+        e.currentTarget.setPointerCapture(e.pointerId)
+        drag.current = true
+        onActive(true)
+      }}
+      onPointerMove={(e) => drag.current && onResize(limit(e.clientX - RAIL_WIDTH))}
+      onPointerUp={end}
+      onPointerCancel={end}
+      onDoubleClick={() => onResize(limit(width) > PANEL_WIDTH + 40 ? PANEL_WIDTH : limit(PANEL_WIDTH_WIDE))}
+      className="group absolute inset-y-0 -left-1 z-40 w-2.5 cursor-col-resize touch-none"
+    >
+      <span className="absolute inset-y-0 left-1 w-0.5 bg-coral opacity-0 transition-opacity duration-150 group-hover:opacity-100 group-active:opacity-100" />
+    </div>
+  )
+}
+
+/** Nút nhỏ ở mép trái khung làm việc để thu gọn / mở lại bảng công cụ. */
+function PanelToggle({ collapsed, onToggle }: { collapsed: boolean; onToggle: () => void }) {
+  const label = `${collapsed ? 'Mở' : 'Thu gọn'} bảng công cụ`
+  const Icon = collapsed ? ChevronRight : ChevronLeft
   return (
     <button
       type="button"
       aria-label={label}
       aria-expanded={!collapsed}
-      title={label}
+      data-tip={label}
       onClick={onToggle}
-      className={cx(
-        'absolute top-1/2 z-40 grid h-12 w-5 -translate-y-1/2 place-items-center border border-line bg-card text-muted shadow-sm transition-colors hover:bg-surface hover:text-ink',
-        side === 'left' ? 'left-0 rounded-r-lg border-l-0' : 'right-0 rounded-l-lg border-r-0',
-      )}
+      className="absolute left-0 top-1/2 z-40 grid h-12 w-5 -translate-y-1/2 place-items-center rounded-r-lg border border-l-0 border-line bg-card text-muted shadow-sm transition-colors hover:bg-surface hover:text-ink"
     >
       <Icon className="size-4" />
     </button>
   )
 }
 
-function TabBar({ tabs, active, wide, onSelect }: { tabs: typeof TABS; active: Tab; wide: boolean; onSelect: (tab: Tab) => void }) {
+/** Thanh tab ở đáy cửa sổ hẹp. */
+function TabBar({ active, onSelect }: { active: Tab; onSelect: (tab: Tab) => void }) {
   const row = useRef<HTMLDivElement>(null)
   const [pill, setPill] = useState<{ left: number; width: number } | null>(null)
 
@@ -269,10 +338,10 @@ function TabBar({ tabs, active, wide, onSelect }: { tabs: typeof TABS; active: T
     observer.observe(el)
     void document.fonts.ready.then(measure)
     return () => observer.disconnect()
-  }, [active, wide, tabs.length])
+  }, [active])
 
   return (
-    <nav className={cx(wide ? 'border-b border-line p-2' : 'border-t border-line bg-card px-2 py-1.5')}>
+    <nav className="border-t border-line bg-card px-2 py-1.5">
       <div ref={row} className="relative flex gap-0.5">
         {/* Nền của tab đang chọn trượt sang tab mới thay vì nhảy cóc. */}
         {pill && (
@@ -282,19 +351,18 @@ function TabBar({ tabs, active, wide, onSelect }: { tabs: typeof TABS; active: T
             style={{ width: pill.width, transform: `translateX(${pill.left}px)` }}
           />
         )}
-        {tabs.map(({ id, label, icon: Icon }) => (
+        {TABS.map(({ id, label, icon: Icon }) => (
           <button
             key={id}
             type="button"
             aria-pressed={active === id}
             onClick={() => onSelect(id)}
             className={cx(
-              'relative flex flex-auto items-center justify-center whitespace-nowrap rounded-xl font-semibold transition-colors duration-200 focus-visible:-outline-offset-2',
-              wide ? 'h-9 gap-1.5 px-2 text-[12.5px]' : 'h-12 flex-col gap-0.5 px-1 text-[11px]',
+              'relative flex h-12 flex-auto flex-col items-center justify-center gap-0.5 whitespace-nowrap rounded-xl px-1 text-[11px] font-semibold transition-colors duration-200 focus-visible:-outline-offset-2',
               active === id ? 'text-coral-dark' : 'text-soft hover:text-ink',
             )}
           >
-            <Icon className={cx('shrink-0 transition-transform duration-300 ease-glide', wide ? 'size-4' : 'size-5', active === id && 'scale-110')} />
+            <Icon className={cx('size-5 shrink-0 transition-transform duration-300 ease-glide', active === id && 'scale-110')} />
             {label}
           </button>
         ))}
@@ -343,7 +411,7 @@ function useUpdates() {
     const { toast } = useStore.getState()
     if (state.status === 'unsupported') return toast('Bản chạy từ mã nguồn không tự cập nhật.')
     if (state.status === 'available') return setAsking(true)
-    if (state.status === 'downloading') return toast(`Đang tải Grido ${state.version}…`)
+    if (state.status === 'downloading') return toast(`Đang tải Tiệm Ghép Ảnh ${state.version}…`)
     if (state.status === 'ready') return void desktop.updates.install()
     manual.current = true
     void desktop.updates.check()
@@ -372,11 +440,11 @@ function UpdateDialog({ version, current, onConfirm, onCancel }: { version: stri
         onPointerDown={(e) => e.stopPropagation()}
       >
         <h2 id="update-title" className="font-display text-lg font-bold text-ink">
-          Đã có Grido {version}
+          Đã có Tiệm Ghép Ảnh {version}
         </h2>
         <p className="mt-2 text-sm leading-relaxed text-soft">
           {current && <>Bạn đang dùng bản {current}. </>}
-          Grido sẽ tải bản mới về, tự cài rồi mở lại. Ảnh ghép đang làm dở và thư viện ảnh được giữ nguyên.
+          Tiệm Ghép Ảnh sẽ tải bản mới về, tự cài rồi mở lại. Ảnh ghép đang làm dở và thư viện ảnh được giữ nguyên.
         </p>
         <div className="mt-5 flex gap-2">
           <Button className="flex-1" onClick={onCancel}>
@@ -398,6 +466,8 @@ function UpdateDialog({ version, current, onConfirm, onCancel }: { version: stri
  */
 function TitleBar() {
   const hasCollage = useStore((s) => !!s.tree)
+  // Tên thiết kế đang mở; chuỗi rỗng khi khung còn trống.
+  const design = useStore((s) => (s.tree && s.currentDesignId ? designTitle(s.designs.find((d) => d.id === s.currentDesignId)?.name ?? null, s.texts) : ''))
   const progress = useExportProgress((s) => s.progress)
   const [menu, setMenu] = useState(false)
   const [version, setVersion] = useState('')
@@ -416,7 +486,23 @@ function TitleBar() {
 
   return (
     <header className="titlebar relative z-30 flex h-12 shrink-0 items-center justify-between border-b border-line bg-card">
-      <Logo size={22} />
+      <div className="flex min-w-0 items-center gap-3">
+        <Logo size={22} />
+        {design && (
+          <button
+            type="button"
+            data-tip="Thiết kế đang mở · tự động lưu. Bấm để xem tất cả thiết kế"
+            onClick={() => useStore.setState({ tab: 'designs', leftCollapsed: false })}
+            className="no-drag flex h-8 min-w-0 animate-fade items-center gap-2 rounded-full px-3 text-[13px] font-semibold text-soft transition-colors hover:bg-sand hover:text-ink"
+          >
+            <span className="truncate">{design}</span>
+            <span className="flex shrink-0 items-center gap-1 text-[11px] font-medium text-muted">
+              <Check className="size-3" />
+              Đã lưu
+            </span>
+          </button>
+        )}
+      </div>
       <div className="no-drag flex items-center gap-2">
         {update.status === 'downloading' && (
           <span className="relative flex h-8 animate-pop items-center overflow-hidden rounded-full bg-sand px-3 text-[12.5px] font-semibold tabular-nums text-soft">
@@ -430,7 +516,7 @@ function TitleBar() {
           <button
             type="button"
             onClick={check}
-            title={`Cập nhật lên Grido ${update.version}`}
+            data-tip={`Cập nhật lên Tiệm Ghép Ảnh ${update.version}`}
             className="flex h-8 animate-pop items-center gap-1.5 rounded-full bg-blush px-3 text-[12.5px] font-semibold text-coral-dark transition hover:brightness-95 active:scale-95"
           >
             <RotateCw className="size-3.5" />
@@ -453,7 +539,7 @@ function TitleBar() {
               <div className="fixed inset-0" onClick={() => setMenu(false)} />
               <div className="absolute right-0 top-10 w-64 origin-top-right animate-pop rounded-2xl border border-line bg-card p-2 shadow-lift">
                 <div className="px-3 py-2">
-                  <p className="text-sm font-semibold">Grido</p>
+                  <p className="text-sm font-semibold">Tiệm Ghép Ảnh</p>
                   <p className="text-xs text-muted">Phiên bản {version}</p>
                 </div>
                 <button

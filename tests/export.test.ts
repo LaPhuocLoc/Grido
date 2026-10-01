@@ -68,13 +68,13 @@ describe('exporting', () => {
   })
 
   it('writes the encoded image to the chosen path and offers to open the folder', async () => {
-    get().set({ presetId: 'ig-square', exportScale: 2, exportFormat: 'image/png' })
+    get().set({ presetId: 'ig-square', exportFormat: 'image/png' })
     await collage.exportToFile()
     expect(fake.saved).toHaveLength(1)
     expect(fake.saved[0].path).toBe('C:\\out\\collage.jpg')
-    expect(fake.saved[0].suggested).toMatch(/^grido-\d{8}-\d{6}\.png$/)
+    expect(fake.saved[0].suggested).toMatch(/^tiem-ghep-anh-\d{8}-\d{6}\.png$/)
     expect([...new Uint8Array(fake.saved[0].bytes)]).toEqual([1, 2, 3])
-    expect(renderCollage.mock.calls[0][0]).toMatchObject({ width: 2160, height: 2160 })
+    expect(renderCollage.mock.calls[0][0]).toMatchObject({ width: 1080, height: 1080 })
     expect(get().toasts).toMatchObject([{ kind: 'success', action: { label: 'Mở thư mục' } }])
   })
 
@@ -88,10 +88,11 @@ describe('exporting', () => {
     expect(renderCollage.mock.calls[1][1]).toBeGreaterThan(0)
   })
 
-  it('never exceeds the largest allowed output edge', async () => {
-    get().set({ presetId: 'custom', customW: 6000, customH: 3000, exportScale: 3 })
+  it('exports at exactly the frame size, ignoring a scale saved by an older version', async () => {
+    store.useStore.setState({ exportScale: 3 } as never)
+    get().set({ presetId: 'custom', customW: 6000, customH: 3000 })
     await collage.exportToFile()
-    expect(renderCollage.mock.calls[0][0]).toMatchObject({ width: 10000, height: 5000 })
+    expect(renderCollage.mock.calls[0][0]).toMatchObject({ width: 6000, height: 3000 })
   })
 
   it('reports a failed export and becomes ready for another try', async () => {

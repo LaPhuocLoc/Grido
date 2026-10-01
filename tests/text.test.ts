@@ -1,5 +1,7 @@
-import { describe, expect, it } from 'vitest'
-import { lineStart, normalizeText, snapAngle, wrapLines } from '../src/lib/text'
+import { afterEach, describe, expect, it, vi } from 'vitest'
+import { anchorShift, drawText, fontInfo, isSystemFont, systemFont, lineStart, normalizeText, snapAngle, wrapLines, type TextItem } from '../src/lib/text'
+
+afterEach(() => vi.unstubAllGlobals())
 
 /** Mỗi ký tự rộng 10px — đủ để kiểm tra chỗ ngắt dòng mà không cần font thật. */
 const measure = (s: string) => s.length * 10
@@ -49,6 +51,10 @@ describe('normalizeText', () => {
       align: 'center',
       rotation: 0,
       width: null,
+      spacing: 0,
+      lineHeight: 1.25,
+      anchor: 'middle',
+      opacity: 100,
     })
   })
 
@@ -72,5 +78,81 @@ describe('snapAngle', () => {
   it('keeps the angle within -180..180', () => {
     expect(snapAngle(200)).toBe(-160)
     expect(snapAngle(-178)).toBe(180)
+  })
+})
+
+describe('anchorShift', () => {
+  it('leaves the centre alone when the box is anchored in the middle', () => {
+    expect(anchorShift('middle', 40, 0)).toEqual({ dx: 0, dy: 0 })
+  })
+
+  it('moves the centre down by half the growth so the top edge stays put, and up for a bottom anchor', () => {
+    expect(anchorShift('top', 40, 0)).toEqual({ dx: 0, dy: 20 })
+    expect(anchorShift('bottom', 40, 0)).toEqual({ dx: 0, dy: -20 })
+    expect(anchorShift('top', -40, 0)).toEqual({ dx: 0, dy: -20 })
+  })
+
+  it('follows the box’s own vertical axis when the text is rotated', () => {
+    const { dx, dy } = anchorShift('top', 40, 90)
+    expect(dx).toBeCloseTo(-20)
+    expect(dy).toBeCloseTo(0)
+  })
+})
+
+describe('drawText', () => {
+  /** Canvas giả: mỗi ký tự rộng 10px cộng giãn cách, ghi lại những gì được vẽ. */
+  function fakeContext() {
+    const calls: { text: string; x: number; y: number; alpha: number; spacing: string }[] = []
+    const ctx = {
+      globalAlpha: 1,
+      letterSpacing: '0px',
+      save() {},
+      restore() {},
+      translate() {},
+      rotate() {},
+      fillRect() {},
+      measureText(s: string) {
+        return { width: s.length * (10 + parseFloat(ctx.letterSpacing)), fontBoundingBoxAscent: 8, fontBoundingBoxDescent: 2 }
+      },
+      fillText(text: string, x: number, y: number) {
+        calls.push({ text, x, y, alpha: ctx.globalAlpha, spacing: ctx.letterSpacing })
+      },
+    }
+    return { ctx: ctx as unknown as CanvasRenderingContext2D, calls }
+  }
+  const item = (extra: Partial<TextItem>) => normalizeText({ id: 't', text: 'ab\ncd', shadow: false, align: 'left', ...extra })
+
+  it('spaces lines by the caption’s own line height', async () => {
+    vi.stubGlobal('document', { fonts: { load: async () => [] } })
+    const tight = fakeContext()
+    await drawText(tight.ctx, item({ lineHeight: 1 }), 0, 0, 100)
+    const loose = fakeContext()
+    await drawText(loose.ctx, item({ lineHeight: 2 }), 0, 0, 100)
+    expect(tight.calls[1].y - tight.calls[0].y).toBe(100)
+    expect(loose.calls[1].y - loose.calls[0].y).toBe(200)
+  })
+
+  it('applies letter spacing (in thousandths of the font size) and opacity', async () => {
+    vi.stubGlobal('document', { fonts: { load: async () => [] } })
+    const { ctx, calls } = fakeContext()
+    await drawText(ctx, item({ spacing: 200, opacity: 40, align: 'center' }), 0, 0, 50)
+    expect(calls[0]).toMatchObject({ spacing: '10px', alpha: 0.4 })
+    // Dòng 2 ký tự rộng 2 × (10 + 10) = 40px nên bắt đầu ở -20 khi căn giữa.
+    expect(calls[0].x).toBe(-20)
+  })
+})
+
+describe('system fonts', () => {
+  it('resolves a font installed on the computer from its id, and falls back to the first app font for unknown ids', () => {
+    const font = systemFont('SF Pro Display')
+    expect(font).toMatchObject({ id: 'sys:SF Pro Display', label: 'SF Pro Display', family: '"SF Pro Display", sans-serif' })
+    expect(isSystemFont(font.id)).toBe(true)
+    expect(fontInfo(font.id)).toEqual(font)
+    expect(isSystemFont('round')).toBe(false)
+    expect(fontInfo('no-such-font').id).toBe('sans')
+  })
+
+  it('keeps quotes in a family name from breaking the CSS font-family value', () => {
+    expect(systemFont('Weird "Name"').family).toBe('"Weird Name", sans-serif')
   })
 })

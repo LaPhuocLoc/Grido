@@ -5,7 +5,6 @@ import { desktop } from './desktop'
 import { DEFAULT_ADJUST } from './geometry'
 import { encodeCanvas } from './imaging/encode'
 import { renderCollage, type CollageSpec } from './imaging/exportCollage'
-import { MAX_EXPORT_EDGE } from './presets'
 
 type StoreState = ReturnType<typeof useStore.getState>
 export type SpecSource = Pick<
@@ -38,8 +37,6 @@ export function buildSpec(s: SpecSource, scale = 1): CollageSpec | null {
   }
 }
 
-export const maxExportScale = (width: number, height: number) => MAX_EXPORT_EDGE / Math.max(width, height)
-
 const EXT: Record<ExportFormat, string> = { 'image/jpeg': 'jpg', 'image/png': 'png', 'image/webp': 'webp' }
 
 /** Mức làm nét đầu ra → cường độ unsharp mask. "Chuẩn" tương đương Sharpen for Screen: Standard của Lightroom. */
@@ -52,14 +49,14 @@ export const useExportProgress = create<{ progress: number | null }>(() => ({ pr
 export async function exportToFile() {
   const s = useStore.getState()
   if (useExportProgress.getState().progress !== null) return
-  const base = canvasSize(s)
-  const spec = buildSpec(s, Math.min(s.exportScale, maxExportScale(base.width, base.height)))
+  // File xuất đúng bằng kích thước khung (1×).
+  const spec = buildSpec(s)
   if (!spec) return s.toast('Chọn ít nhất một ảnh để ghép đã nhé.')
   useExportProgress.setState({ progress: 0 })
   try {
     // Hỏi nơi lưu trước: người dùng huỷ thì khỏi tốn công dựng ảnh.
     const stamp = new Date().toISOString().slice(0, 19).replace(/[-:]/g, '').replace('T', '-')
-    const target = await desktop.exportFile.pick(`grido-${stamp}.${EXT[s.exportFormat]}`)
+    const target = await desktop.exportFile.pick(`tiem-ghep-anh-${stamp}.${EXT[s.exportFormat]}`)
     if (!target) return
     const canvas = await renderCollage(spec, SHARPEN_AMOUNT[s.exportSharpen], (done, total) =>
       useExportProgress.setState({ progress: (done / total) * 0.8 }),

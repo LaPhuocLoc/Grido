@@ -1,4 +1,4 @@
-import { ArrowLeftRight, Bookmark, Download, Heart, LoaderCircle, Plus, TriangleAlert, X } from 'lucide-react'
+import { ArrowLeftRight, Bookmark, Download, Heart, Image as ImageIcon, LoaderCircle, TriangleAlert, Type, X } from 'lucide-react'
 import { memo, useMemo, useState } from 'react'
 import { placeImage } from '../lib/geometry'
 import { collageLayout } from '../lib/imaging/exportCollage'
@@ -6,22 +6,43 @@ import { computeLayout } from '../lib/layout/compute'
 import { parseLayout } from '../lib/layout/dsl'
 import { getLayouts, totalLayoutCount } from '../lib/layout/registry'
 import type { LayoutCategory, LayoutNode } from '../lib/layout/types'
-import { BACKGROUNDS, CUSTOM_PRESET_ID, MAX_CANVAS, MIN_CANVAS, SIZE_PRESETS } from '../lib/presets'
-import { buildSpec, exportToFile, maxExportScale, useExportProgress } from '../lib/useCollage'
-import { canvasSize, pctToPx, useStore, type ExportFormat, type ExportSharpen } from '../store'
+import {
+  BACKGROUNDS,
+  CUSTOM_PRESET_ID,
+  MAX_CANVAS,
+  MIN_CANVAS,
+  ORIGINAL_PRESET_ID,
+  PLATFORMS,
+  SIZE_PRESETS,
+  type Platform,
+} from '../lib/presets'
+import { buildSpec, exportToFile, useExportProgress } from '../lib/useCollage'
+import { canvasSize, originalCanvasOf, pctToPx, useStore, type ExportFormat, type ExportSharpen } from '../store'
 import { FontPicker } from './FontPicker'
+import { PresetArt } from './PresetArt'
 import { Button, cx, Section, Segmented, Slider } from './ui'
 
 /* ───────────── Khung ảnh ───────────── */
+
+type PresetGroup = Platform | 'fav'
+
+const PRESET_GROUPS: { id: PresetGroup; label: string }[] = [...PLATFORMS, { id: 'fav', label: 'Yêu thích' }]
 
 export function SizePanel() {
   const presetId = useStore((s) => s.presetId)
   const customW = useStore((s) => s.customW)
   const customH = useStore((s) => s.customH)
-  const set = useStore((s) => s.set)
-  const groups = useMemo(() => [...new Set(SIZE_PRESETS.map((p) => p.group))], [])
+  const favoritePresets = useStore((s) => s.favoritePresets)
+  const firstPhoto = useStore((s) => s.photos.find((p) => p.id === s.selected[0]))
+  const { set, toggleFavoritePreset, applyOriginalSize } = useStore.getState()
+  // Mở tab ở đúng nền tảng của khung đang dùng.
+  const [group, setGroup] = useState<PresetGroup>(() => SIZE_PRESETS.find((p) => p.id === presetId)?.platform ?? 'instagram')
   const isCustom = presetId === CUSTOM_PRESET_ID
+  const isOriginal = presetId === ORIGINAL_PRESET_ID
   const current = canvasSize({ presetId, customW, customH })
+  const original = isOriginal ? current : firstPhoto && originalCanvasOf(firstPhoto)
+  const favSet = useMemo(() => new Set(favoritePresets), [favoritePresets])
+  const shown = SIZE_PRESETS.filter((p) => (group === 'fav' ? favSet.has(p.id) : p.platform === group))
 
   const dimension = (value: number, onChange: (v: number) => void, label: string) => (
     <label className="flex-1 space-y-1">
@@ -41,40 +62,106 @@ export function SizePanel() {
 
   return (
     <div className="space-y-6">
-      {groups.map((group) => (
-        <Section key={group} title={group}>
-          <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-1">
-            {SIZE_PRESETS.filter((p) => p.group === group).map((p) => {
+      <button
+        type="button"
+        aria-pressed={isOriginal}
+        disabled={!firstPhoto}
+        onClick={applyOriginalSize}
+        className={cx(
+          'flex w-full items-center gap-3 rounded-2xl border px-3 py-2.5 text-left transition-all disabled:opacity-60',
+          isOriginal ? 'border-coral bg-blush shadow-sm' : 'border-line bg-card enabled:hover:border-edge enabled:hover:bg-surface',
+        )}
+      >
+        <span className={cx('grid size-9 shrink-0 place-items-center rounded-xl', isOriginal ? 'bg-coral/15 text-coral-dark' : 'bg-sand text-soft')}>
+          <ImageIcon className="size-[18px]" />
+        </span>
+        <span className="min-w-0 flex-1">
+          <span className="block text-[13px] font-semibold">Ảnh gốc</span>
+          <span className="block text-[11px] leading-snug text-muted">
+            {firstPhoto ? 'Theo ảnh đầu tiên' : 'Chọn ảnh để dùng kích thước gốc'}
+          </span>
+        </span>
+        {original && (
+          <span className={cx('shrink-0 text-xs font-bold tabular-nums', isOriginal ? 'text-coral-dark' : 'text-soft')}>
+            {original.width}×{original.height}
+          </span>
+        )}
+      </button>
+
+      <Section title="Khung theo nền tảng">
+        <div className="flex gap-1.5">
+          {PRESET_GROUPS.map((g) => (
+            <button
+              key={g.id}
+              type="button"
+              aria-pressed={group === g.id}
+              onClick={() => setGroup(g.id)}
+              className={cx(
+                'flex h-8 flex-auto items-center justify-center gap-1 whitespace-nowrap rounded-full px-2 text-xs font-semibold transition-colors active:scale-95',
+                group === g.id ? 'bg-ink text-paper' : 'bg-sand text-soft hover:text-ink',
+              )}
+            >
+              {g.id === 'fav' && <Heart className="size-3 shrink-0" />}
+              {g.label}
+              {g.id === 'fav' && <span className="font-normal opacity-60">{favoritePresets.length}</span>}
+            </button>
+          ))}
+        </div>
+
+        {shown.length ? (
+          <div key={group} className="grid animate-fade grid-cols-[repeat(auto-fill,minmax(140px,1fr))] gap-2">
+            {shown.map((p) => {
               const active = p.id === presetId
-              const scale = 26 / Math.max(p.width, p.height)
+              const fav = favSet.has(p.id)
               return (
-                <button
-                  key={p.id}
-                  type="button"
-                  aria-pressed={active}
-                  onClick={() => set({ presetId: p.id })}
-                  className={cx(
-                    'flex items-center gap-3 rounded-2xl border px-3 py-2 text-left transition-all',
-                    active ? 'border-coral bg-blush shadow-sm' : 'border-line bg-card hover:border-edge hover:bg-surface',
-                  )}
-                >
-                  <span className="grid size-8 shrink-0 place-items-center">
-                    <span
-                      className={cx('rounded-[3px] border-2', active ? 'border-coral bg-coral/20' : 'border-muted/70')}
-                      style={{ width: p.width * scale, height: p.height * scale }}
-                    />
-                  </span>
-                  <span className="min-w-0 flex-1 truncate text-[13px] font-semibold">{p.label}</span>
-                  <span className="shrink-0 text-right text-[11px] leading-tight tabular-nums text-muted">
-                    <b className={cx('block text-xs', active ? 'text-coral-dark' : 'text-soft')}>{p.ratio}</b>
-                    {p.width}×{p.height}
-                  </span>
-                </button>
+                <div key={p.id} className="group relative">
+                  <button
+                    type="button"
+                    aria-pressed={active}
+                    onClick={() => set({ presetId: p.id })}
+                    className={cx(
+                      'block w-full overflow-hidden rounded-2xl border text-left transition-all',
+                      active ? 'border-coral bg-blush shadow-sm' : 'border-line bg-card hover:border-edge hover:shadow-sm',
+                    )}
+                  >
+                    <span className={cx('block', active ? 'bg-coral/10' : 'bg-sand')}>
+                      <PresetArt preset={p} />
+                    </span>
+                    <span className="block px-2.5 py-2">
+                      {group === 'fav' && (
+                        <span className="block text-[10px] font-semibold uppercase tracking-wide text-muted">
+                          {PLATFORMS.find((x) => x.id === p.platform)?.label}
+                        </span>
+                      )}
+                      <span className="block truncate text-[13px] font-semibold">{p.label}</span>
+                      <span className="block text-[11px] tabular-nums text-muted">
+                        <b className={active ? 'text-coral-dark' : 'text-soft'}>{p.ratio}</b> · {p.width}×{p.height}
+                      </span>
+                    </span>
+                  </button>
+                  <button
+                    type="button"
+                    aria-pressed={fav}
+                    aria-label={fav ? `Bỏ thích khung ${p.label}` : `Thích khung ${p.label}`}
+                    data-tip={fav ? 'Bỏ khỏi Yêu thích' : 'Thêm vào Yêu thích'}
+                    onClick={() => toggleFavoritePreset(p.id)}
+                    className={cx(
+                      'absolute right-1.5 top-1.5 grid size-6 place-items-center rounded-full bg-card shadow-sm transition-all hover:scale-110 active:scale-90 focus-visible:opacity-100',
+                      fav ? 'text-coral' : 'text-soft opacity-0 hover:text-coral group-hover:opacity-100 [@media(hover:none)]:opacity-60',
+                    )}
+                  >
+                    <Heart key={String(fav)} className={cx('size-3.5', fav && 'animate-pop fill-current')} />
+                  </button>
+                </div>
               )
             })}
           </div>
-        </Section>
-      ))}
+        ) : (
+          <p className="rounded-2xl bg-sand p-4 text-[13px] leading-relaxed text-soft">
+            Chưa có khung yêu thích nào. Bấm biểu tượng <Heart className="inline size-3.5 align-[-2px]" /> ở góc một khung để thêm vào đây.
+          </p>
+        )}
+      </Section>
 
       <Section title="Tuỳ chỉnh">
         <div
@@ -92,7 +179,7 @@ export function SizePanel() {
             <button
               type="button"
               aria-label="Đảo chiều rộng và cao"
-              title="Đảo chiều"
+              data-tip="Đảo chiều"
               onClick={() => set({ presetId: CUSTOM_PRESET_ID, customW: current.height, customH: current.width })}
               className="mb-0.5 grid size-9 shrink-0 place-items-center rounded-full text-soft hover:bg-surface hover:text-ink"
             >
@@ -195,7 +282,7 @@ export function LayoutPanel() {
       <div className="rounded-2xl bg-sand p-5 text-center">
         <p className="font-display text-base font-bold">Chưa chọn ảnh nào</p>
         <p className="mt-1 text-[13px] leading-relaxed text-soft">
-          Chọn từ 1 đến 12 ảnh trong thư viện, Grido có sẵn <b>{total}</b> bố cục để bạn thử.
+          Chọn từ 1 đến 12 ảnh trong thư viện, Tiệm Ghép Ảnh có sẵn <b>{total}</b> bố cục để bạn thử.
         </p>
       </div>
     )
@@ -216,7 +303,7 @@ export function LayoutPanel() {
         : category === 'saved'
           ? []
           : all.filter((l) => l.category === category)
-  const grid = 'grid grid-cols-4 items-start gap-2 sm:grid-cols-6 lg:grid-cols-4'
+  const grid = 'grid grid-cols-[repeat(auto-fill,minmax(68px,1fr))] items-start gap-2'
 
   return (
     <Section title={`Bố cục cho ${n} ảnh`} hint={`${all.length} kiểu`}>
@@ -273,7 +360,7 @@ export function LayoutPanel() {
                   <button
                     type="button"
                     aria-label={`Xoá bố cục đã lưu ${i + 1}`}
-                    title="Xoá khỏi mục Đã lưu"
+                    data-tip="Xoá khỏi mục Đã lưu"
                     onClick={() => removeSavedLayout(l.id)}
                     className={cx(tileAction, 'text-soft opacity-0 hover:text-coral-dark group-hover:opacity-100 [@media(hover:none)]:opacity-80')}
                   >
@@ -309,7 +396,7 @@ export function LayoutPanel() {
                   type="button"
                   aria-pressed={fav}
                   aria-label={fav ? `Bỏ thích bố cục ${i + 1}` : `Thích bố cục ${i + 1}`}
-                  title={fav ? 'Bỏ khỏi Yêu thích' : 'Thêm vào Yêu thích'}
+                  data-tip={fav ? 'Bỏ khỏi Yêu thích' : 'Thêm vào Yêu thích'}
                   onClick={() => toggleFavorite(l.id)}
                   className={cx(
                     tileAction,
@@ -371,7 +458,7 @@ export function StylePanel() {
           <label
             className="relative grid size-9 cursor-pointer place-items-center overflow-hidden rounded-full border border-black/10 text-xs font-bold text-white"
             style={{ background: 'conic-gradient(#f2603c, #ffb23e, #8fe0a8, #6aa8ff, #c58bff, #f2603c)' }}
-            title="Chọn màu khác"
+            data-tip="Chọn màu khác"
           >
             <input
               type="color"
@@ -398,7 +485,7 @@ export function TextPanel() {
   const texts = useStore((s) => s.texts)
   const activeText = useStore((s) => s.activeText)
   const hasCollage = useStore((s) => !!s.tree)
-  const { addText, updateText, setActiveText } = useStore.getState()
+  const { addText, updateText, setPreviewFont } = useStore.getState()
   const item = texts.find((t) => t.id === activeText)
 
   if (!hasCollage)
@@ -410,38 +497,29 @@ export function TextPanel() {
     )
 
   return (
-    <div className="space-y-6">
-      <Section title="Chữ trên ảnh" hint={texts.length ? `${texts.length} dòng chữ` : undefined}>
-        <div className="flex flex-wrap gap-1.5">
-          {texts.map((t) => (
-            <button
-              key={t.id}
-              type="button"
-              aria-pressed={t.id === activeText}
-              onClick={() => setActiveText(t.id)}
-              className={cx(
-                'h-9 max-w-40 truncate rounded-full px-3.5 text-[13px] font-semibold transition-colors',
-                t.id === activeText ? 'bg-ink text-paper' : 'bg-sand text-soft hover:text-ink',
-              )}
-            >
-              {t.text.split('\n')[0] || 'Chữ trống'}
-            </button>
-          ))}
-          <Button onClick={addText} className="h-9 px-3.5 text-[13px]">
-            <Plus className="size-4" />
-            Thêm chữ
-          </Button>
-        </div>
-      </Section>
+    <div className="space-y-5">
+      <Button variant="primary" onClick={addText} className="h-11 w-full">
+        <Type className="size-[18px]" />
+        Thêm chữ
+      </Button>
 
       {item ? (
-        <Section title="Kiểu chữ">
-          <FontPicker value={item.font} onChange={(font) => updateText(item.id, { font })} />
-        </Section>
+        <FontPicker
+          value={item.font}
+          onChange={(font) => updateText(item.id, { font })}
+          onPreview={(font) => setPreviewFont(font ? { id: item.id, font } : null)}
+        />
       ) : (
         <p className="rounded-2xl bg-sand p-4 text-[13px] leading-relaxed text-soft">
-          Bấm <b className="text-ink">Thêm chữ</b> rồi gõ thẳng trên ảnh. Bấm vào một dòng chữ để chọn, bấm lần nữa để sửa nội dung; kéo các
-          tay nắm để đổi cỡ, bề rộng và xoay.
+          {texts.length ? (
+            <>
+              Bấm vào một dòng chữ trên ảnh để chọn và đổi kiểu chữ; bấm lần nữa để sửa nội dung. Kéo các tay nắm để đổi cỡ, bề rộng và xoay.
+            </>
+          ) : (
+            <>
+              Bấm <b className="text-ink">Thêm chữ</b> rồi gõ thẳng trên ảnh. Kéo các tay nắm để đổi cỡ, bề rộng và xoay.
+            </>
+          )}
         </p>
       )}
     </div>
@@ -472,15 +550,13 @@ const SHARPEN_LEVELS: { value: ExportSharpen; label: string }[] = [
 
 export function ExportPanel() {
   const state = useStore()
-  const { exportFormat, exportQuality, exportScale, exportSharpen, set } = state
+  const { exportFormat, exportQuality, exportSharpen, set } = state
   const progress = useExportProgress((s) => s.progress)
-  const base = canvasSize(state)
-  const maxScale = maxExportScale(base.width, base.height)
-  const scale = Math.min(exportScale, maxScale)
+  const size = canvasSize(state)
 
-  // Đếm số ảnh sẽ bị phóng to quá độ phân giải gốc ở kích thước xuất hiện tại.
+  // Đếm số ảnh sẽ bị phóng to quá độ phân giải gốc ở kích thước khung hiện tại.
   const upscaled = useMemo(() => {
-    const spec = buildSpec(state, scale)
+    const spec = buildSpec(state)
     if (!spec) return 0
     return collageLayout(spec).cells.filter((rect, i) => {
       const cell = spec.cells[i]
@@ -490,7 +566,7 @@ export function ExportPanel() {
       const [width, height] = photo.missing ? [photo.width, photo.height] : [photo.sourceWidth, photo.sourceHeight]
       return placeImage(width, height, rect.w, rect.h, cell.adjust).scale > 1.08
     }).length
-  }, [state, scale])
+  }, [state])
 
   const inCollage = state.tree ? state.selected.length : 0
   const missing = new Set(state.photos.filter((p) => p.missing).map((p) => p.id))
@@ -498,7 +574,7 @@ export function ExportPanel() {
 
   return (
     <div className="space-y-6">
-      <Section title="Định dạng">
+      <Section title="Định dạng" hint={`${size.width} × ${size.height} px`}>
         <Segmented value={exportFormat} options={FORMATS} onChange={(v) => set({ exportFormat: v })} />
         <p className="text-[13px] leading-relaxed text-soft">{FORMAT_NOTES[exportFormat]}</p>
         {exportFormat !== 'image/png' && (
@@ -512,17 +588,6 @@ export function ExportPanel() {
             onChange={(v) => set({ exportQuality: v / 100 })}
           />
         )}
-      </Section>
-
-      <Section title="Độ phân giải" hint={`${Math.round(base.width * scale)} × ${Math.round(base.height * scale)} px`}>
-        <Segmented
-          value={scale}
-          options={[1, 1.5, 2, 3].map((v) => ({ value: v, label: `${v}×`, disabled: v > maxScale }))}
-          onChange={(v) => set({ exportScale: v })}
-        />
-        <p className="text-[13px] leading-relaxed text-soft">
-          1× đúng chuẩn nền tảng nên ít bị nén lại nhất. Chọn 2× trở lên khi cần in hoặc lưu trữ bản nét cao.
-        </p>
       </Section>
 
       <Section title="Làm nét đầu ra">
@@ -556,8 +621,8 @@ export function ExportPanel() {
         <p className="flex gap-2.5 rounded-2xl bg-[#fff4dc] p-4 text-[13px] leading-relaxed text-[#8a5a00] dark:bg-[#3a2c10] dark:text-[#ffcf70]">
           <TriangleAlert className="mt-0.5 size-4 shrink-0" />
           <span>
-            {upscaled} ảnh đang bị phóng to quá độ phân giải của chính nó nên có thể hơi mềm. Giảm zoom hoặc giảm độ
-            phân giải xuất.
+            {upscaled} ảnh đang bị phóng to quá độ phân giải của chính nó nên có thể hơi mềm. Giảm zoom hoặc chọn khung
+            nhỏ hơn.
           </span>
         </p>
       )}

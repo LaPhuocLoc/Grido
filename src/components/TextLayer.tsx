@@ -1,19 +1,39 @@
-import { Bold, Copy, Italic, Minus, Plus, RotateCw, Strikethrough, TextAlignCenter, TextAlignEnd, TextAlignStart, Trash2, Underline } from 'lucide-react'
-import { useEffect, useLayoutEffect, useRef, useState, type PointerEvent as ReactPointerEvent, type ReactNode } from 'react'
+import {
+  ArrowDownToLine,
+  ArrowUpToLine,
+  Bold,
+  Copy,
+  Italic,
+  ListChevronsUpDown,
+  Minus,
+  Plus,
+  RotateCw,
+  Strikethrough,
+  TextAlignCenter,
+  TextAlignEnd,
+  TextAlignStart,
+  Trash2,
+  Underline,
+  UnfoldVertical,
+} from 'lucide-react'
+import { useEffect, useLayoutEffect, useRef, useState, type CSSProperties, type PointerEvent as ReactPointerEvent, type ReactNode } from 'react'
 import { createPortal, flushSync } from 'react-dom'
 import { clamp } from '../lib/geometry'
 import {
+  anchorShift,
   DECORATION,
   fontFamily,
   fontInfo,
   fontWeight,
-  LINE_HEIGHT,
+  LINE_HEIGHT_RANGE,
   MAX_TEXT_SIZE,
   MIN_TEXT_SIZE,
   snapAngle,
+  SPACING_RANGE,
   TEXT_COLORS,
   textShadow,
   type TextAlign,
+  type TextAnchor,
   type TextItem,
 } from '../lib/text'
 import { useStore } from '../store'
@@ -60,6 +80,9 @@ export function TextLayer({
   const [live, setLive] = useState<Live | null>(null)
   const liveRef = useRef<Live | null>(null)
   const [box, setBox] = useState({ w: 0, h: 0 })
+  // Đang rê chuột xem thử font trong bảng font: chỉ đổi cách hiển thị, không đụng tới nội dung đã lưu.
+  const previewFont = useStore((s) => (s.previewFont?.id === stored.id ? s.previewFont.font : null))
+  const id = stored.id
   const item = live ? { ...stored, ...live } : stored
   const px = (Math.min(width, height) * item.size * k) / 100
   const shadow = textShadow(px)
@@ -77,21 +100,57 @@ export function TextLayer({
     if (l) updateText(stored.id, l)
     setLive(null)
     onGuides([])
+    // Hộp chữ còn đổi kích thước một nhịp sau khi thả tay; chờ nó ổn định rồi mới coi là mốc mới của điểm neo.
+    requestAnimationFrame(() => requestAnimationFrame(() => (anchored.current = measure())))
+  }
+
+  /**
+   * Neo ô văn bản: lần đo gần nhất của hộp chữ (chiều cao theo px khung xuất) cùng vị trí lúc đó.
+   * Hộp cao lên / thấp đi vì nội dung hay kiểu chữ đổi thì dời tâm để mép được neo đứng yên.
+   */
+  const anchored = useRef<{ h: number; x: number; y: number; frame: string } | null>(null)
+  const frame = `${k}|${width}|${height}`
+  const frameRef = useRef(frame)
+  frameRef.current = frame
+  const measure = () => {
+    const current = useStore.getState().texts.find((t) => t.id === id)
+    if (!el.current || !current) return null
+    return { h: el.current.offsetHeight / Number(frameRef.current.split('|')[0]), x: current.x, y: current.y, frame: frameRef.current }
   }
 
   // Khung chọn bám theo kích thước thật của khối chữ (đổi khi gõ, đổi font, font tải xong…).
   useLayoutEffect(() => {
     const node = el.current
     if (!active || !node) return
-    const read = () => setBox({ w: node.offsetWidth, h: node.offsetHeight })
+    const read = () => {
+      setBox({ w: node.offsetWidth, h: node.offsetHeight })
+      const current = useStore.getState().texts.find((t) => t.id === id)
+      const next = measure()
+      // Xem thử font làm hộp chữ đổi cỡ tạm thời: không coi đó là thay đổi cần bù điểm neo.
+      if (!current || !next || useStore.getState().previewFont) return
+      const [scale, w, h] = next.frame.split('|').map(Number)
+      const prev = anchored.current
+      anchored.current = next
+      // Chỉ bù khi hộp tự đổi chiều cao: không phải đang kéo, không phải vừa zoom / đổi khung, không phải undo (vị trí đã đổi theo).
+      if (!prev || liveRef.current || prev.frame !== next.frame || prev.x !== next.x || prev.y !== next.y) return
+      const delta = next.h - prev.h
+      if (current.anchor === 'middle' || Math.abs(delta * scale) < 1) return
+      const { dx, dy } = anchorShift(current.anchor, delta, current.rotation)
+      const moved = { x: round(current.x + dx / w, 4), y: round(current.y + dy / h, 4) }
+      anchored.current = { ...next, ...moved }
+      updateText(id, moved)
+    }
     read()
     const observer = new ResizeObserver(read)
     observer.observe(node)
-    return () => observer.disconnect()
+    return () => {
+      observer.disconnect()
+      anchored.current = null
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [active])
 
   // Vào chế độ gõ: bôi sẵn toàn bộ chữ. Thoát (bấm ra ngoài, Esc, chọn thứ khác): ghi nội dung vào store.
-  const id = stored.id
   useLayoutEffect(() => {
     const node = el.current
     if (!editing || !node) return
@@ -245,15 +304,17 @@ export function TextLayer({
           transform: `translate(-50%, -50%) rotate(${item.rotation}deg)`,
           width: item.width === null ? undefined : item.width * width * k,
           minWidth: '0.5em',
-          minHeight: `${LINE_HEIGHT}em`,
+          minHeight: `${item.lineHeight}em`,
           whiteSpace: item.width === null ? 'pre' : 'pre-wrap',
           overflowWrap: 'break-word',
           textAlign: item.align,
-          fontFamily: fontFamily(item.font),
+          fontFamily: fontFamily(previewFont ?? item.font),
           fontWeight: fontWeight(item.bold),
           fontStyle: item.italic ? 'italic' : undefined,
           fontSize: px,
-          lineHeight: LINE_HEIGHT,
+          lineHeight: item.lineHeight,
+          letterSpacing: `${item.spacing / 1000}em`,
+          opacity: item.opacity / 100,
           color: item.color,
           caretColor: item.color,
           textDecorationLine: [item.underline && 'underline', item.strike && 'line-through'].filter(Boolean).join(' ') || undefined,
@@ -286,28 +347,28 @@ export function TextLayer({
               ).map(([left, top]) => (
                 <span
                   key={left + top}
-                  title="Kéo để phóng to / thu nhỏ chữ"
+                  data-tip="Kéo để phóng to / thu nhỏ chữ"
                   className={cx(dot, (left === top) === (Math.abs(item.rotation) % 180 < 45 || Math.abs(item.rotation) % 180 > 135) ? 'cursor-nwse-resize' : 'cursor-nesw-resize')}
                   style={{ left, top }}
                   {...scale}
                 />
               ))}
               <span
-                title="Kéo để đổi bề rộng hộp chữ · bấm đúp để hộp ôm vừa chữ"
+                data-tip="Kéo để đổi bề rộng hộp chữ · bấm đúp để hộp ôm vừa chữ"
                 className={pill}
                 style={{ left: 0, top: '50%' }}
                 onDoubleClick={() => updateText(stored.id, { width: null })}
                 {...resize(-1)}
               />
               <span
-                title="Kéo để đổi bề rộng hộp chữ · bấm đúp để hộp ôm vừa chữ"
+                data-tip="Kéo để đổi bề rộng hộp chữ · bấm đúp để hộp ôm vừa chữ"
                 className={pill}
                 style={{ left: '100%', top: '50%' }}
                 onDoubleClick={() => updateText(stored.id, { width: null })}
                 {...resize(1)}
               />
               <span
-                title="Kéo để xoay chữ"
+                data-tip="Kéo để xoay chữ"
                 className="pointer-events-auto absolute left-1/2 grid size-7 -translate-x-1/2 cursor-grab touch-none place-items-center rounded-full bg-white text-[#2b2622] shadow-[0_1px_6px_rgb(0_0_0/0.35)] ring-1 ring-black/10 active:cursor-grabbing"
                 style={{ top: `calc(100% + ${ROTATE_GAP - 14}px)` }}
                 {...rotate}
@@ -366,6 +427,15 @@ const ALIGN: { value: TextAlign; label: string; icon: ReactNode }[] = [
   { value: 'right', label: 'Căn phải', icon: <TextAlignEnd className="size-4.5" /> },
 ]
 
+const RAINBOW = 'linear-gradient(90deg, #ff3b30, #ff9500, #ffd60a, #34c759, #00c7be, #007aff, #af52de)'
+const HEX = /^#?([0-9a-f]{6})$/i
+
+const ANCHORS: { value: TextAnchor; label: string; icon: ReactNode }[] = [
+  { value: 'top', label: 'Neo mép trên · hộp chữ dài ra phía dưới', icon: <ArrowDownToLine className="size-4.5" /> },
+  { value: 'middle', label: 'Neo ở giữa · hộp chữ nở đều hai phía', icon: <UnfoldVertical className="size-4.5" /> },
+  { value: 'bottom', label: 'Neo mép dưới · hộp chữ dài ra phía trên', icon: <ArrowUpToLine className="size-4.5" /> },
+]
+
 function Toggle({ label, on, onClick, children }: { label: string; on: boolean; onClick: () => void; children: ReactNode }) {
   return (
     <IconButton label={label} aria-pressed={on} onClick={onClick} className={cx('shrink-0', on && 'bg-blush !text-coral-dark')}>
@@ -374,18 +444,102 @@ function Toggle({ label, on, onClick, children }: { label: string; on: boolean; 
   )
 }
 
+/** Bảng nổi phía trên một nút của thanh công cụ chữ. */
+function Popover({ label, className, children }: { label: string; className?: string; children: ReactNode }) {
+  return (
+    <div
+      role="dialog"
+      aria-label={label}
+      // Thanh công cụ chặn mousedown để không cướp focus của dòng chữ; trong bảng này thì phải cho kéo thanh trượt, gõ số.
+      onMouseDown={(e) => e.stopPropagation()}
+      className={cx('absolute bottom-full left-1/2 mb-3 -translate-x-1/2 animate-pop rounded-2xl bg-card p-3.5 shadow-lift ring-1 ring-black/5', className)}
+    >
+      {children}
+    </div>
+  )
+}
+
+/** Thanh trượt kèm ô số, để vừa kéo nhanh vừa gõ được giá trị chính xác. */
+function SliderRow({
+  label,
+  value,
+  min,
+  max,
+  step,
+  onChange,
+}: {
+  label: string
+  value: number
+  min: number
+  max: number
+  step: number
+  onChange: (value: number) => void
+}) {
+  const commit = (raw: number) => Number.isFinite(raw) && onChange(clamp(round(raw, 2), min, max))
+  return (
+    <div>
+      <p className="text-[13px] font-semibold text-ink">{label}</p>
+      <div className="mt-1 flex items-center gap-2.5">
+        <input
+          type="range"
+          aria-label={label}
+          min={min}
+          max={max}
+          step={step}
+          value={value}
+          style={{ '--fill': `${((value - min) / (max - min)) * 100}%` } as CSSProperties}
+          onChange={(e) => commit(Number(e.target.value))}
+        />
+        <input
+          type="number"
+          aria-label={`${label} (nhập số)`}
+          min={min}
+          max={max}
+          step={step}
+          value={value}
+          onChange={(e) => e.target.value !== '' && commit(Number(e.target.value))}
+          className="h-8 w-14 shrink-0 rounded-lg border border-line bg-surface px-1 text-center text-[13px] font-semibold tabular-nums focus:border-coral focus:outline-none"
+        />
+      </div>
+    </div>
+  )
+}
+
+/** Ô nhập mã màu: gõ đủ 6 ký tự hex thì áp dụng ngay. */
+function HexInput({ value, onChange }: { value: string; onChange: (color: string) => void }) {
+  const [draft, setDraft] = useState(value)
+  useEffect(() => setDraft(value), [value])
+  return (
+    <input
+      aria-label="Mã màu"
+      spellCheck={false}
+      maxLength={7}
+      value={draft.toUpperCase()}
+      onChange={(e) => {
+        setDraft(e.target.value)
+        const hex = HEX.exec(e.target.value.trim())
+        if (hex) onChange(`#${hex[1].toLowerCase()}`)
+      }}
+      onBlur={() => setDraft(value)}
+      className="h-8 min-w-0 flex-1 rounded-lg border border-line bg-surface px-2.5 text-[13px] font-semibold tabular-nums focus:border-coral focus:outline-none"
+    />
+  )
+}
+
+type Menu = 'color' | 'spacing' | 'opacity'
+
 /** Thanh công cụ ở đáy khung ghép cho dòng chữ đang chọn. `unit`: số px ảnh xuất ứng với 1% cỡ chữ. */
 export function TextToolbar({ item, unit }: { item: TextItem; unit: number }) {
   const { updateText } = useStore.getState()
   const set = (patch: Partial<TextItem>) => updateText(item.id, patch)
-  const [colors, setColors] = useState(false)
-  const palette = useRef<HTMLDivElement>(null)
+  const [menu, setMenu] = useState<Menu | null>(null)
+  const toggle = (next: Menu) => setMenu(menu === next ? null : next)
   useEffect(() => {
-    if (!colors) return
-    const close = (e: PointerEvent) => !palette.current?.contains(e.target as Node) && setColors(false)
+    if (!menu) return
+    const close = (e: PointerEvent) => !(e.target as Element).closest?.('[data-text-menu]') && setMenu(null)
     window.addEventListener('pointerdown', close, true)
     return () => window.removeEventListener('pointerdown', close, true)
-  }, [colors])
+  }, [menu])
 
   const resize = (delta: number) => set({ size: clamp(round(item.size + delta, 2), MIN_TEXT_SIZE, MAX_TEXT_SIZE) })
   const align = ALIGN.find((a) => a.value === item.align) ?? ALIGN[1]
@@ -400,8 +554,8 @@ export function TextToolbar({ item, unit }: { item: TextItem; unit: number }) {
       <div role="toolbar" aria-label="Định dạng chữ" className="flex max-w-full animate-pop items-center gap-0.5 rounded-full bg-card p-1.5 shadow-lift">
         <button
           type="button"
-          title="Đổi font ở bảng bên phải"
-          onClick={() => useStore.setState({ tab: 'text' })}
+          data-tip="Đổi font ở bảng bên trái"
+          onClick={() => useStore.setState({ tab: 'text', leftCollapsed: false })}
           className="h-9 max-w-32 shrink truncate rounded-full px-3 text-[13px] font-semibold text-ink hover:bg-sand"
         >
           {fontInfo(item.font).label}
@@ -410,50 +564,60 @@ export function TextToolbar({ item, unit }: { item: TextItem; unit: number }) {
         <IconButton label="Giảm cỡ chữ" className="shrink-0" disabled={item.size <= MIN_TEXT_SIZE} onClick={() => resize(-0.5)}>
           <Minus className="size-4" />
         </IconButton>
-        <span className="w-9 shrink-0 text-center text-[13px] font-semibold tabular-nums text-ink" title="Cỡ chữ (px trên ảnh xuất)">
+        <span className="w-9 shrink-0 text-center text-[13px] font-semibold tabular-nums text-ink" data-tip="Cỡ chữ (px trên ảnh xuất)">
           {Math.round(item.size * unit)}
         </span>
         <IconButton label="Tăng cỡ chữ" className="shrink-0" disabled={item.size >= MAX_TEXT_SIZE} onClick={() => resize(0.5)}>
           <Plus className="size-4" />
         </IconButton>
         {divider}
-        <div ref={palette} className="relative shrink-0">
-          <IconButton label="Màu chữ" aria-expanded={colors} onClick={() => setColors(!colors)}>
-            <span className="grid justify-items-center gap-0.5">
+        <div data-text-menu className="relative shrink-0">
+          <IconButton label="Màu chữ" aria-expanded={menu === 'color'} className={cx(menu === 'color' && 'bg-sand')} onClick={() => toggle('color')}>
+            {/* Dải cầu vồng dưới chữ A: nhìn là biết đây là nút đổi màu. */}
+            <span className="grid justify-items-center gap-[3px]">
               <span className="text-[15px] font-bold leading-none text-ink">A</span>
-              <span className="h-1 w-4 rounded-full ring-1 ring-black/15" style={{ background: item.color }} />
+              <span className="h-[5px] w-5 rounded-full" style={{ background: RAINBOW }} />
             </span>
           </IconButton>
-          {colors && (
-            <div className="absolute bottom-full left-1/2 mb-3 flex -translate-x-1/2 animate-pop items-center gap-2 rounded-full bg-card p-2 shadow-lift ring-1 ring-black/5">
-              {TEXT_COLORS.map((color) => (
-                <button
-                  key={color}
-                  type="button"
-                  aria-label={`Màu chữ ${color}`}
-                  aria-pressed={item.color === color}
-                  onClick={() => set({ color })}
-                  className={cx(
-                    'size-7 shrink-0 rounded-full border border-black/10 transition-transform hover:scale-110',
-                    item.color === color && 'ring-2 ring-coral ring-offset-2 ring-offset-card',
-                  )}
-                  style={{ background: color }}
-                />
-              ))}
-              <label
-                className="relative grid size-7 shrink-0 cursor-pointer overflow-hidden rounded-full border border-black/10"
-                style={{ background: 'conic-gradient(#f2603c, #ffb23e, #8fe0a8, #6aa8ff, #c58bff, #f2603c)' }}
-                title="Chọn màu khác"
-              >
-                <input
-                  type="color"
-                  aria-label="Chọn màu chữ khác"
-                  value={item.color}
-                  onChange={(e) => set({ color: e.target.value })}
-                  className="absolute inset-0 size-full cursor-pointer opacity-0"
-                />
-              </label>
-            </div>
+          {menu === 'color' && (
+            <Popover label="Màu chữ" className="w-[264px]">
+              <div className="flex items-center justify-between">
+                <p className="text-[13px] font-semibold text-ink">Màu chữ</p>
+                <span className="size-5 rounded-full border border-black/15" style={{ background: item.color }} data-tip="Màu đang dùng" />
+              </div>
+              <div className="mt-2.5 grid grid-cols-8 gap-1.5">
+                {TEXT_COLORS.map((color) => (
+                  <button
+                    key={color}
+                    type="button"
+                    aria-label={`Màu chữ ${color}`}
+                    aria-pressed={item.color === color}
+                    onClick={() => set({ color })}
+                    className={cx(
+                      'aspect-square rounded-full border border-black/15 transition-transform hover:scale-110',
+                      item.color === color && 'ring-2 ring-coral ring-offset-2 ring-offset-card',
+                    )}
+                    style={{ background: color }}
+                  />
+                ))}
+              </div>
+              <div className="mt-3 flex items-center gap-2 border-t border-line pt-3">
+                <label
+                  className="relative size-8 shrink-0 cursor-pointer overflow-hidden rounded-full border border-black/15 transition-transform hover:scale-110"
+                  style={{ background: 'conic-gradient(#ff3b30, #ff9500, #ffd60a, #34c759, #00c7be, #007aff, #af52de, #ff3b30)' }}
+                  data-tip="Chọn màu bất kỳ"
+                >
+                  <input
+                    type="color"
+                    aria-label="Chọn màu chữ bất kỳ"
+                    value={item.color}
+                    onChange={(e) => set({ color: e.target.value })}
+                    className="absolute inset-0 size-full cursor-pointer opacity-0"
+                  />
+                </label>
+                <HexInput value={item.color} onChange={(color) => set({ color })} />
+              </div>
+            </Popover>
           )}
         </div>
         <Toggle label="Chữ đậm (Ctrl+B)" on={item.bold} onClick={() => set({ bold: !item.bold })}>
@@ -476,6 +640,41 @@ export function TextToolbar({ item, unit }: { item: TextItem; unit: number }) {
         >
           {align.icon}
         </IconButton>
+        <div data-text-menu className="relative shrink-0">
+          <IconButton label="Giãn cách" aria-expanded={menu === 'spacing'} className={cx(menu === 'spacing' && 'bg-sand')} onClick={() => toggle('spacing')}>
+            <ListChevronsUpDown className="size-4.5" />
+          </IconButton>
+          {menu === 'spacing' && (
+            <Popover label="Giãn cách" className="w-[264px] space-y-3">
+              <SliderRow label="Giãn cách chữ" value={item.spacing} {...SPACING_RANGE} onChange={(spacing) => set({ spacing })} />
+              <SliderRow label="Khoảng cách dòng" value={item.lineHeight} {...LINE_HEIGHT_RANGE} onChange={(lineHeight) => set({ lineHeight })} />
+              <div className="flex items-center justify-between border-t border-line pt-3">
+                <p className="text-[13px] font-semibold text-ink">Neo ô văn bản</p>
+                <div className="flex gap-1">
+                  {ANCHORS.map((a) => (
+                    <Toggle key={a.value} label={a.label} on={item.anchor === a.value} onClick={() => set({ anchor: a.value })}>
+                      {a.icon}
+                    </Toggle>
+                  ))}
+                </div>
+              </div>
+            </Popover>
+          )}
+        </div>
+        <div data-text-menu className="relative shrink-0">
+          <IconButton label="Độ trong suốt" aria-expanded={menu === 'opacity'} className={cx(menu === 'opacity' && 'bg-sand')} onClick={() => toggle('opacity')}>
+            {/* Ô caro: ký hiệu quen thuộc của "trong suốt". */}
+            <span
+              className="size-[18px] rounded-[5px] ring-1 ring-black/15"
+              style={{ background: 'repeating-conic-gradient(#9aa0ab 0 25%, #f4f5f7 0 50%) 0 0 / 9px 9px' }}
+            />
+          </IconButton>
+          {menu === 'opacity' && (
+            <Popover label="Độ trong suốt" className="w-[240px]">
+              <SliderRow label="Độ trong suốt" value={item.opacity} min={0} max={100} step={1} onChange={(opacity) => set({ opacity })} />
+            </Popover>
+          )}
+        </div>
         <Toggle label="Đổ bóng" on={item.shadow} onClick={() => set({ shadow: !item.shadow })}>
           <span className="text-[15px] font-bold leading-none [text-shadow:2px_2px_0_rgb(0_0_0/0.3)]">A</span>
         </Toggle>

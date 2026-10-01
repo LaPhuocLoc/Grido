@@ -8,8 +8,18 @@ import { countCells, parseLayout } from './lib/layout/dsl'
 import { getLayouts, MAX_PHOTOS } from './lib/layout/registry'
 import type { LayoutNode } from './lib/layout/types'
 import { albumName, pruneAlbumMap, type Album } from './lib/albums'
+import { copyName, designTitle } from './lib/designs'
 import { normalizeText, type TextItem } from './lib/text'
-import { CUSTOM_PRESET_ID, MAX_CANVAS, MIN_CANVAS, SIZE_PRESETS } from './lib/presets'
+import {
+  CUSTOM_PRESET_ID,
+  DEFAULT_PRESET_ID,
+  MAX_CANVAS,
+  MIN_CANVAS,
+  ORIGINAL_PRESET_ID,
+  originalCanvas,
+  RETIRED_PRESETS,
+  SIZE_PRESETS,
+} from './lib/presets'
 
 /** Ảnh đang được nhập vào thư viện (tạo bản xem trước + thumbnail). */
 export interface ImportItem {
@@ -31,7 +41,7 @@ export interface Toast {
   action?: { label: string; run: () => void }
 }
 
-export type Tab = 'library' | 'layout' | 'size' | 'style' | 'text' | 'export'
+export type Tab = 'designs' | 'library' | 'layout' | 'size' | 'style' | 'text' | 'export'
 
 /** Bố cục người dùng tự lưu (giữ cả tỉ lệ ô đã kéo chỉnh). */
 export interface SavedLayout {
@@ -40,6 +50,10 @@ export interface SavedLayout {
   tree: LayoutNode
 }
 const MAX_SAVED_LAYOUTS = 60
+const MAX_RECENT_FONTS = 6
+/** Bề rộng mặc định (và nhỏ nhất) của bảng công cụ, cùng mức "rộng" khi bấm đúp vào mép. */
+export const PANEL_WIDTH = 340
+export const PANEL_WIDTH_WIDE = 640
 /** Khớp với thời lượng hiệu ứng toast-out trong index.css. */
 const TOAST_EXIT_MS = 220
 
@@ -60,12 +74,12 @@ interface Settings {
   bg: string
   exportFormat: ExportFormat
   exportQuality: number
-  exportScale: number
   exportSharpen: ExportSharpen
   theme: Theme
-  /** Panel thư viện (trái) / panel công cụ (phải) đang thu gọn. */
+  /** Sidebar trái đang thu gọn, chỉ còn dải biểu tượng. */
   leftCollapsed: boolean
-  rightCollapsed: boolean
+  /** Bề rộng bảng công cụ của sidebar (px), đổi bằng cách kéo mép phải của nó. */
+  panelWidth: number
   /** Người dùng đã đóng dải mẹo thao tác ở cuối thư viện. */
   libraryTipSeen: boolean
 }
@@ -85,7 +99,16 @@ const EDIT_KEYS = [
   'customW',
   'customH',
 ] as const
-type Snapshot = Pick<State, (typeof EDIT_KEYS)[number]>
+export type Snapshot = Pick<State, (typeof EDIT_KEYS)[number]>
+
+/** Một thiết kế đã lưu: toàn bộ ảnh ghép (ảnh, bố cục, khung, viền, chữ) để mở lại làm tiếp. */
+export interface Design {
+  id: string
+  /** Tên người dùng tự đặt; null = tự lấy theo chữ trên ảnh. */
+  name: string | null
+  updatedAt: number
+  snapshot: Snapshot
+}
 const snapshot = (s: State): Snapshot => Object.fromEntries(EDIT_KEYS.map((k) => [k, s[k]])) as Snapshot
 const HISTORY_LIMIT = 60
 /** Các thay đổi liên tiếp trong khoảng này (kéo chuột, kéo slider) gộp thành một bước undo. */
@@ -111,6 +134,18 @@ interface State extends Settings {
   /** Id các bố cục có sẵn được thả tim. */
   favorites: string[]
   savedLayouts: SavedLayout[]
+  /** Các thiết kế đã lưu. Thiết kế đang mở được ghi đè liên tục theo từng thay đổi. */
+  designs: Design[]
+  /** Thiết kế đang nằm trên khung làm việc; null = khung trống, chưa thành thiết kế. */
+  currentDesignId: string | null
+  /** Id các font được thả tim. */
+  favoriteFonts: string[]
+  /** Font vừa dùng gần đây, mới nhất đứng đầu. */
+  recentFonts: string[]
+  /** Font đang xem thử trên một dòng chữ (rê chuột trong bảng font); không ghi vào thiết kế. */
+  previewFont: { id: string; font: string } | null
+  /** Id các khung ảnh được thả tim. */
+  favoritePresets: string[]
   albums: Album[]
   /** Id ảnh → id album. Ảnh không có ở đây là "Chưa phân loại". */
   photoAlbum: Record<string, string>
@@ -133,11 +168,29 @@ interface State extends Settings {
   movePhotos: (ids: string[], albumId: string | null) => void
   toggleAlbumCollapsed: (id: string) => void
   toggleSelect: (id: string) => void
+  /** Đưa nhiều ảnh vào bố cục một lượt (quét chọn trong thư viện); ảnh đã có sẵn thì bỏ qua. */
+  selectMany: (ids: string[]) => void
   clearSelection: () => void
   shuffle: () => void
   swapCells: (a: number, b: number) => void
   setLayout: (id: string) => void
   toggleFavorite: (id: string) => void
+  toggleFavoriteFont: (id: string) => void
+  /** Ghi nhận một font vừa được chọn để đưa vào mục "Dùng gần đây". */
+  noteRecentFont: (id: string) => void
+  setPreviewFont: (preview: { id: string; font: string } | null) => void
+  toggleFavoritePreset: (id: string) => void
+  /** Cất thiết kế đang mở (đã tự lưu) rồi bắt đầu một khung trống. */
+  newDesign: () => void
+  /** Cất thiết kế đang mở rồi mở thiết kế khác lên khung làm việc. */
+  openDesign: (id: string) => void
+  /** Đặt tên; để trống thì quay về tên tự đặt theo chữ trên ảnh. */
+  renameDesign: (id: string, name: string) => void
+  duplicateDesign: (id: string) => void
+  /** Xoá thiết kế (không xoá ảnh trong thư viện); thông báo kèm nút Hoàn tác. */
+  removeDesign: (id: string) => void
+  /** Đưa khung về tỉ lệ và độ phân giải gốc của ảnh đầu tiên trong bản ghép. */
+  applyOriginalSize: () => void
   /** Lưu bố cục đang dùng; trả về false nếu chưa có gì để lưu hoặc đã lưu rồi. */
   saveLayout: () => boolean
   applySavedLayout: (id: string) => void
@@ -162,7 +215,7 @@ interface State extends Settings {
 
 let seq = 1
 
-type Persisted = Settings & Snapshot & Pick<State, 'favorites' | 'savedLayouts' | 'albums' | 'photoAlbum' | 'collapsedAlbums'>
+type Persisted = Settings & Snapshot & Pick<State, 'designs' | 'currentDesignId' | 'favorites' | 'favoriteFonts' | 'recentFonts' | 'favoritePresets' | 'savedLayouts' | 'albums' | 'photoAlbum' | 'collapsedAlbums'>
 
 /**
  * Ghi localStorage có trì hoãn: kéo slider hay cuộn zoom đổi state hàng chục lần mỗi giây,
@@ -208,6 +261,36 @@ function lazyStorage(): PersistStorage<Persisted> {
 let restoring = false
 let lastEdit = 0
 
+// true trong lúc đổi sang thiết kế khác, để việc nạp nội dung mới không bị coi là một lần chỉnh sửa cần tự lưu.
+let switching = false
+
+const hasCollage = (s: Pick<State, 'tree' | 'selected'>) => !!s.tree && s.selected.length > 0
+
+/** Khung trống cho thiết kế mới; viền, màu nền và khung ảnh giữ theo thiết kế vừa làm. */
+const BLANK = { selected: [], layoutId: null, tree: null, adjust: {}, texts: [], activeCell: null, activeText: null, editingText: null }
+
+/** Thiết kế đã bị bỏ hết ảnh thì không còn gì để mở lại → dọn khỏi danh sách (trừ cái đang mở, vì còn có thể hoàn tác). */
+const withoutEmpty = (designs: Design[], keep: string | null) => designs.filter((d) => d.id === keep || hasCollage(d.snapshot))
+
+/** Bỏ ảnh không còn trong thư viện khỏi một thiết kế đã lưu; số ảnh đổi thì lấy bố cục đầu tiên của số ảnh mới. */
+function pruneSnapshot(snap: Snapshot, alive: (id: string) => boolean): Snapshot {
+  if (snap.selected.every(alive)) return snap
+  const selected = snap.selected.filter(alive)
+  const adjust = Object.fromEntries(Object.entries(snap.adjust).filter(([id]) => alive(id)))
+  if (!selected.length) return { ...snap, selected, adjust, layoutId: null, tree: null }
+  const layoutId = getLayouts(selected.length)[0].id
+  return { ...snap, selected, adjust, layoutId, tree: parseLayout(layoutId) }
+}
+
+const pruneDesigns = (s: State, alive: (id: string) => boolean) =>
+  withoutEmpty(
+    s.designs.map((d) => {
+      const next = pruneSnapshot(d.snapshot, alive)
+      return next === d.snapshot ? d : { ...d, snapshot: next }
+    }),
+    s.currentDesignId,
+  )
+
 /** Bỏ những ảnh không còn trong thư viện khỏi bản ghép (kèm tinh chỉnh của chúng). Không có gì để bỏ thì không đổi state. */
 function withoutMissing(state: State, alive: (id: string) => boolean): Partial<State> {
   if (state.selected.every(alive) && Object.keys(state.adjust).every(alive)) return {}
@@ -217,18 +300,33 @@ function withoutMissing(state: State, alive: (id: string) => boolean): Partial<S
   }
 }
 
+/** Khung "Ảnh gốc" theo một ảnh trong thư viện; ảnh mất file gốc thì theo bản xem trước. */
+export const originalCanvasOf = (photo: Photo) =>
+  photo.missing ? originalCanvas(photo.width, photo.height) : originalCanvas(photo.sourceWidth, photo.sourceHeight)
+
+function originalSize(state: State, photoId: string | undefined): Partial<Settings> {
+  const photo = state.photos.find((p) => p.id === photoId)
+  if (!photo) return {}
+  const { width, height } = originalCanvasOf(photo)
+  return { presetId: ORIGINAL_PRESET_ID, customW: width, customH: height }
+}
+
+const toggled = (list: string[], id: string) => (list.includes(id) ? list.filter((f) => f !== id) : [id, ...list])
+
 /** Khi số ảnh đổi thì bố cục cũ không còn hợp lệ → chọn bố cục đầu tiên của số ảnh mới. */
 function withSelection(state: State, selected: string[]): Partial<State> {
   if (selected.length === 0) return { selected, layoutId: null, tree: null, activeCell: null }
   if (selected.length === state.selected.length && state.tree) return { selected, activeCell: null }
   const layoutId = getLayouts(selected.length)[0].id
-  return { selected, layoutId, tree: parseLayout(layoutId), activeCell: null }
+  // Bản ghép mới bắt đầu bằng khung đúng tỉ lệ / độ phân giải gốc của ảnh đầu tiên.
+  const size = state.selected.length === 0 ? originalSize(state, selected[0]) : {}
+  return { selected, layoutId, tree: parseLayout(layoutId), activeCell: null, ...size }
 }
 
 export const useStore = create<State>()(
   persist(
     (set, get) => ({
-      presetId: SIZE_PRESETS[0].id,
+      presetId: DEFAULT_PRESET_ID,
       customW: 1080,
       customH: 1350,
       margin: 2,
@@ -237,11 +335,10 @@ export const useStore = create<State>()(
       bg: '#ffffff',
       exportFormat: 'image/jpeg',
       exportQuality: 0.95,
-      exportScale: 1,
       exportSharpen: 'standard',
       theme: 'system',
       leftCollapsed: false,
-      rightCollapsed: false,
+      panelWidth: PANEL_WIDTH,
       libraryTipSeen: false,
 
       photos: [],
@@ -260,6 +357,12 @@ export const useStore = create<State>()(
       toasts: [],
       favorites: [],
       savedLayouts: [],
+      designs: [],
+      currentDesignId: null,
+      favoriteFonts: [],
+      recentFonts: [],
+      previewFont: null,
+      favoritePresets: [],
       albums: [],
       photoAlbum: {},
       collapsedAlbums: [],
@@ -268,7 +371,14 @@ export const useStore = create<State>()(
         try {
           const photos = await desktop.library.list()
           const alive = new Set(photos.map((p) => p.id))
-          set((s) => ({ photos, photoAlbum: pruneAlbumMap(s.photoAlbum, (id) => alive.has(id)), ...withoutMissing(s, (id) => alive.has(id)) }))
+          set((s) => ({
+            photos,
+            photoAlbum: pruneAlbumMap(s.photoAlbum, (id) => alive.has(id)),
+            designs: pruneDesigns(s, (id) => alive.has(id)),
+            ...withoutMissing(s, (id) => alive.has(id)),
+          }))
+          // Bản nháp từ phiên bản chưa có mục Thiết kế: đưa nó vào danh sách ngay lần mở đầu tiên.
+          saveDesign(get())
           // Đối chiếu bản nháp với thư viện không phải thao tác của user → không tính vào lịch sử undo.
           set({ past: [], future: [] })
         } catch (err) {
@@ -307,6 +417,7 @@ export const useStore = create<State>()(
           set((s) => ({
             photos: s.photos.filter((p) => !deleted.has(p.id)),
             photoAlbum: pruneAlbumMap(s.photoAlbum, (id) => !deleted.has(id)),
+            designs: pruneDesigns(s, (id) => !deleted.has(id)),
             ...withoutMissing(s, (id) => !deleted.has(id)),
           }))
         } catch (err) {
@@ -367,6 +478,16 @@ export const useStore = create<State>()(
         set(withSelection(s, [...s.selected, id]))
       },
 
+      selectMany: (ids) => {
+        const s = get()
+        const fresh = ids.filter((id) => !s.selected.includes(id))
+        if (!fresh.length) return
+        const room = MAX_PHOTOS - s.selected.length
+        if (room > 0) set(withSelection(s, [...s.selected, ...fresh.slice(0, room)]))
+        if (fresh.length > room)
+          s.toast(room > 0 ? `Chỉ thêm được ${room} ảnh: một ảnh ghép chứa tối đa ${MAX_PHOTOS} ảnh.` : `Một ảnh ghép chứa tối đa ${MAX_PHOTOS} ảnh.`)
+      },
+
       clearSelection: () => set((s) => withSelection(s, [])),
 
       shuffle: () =>
@@ -392,8 +513,58 @@ export const useStore = create<State>()(
 
       setLayout: (id) => set({ layoutId: id, tree: parseLayout(id) }),
 
-      toggleFavorite: (id) =>
-        set((s) => ({ favorites: s.favorites.includes(id) ? s.favorites.filter((f) => f !== id) : [id, ...s.favorites] })),
+      toggleFavorite: (id) => set((s) => ({ favorites: toggled(s.favorites, id) })),
+      toggleFavoriteFont: (id) => set((s) => ({ favoriteFonts: toggled(s.favoriteFonts, id) })),
+      // Font đã có trong danh sách thì giữ nguyên chỗ, để các ô không nhảy lung tung dưới con trỏ.
+      noteRecentFont: (id) => set((s) => (s.recentFonts.includes(id) ? {} : { recentFonts: [id, ...s.recentFonts].slice(0, MAX_RECENT_FONTS) })),
+      setPreviewFont: (previewFont) => set({ previewFont }),
+      toggleFavoritePreset: (id) => set((s) => ({ favoritePresets: toggled(s.favoritePresets, id) })),
+
+      newDesign: () => {
+        const s = get()
+        // Khung đang trống sẵn thì chỉ cần đưa người dùng tới chỗ chọn ảnh.
+        if (!s.currentDesignId && !hasCollage(s)) return set({ tab: 'library' })
+        load({ ...BLANK, currentDesignId: null, designs: withoutEmpty(s.designs, null), tab: 'library' })
+      },
+
+      openDesign: (id) => {
+        const s = get()
+        const design = s.designs.find((d) => d.id === id)
+        if (!design || id === s.currentDesignId) return
+        load({ ...BLANK, ...structuredClone(design.snapshot), currentDesignId: id, designs: withoutEmpty(s.designs, id) })
+      },
+
+      renameDesign: (id, name) =>
+        set((s) => ({ designs: s.designs.map((d) => (d.id === id ? { ...d, name: name.trim().slice(0, 60) || null } : d)) })),
+
+      duplicateDesign: (id) =>
+        set((s) => {
+          const source = s.designs.find((d) => d.id === id)
+          if (!source) return {}
+          const titles = s.designs.map((d) => designTitle(d.name, d.snapshot.texts))
+          const copy: Design = {
+            id: designId(),
+            name: copyName(designTitle(source.name, source.snapshot.texts), titles),
+            updatedAt: Date.now(),
+            snapshot: structuredClone(source.snapshot),
+          }
+          return { designs: [copy, ...s.designs] }
+        }),
+
+      removeDesign: (id) => {
+        const s = get()
+        const design = s.designs.find((d) => d.id === id)
+        if (!design) return
+        const designs = s.designs.filter((d) => d.id !== id)
+        if (id === s.currentDesignId) load({ ...BLANK, currentDesignId: null, designs })
+        else set({ designs })
+        s.toast(`Đã xoá thiết kế "${designTitle(design.name, design.snapshot.texts)}".`, 'info', {
+          label: 'Hoàn tác',
+          run: () => set((now) => (now.designs.some((d) => d.id === id) ? {} : { designs: [design, ...now.designs] })),
+        })
+      },
+
+      applyOriginalSize: () => set((s) => originalSize(s, s.selected[0])),
 
       saveLayout: () => {
         const s = get()
@@ -501,13 +672,17 @@ export const useStore = create<State>()(
         bg: s.bg,
         exportFormat: s.exportFormat,
         exportQuality: s.exportQuality,
-        exportScale: s.exportScale,
         exportSharpen: s.exportSharpen,
         theme: s.theme,
         leftCollapsed: s.leftCollapsed,
-        rightCollapsed: s.rightCollapsed,
+        panelWidth: s.panelWidth,
+        recentFonts: s.recentFonts,
         libraryTipSeen: s.libraryTipSeen,
+        designs: s.designs,
+        currentDesignId: s.currentDesignId,
         favorites: s.favorites,
+        favoriteFonts: s.favoriteFonts,
+        favoritePresets: s.favoritePresets,
         savedLayouts: s.savedLayouts,
         albums: s.albums,
         photoAlbum: s.photoAlbum,
@@ -515,11 +690,42 @@ export const useStore = create<State>()(
       }),
       merge: (saved, current) => {
         const persisted = (saved ?? {}) as Partial<Persisted>
-        return { ...current, ...persisted, texts: (persisted.texts ?? []).map(normalizeText) }
+        const retired = RETIRED_PRESETS[persisted.presetId ?? '']
+        return {
+          ...current,
+          ...persisted,
+          ...(retired && { presetId: CUSTOM_PRESET_ID, customW: retired.width, customH: retired.height }),
+          texts: (persisted.texts ?? []).map(normalizeText),
+          designs: (persisted.designs ?? []).map((d) => ({ ...d, snapshot: { ...d.snapshot, texts: d.snapshot.texts.map(normalizeText) } })),
+        }
       },
     },
   ),
 )
+
+const designId = () => `d${Date.now().toString(36)}${seq++}`
+
+/** Nạp một thiết kế khác (hoặc khung trống) lên khung làm việc: không tính là chỉnh sửa, và lịch sử undo bắt đầu lại. */
+function load(next: Partial<State>): void {
+  switching = restoring = true
+  useStore.setState({ ...next, past: [], future: [] })
+  switching = restoring = false
+}
+
+/** Ghi trạng thái khung làm việc vào thiết kế đang mở; khung có ảnh mà chưa thuộc thiết kế nào thì tạo thiết kế mới. */
+function saveDesign(s: State): void {
+  if (!s.currentDesignId && !hasCollage(s)) return
+  const id = s.currentDesignId ?? designId()
+  const existing = s.designs.find((d) => d.id === id)
+  const saved: Design = { id, name: existing?.name ?? null, updatedAt: Date.now(), snapshot: snapshot(s) }
+  useStore.setState({ currentDesignId: id, designs: existing ? s.designs.map((d) => (d.id === id ? saved : d)) : [saved, ...s.designs] })
+}
+
+// Tự lưu: mọi thay đổi trên khung làm việc (kể cả undo / redo) đều được ghi ngay vào thiết kế đang mở.
+useStore.subscribe((s, prev) => {
+  if (switching || EDIT_KEYS.every((k) => s[k] === prev[k])) return
+  saveDesign(s)
+})
 
 /** Tạo bản xem trước + thumbnail cho từng file đã được main process nhận rồi đưa vào thư viện. */
 /** `albumId`: album nhận ảnh mới; bỏ trống thì ảnh nằm ở "Chưa phân loại". */

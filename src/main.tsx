@@ -19,7 +19,7 @@ const root = createRoot(document.getElementById('root')!)
 
 if (!window.grido) {
   // Mở nhầm địa chỉ dev server bằng trình duyệt thường: không có cầu nối sang Electron.
-  root.render(<p style={{ padding: 32 }}>Grido là ứng dụng desktop. Chạy `npm run dev` để mở cửa sổ ứng dụng.</p>)
+  root.render(<p style={{ padding: 32 }}>Tiệm Ghép Ảnh là ứng dụng desktop. Chạy `npm run dev` để mở cửa sổ ứng dụng.</p>)
 } else {
   // Nạp sau khi chắc chắn có cầu nối, vì store và theme gọi sang main process ngay lúc khởi tạo.
   const [{ default: App }, { watchTheme }] = await Promise.all([import('./App'), import('./lib/theme')])

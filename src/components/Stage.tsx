@@ -1,4 +1,4 @@
-import { Dices, FlipHorizontal2, ImageMinus, Maximize, Move, Redo2, RotateCcw, RotateCw, Shuffle, Undo2, ZoomIn } from 'lucide-react'
+import { Dices, FlipHorizontal2, ImageMinus, Maximize, Move, Redo2, RotateCcw, RotateCw, Shuffle, Undo2 } from 'lucide-react'
 import { useEffect, useMemo, useRef, useState, type CSSProperties, type PointerEvent as ReactPointerEvent } from 'react'
 import { flushSync } from 'react-dom'
 import { useShallow } from 'zustand/react/shallow'
@@ -48,7 +48,7 @@ const hitCell = (cells: Rect[], x: number, y: number) =>
   cells.findIndex((c) => x >= c.x && x < c.x + c.w && y >= c.y && y < c.y + c.h)
 
 /** Kích thước + transform của thẻ img (trước khi xoay) sao cho vùng ảnh đã xoay nằm đúng `placed`. */
-function imageStyle(placed: ReturnType<typeof placeImage>, adjust: CellAdjust): CSSProperties {
+export function imageStyle(placed: ReturnType<typeof placeImage>, adjust: CellAdjust): CSSProperties {
   const w = isSideways(adjust) ? placed.dh : placed.dw
   const h = isSideways(adjust) ? placed.dw : placed.dh
   return {
@@ -396,7 +396,7 @@ export function Stage() {
               <input
                 type="range"
                 aria-label="Thu phóng khung làm việc"
-                title="Thu phóng khung làm việc (Ctrl + lăn chuột)"
+                data-tip="Thu phóng khung làm việc (Ctrl + lăn chuột)"
                 className="hidden w-20 lg:block"
                 min={MIN_VIEW_ZOOM}
                 max={MAX_VIEW_ZOOM}
@@ -408,7 +408,7 @@ export function Stage() {
                   setViewZoom(clampViewZoom(Number(e.target.value)))
                 }}
               />
-              <span className="w-11 text-center text-xs font-semibold tabular-nums text-soft lg:ml-1.5" title="Tỉ lệ so với kích thước ảnh xuất">
+              <span className="w-11 text-center text-xs font-semibold tabular-nums text-soft lg:ml-1.5" data-tip="Tỉ lệ so với kích thước ảnh xuất">
                 {Math.round(k * 100)}%
               </span>
               <IconButton
@@ -431,7 +431,7 @@ export function Stage() {
               onClick={shuffle}
               disabled={selected.length < 2}
               aria-label="Trộn ảnh"
-              title="Trộn vị trí ảnh"
+              data-tip="Trộn vị trí ảnh"
               className="h-9 px-3 text-[13px]"
             >
               <Shuffle className="size-4" />
@@ -440,7 +440,7 @@ export function Stage() {
             <Button
               onClick={randomLayout}
               aria-label="Bố cục ngẫu nhiên"
-              title="Đổi bố cục ngẫu nhiên"
+              data-tip="Đổi bố cục ngẫu nhiên"
               className="h-9 px-3 text-[13px]"
             >
               <Dices className="size-4" />
@@ -598,7 +598,7 @@ export function Stage() {
                       {!live && Math.min(f.box.width, f.box.height) > 90 && (
                         <span
                           className="absolute left-1/2 top-1/2 grid size-8 -translate-x-1/2 -translate-y-1/2 animate-pop place-items-center rounded-full bg-black/55 text-white"
-                          title="Kéo để di chuyển ảnh trong ô"
+                          data-tip="Kéo để di chuyển ảnh trong ô"
                         >
                           <Move className="size-4" />
                         </span>
@@ -631,7 +631,7 @@ export function Stage() {
                           aria-valuemin={1}
                           aria-valuemax={MAX_ZOOM}
                           aria-valuenow={f.cell.adjust.zoom}
-                          title="Kéo để phóng to / thu nhỏ ảnh"
+                          data-tip="Kéo để phóng to / thu nhỏ ảnh"
                           className={cx('group pointer-events-auto absolute grid size-7 -translate-x-1/2 -translate-y-1/2 touch-none place-items-center', cursor)}
                           style={{ left, top }}
                           onPointerDown={(e) => onZoomDown(e, frameCell)}
@@ -675,22 +675,8 @@ export function Stage() {
 
       {active ? (
         <div className="absolute inset-x-0 bottom-2.5 z-30 flex justify-center px-2.5">
-          <div className="flex w-full max-w-md animate-pop items-center gap-0.5 rounded-full bg-card py-1.5 pl-4 pr-1.5 shadow-lift">
-            <ZoomIn className="mr-1.5 size-4 shrink-0 text-muted" />
-            <input
-              type="range"
-              aria-label="Phóng to ảnh"
-              className="mr-1.5 min-w-0"
-              min={1}
-              max={MAX_ZOOM}
-              step={0.01}
-              value={active.adjust.zoom}
-              style={{ '--fill': `${((active.adjust.zoom - 1) / (MAX_ZOOM - 1)) * 100}%` } as CSSProperties}
-              onChange={(e) => {
-                settle()
-                setAdjust(active.photo.id, { zoom: Number(e.target.value) })
-              }}
-            />
+          {/* Phóng to / thu nhỏ ảnh: kéo nút tròn ở góc ảnh hoặc lăn chuột, nên thanh này chỉ còn các thao tác bấm. */}
+          <div className="flex animate-pop items-center gap-0.5 rounded-full bg-card p-1.5 shadow-lift">
             <IconButton
               label="Xoay 90°"
               onClick={() => {
@@ -732,7 +718,7 @@ export function Stage() {
       ) : (
         spec && (
           <p className="pointer-events-none absolute inset-x-0 bottom-3 hidden text-center text-xs text-muted lg:block">
-            Kéo ảnh để căn khung · thả sang ô khác để đổi chỗ · cuộn để zoom · kéo đường viền để đổi kích thước ô
+            Kéo ảnh để căn khung · thả sang ô khác để đổi chỗ · bấm ảnh rồi kéo nút ở góc để phóng to · kéo đường viền để đổi kích thước ô
           </p>
         )
       )}
@@ -883,7 +869,7 @@ function EmptyStage() {
       </div>
       <h2 className="mt-5 font-display text-lg font-bold lg:mt-8 lg:text-2xl">Chọn ảnh để bắt đầu ghép</h2>
       <p className="mt-1.5 text-[13px] leading-relaxed text-soft lg:text-sm">
-        Bấm vào các ảnh trong thư viện, Grido sẽ tự xếp bố cục.
+        Bấm vào các ảnh trong thư viện, Tiệm Ghép Ảnh sẽ tự xếp bố cục.
       </p>
     </div>
   )

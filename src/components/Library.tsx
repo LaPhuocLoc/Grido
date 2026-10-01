@@ -25,7 +25,8 @@ const NEW_ALBUM = '__new'
 const DRAG_THRESHOLD = 6
 /** Kéo sát mép trên / dưới danh sách trong khoảng này thì danh sách tự cuộn. */
 const AUTO_SCROLL_EDGE = 48
-const GRID = 'grid grid-cols-4 gap-2 sm:grid-cols-6 lg:grid-cols-3'
+// Cửa sổ rộng: số cột tự tăng theo bề rộng bảng (3 cột ở bề rộng mặc định).
+const GRID = 'grid grid-cols-4 gap-2 sm:grid-cols-6 lg:grid-cols-[repeat(auto-fill,minmax(88px,1fr))]'
 
 interface MenuItem {
   label: string
@@ -56,6 +57,7 @@ function movingIds(photoId: string): string[] {
 const Tile = memo(function Tile({
   photo,
   selected,
+  swept,
   doomed,
   moving,
   index,
@@ -64,6 +66,8 @@ const Tile = memo(function Tile({
 }: {
   photo: Photo
   selected: boolean
+  /** Ảnh đang nằm trong vùng quét chọn (chưa thả chuột). */
+  swept: boolean
   /** Ảnh đang chờ xác nhận xoá. */
   doomed: boolean
   /** Ảnh đang được kéo sang album khác. */
@@ -97,12 +101,15 @@ const Tile = memo(function Tile({
             ? 'scale-[0.94] ring-[3px] ring-danger ring-offset-2 ring-offset-paper'
             : selected
               ? 'scale-[0.94] ring-[3px] ring-coral ring-offset-2 ring-offset-paper'
+              : swept
+                ? 'scale-[0.94] ring-[3px] ring-coral/60 ring-offset-2 ring-offset-paper'
               : 'hover:scale-[1.03] hover:shadow-soft active:scale-[0.97]',
         )}
       >
         <img
           src={thumbUrl(photo.id)}
-          title={photo.path}
+          // Chỉ tên file kèm đuôi; muốn biết ảnh nằm ở đâu thì dùng "Mở thư mục chứa ảnh" trong menu chuột phải.
+          data-tip={photo.path.split(/[\\/]/).pop() || photo.name}
           alt=""
           loading="lazy"
           decoding="async"
@@ -116,7 +123,7 @@ const Tile = memo(function Tile({
         />
         {photo.missing && (
           <span
-            title="Không tìm thấy file gốc (đã bị di chuyển hoặc xoá): xuất ảnh sẽ dùng bản xem trước"
+            data-tip="Không tìm thấy file gốc (đã bị di chuyển hoặc xoá): xuất ảnh sẽ dùng bản xem trước"
             className="absolute bottom-1 left-1 grid size-5 place-items-center rounded-full bg-amber text-ink"
           >
             <TriangleAlert className="size-3" />
@@ -126,7 +133,7 @@ const Tile = memo(function Tile({
         <span
           className={cx(
             'absolute right-1.5 top-1.5 grid size-5 place-items-center rounded-full transition-colors duration-150',
-            selected ? 'bg-coral text-white shadow' : 'bg-black/40 text-white/55 group-hover:bg-black/60 group-hover:text-white',
+            selected || swept ? 'bg-coral text-white shadow' : 'bg-black/40 text-white/55 group-hover:bg-black/60 group-hover:text-white',
           )}
         >
           <Check className="size-3" strokeWidth={3.5} />
@@ -136,7 +143,7 @@ const Tile = memo(function Tile({
         <button
           type="button"
           aria-label={`Xoá ảnh ${photo.name} khỏi thư viện`}
-          title="Xoá khỏi thư viện"
+          data-tip="Xoá khỏi thư viện"
           data-no-drag
           onClick={() => onDelete(photo.id)}
           className="absolute bottom-1.5 right-1.5 grid size-6 place-items-center rounded-full bg-black/60 text-white opacity-0 transition-[opacity,background-color] duration-150 hover:bg-danger focus-visible:opacity-100 group-hover:opacity-100"
@@ -198,6 +205,7 @@ function Menu({ menu, onClose }: { menu: MenuState; onClose: () => void }) {
 /** Mọi thao tác của thư viện, gom vào một chỗ để không phải rải chữ hướng dẫn khắp panel. */
 const TIPS: [string, string][] = [
   ['Bấm vào ảnh', 'đưa ảnh vào bố cục, bấm lần nữa để bỏ ra'],
+  ['Giữ chuột quét qua nhiều ảnh', 'bắt đầu từ chỗ trống (hoặc giữ Shift rồi quét từ bất kỳ đâu) để đưa cả loạt ảnh vào bố cục'],
   ['Kéo ảnh', 'chuyển sang album khác; tích nhiều ảnh rồi kéo để chuyển cả nhóm'],
   ['Chuột phải vào ảnh', 'chuyển album, mở thư mục chứa ảnh, xoá khỏi thư viện'],
   ['Kéo file vào cửa sổ', 'thêm ảnh hoặc cả thư mục; dán ảnh bằng Ctrl+V cũng được'],
@@ -324,7 +332,7 @@ function Section({
         ) : (
           <button
             type="button"
-            title={album ? 'Bấm đúp để đổi tên' : undefined}
+            data-tip={album ? 'Bấm đúp để đổi tên' : undefined}
             onClick={() => toggleAlbumCollapsed(id)}
             onDoubleClick={() => album && onStartRename()}
             className={cx('min-w-0 flex-1 truncate text-left text-[13px] font-semibold', album ? 'text-ink' : 'text-soft')}
@@ -362,9 +370,11 @@ export function Library() {
   const collapsedAlbums = useStore((s) => s.collapsedAlbums)
   const replacing = useStore((s) => s.activeCell !== null)
   const tipSeen = useStore((s) => s.libraryTipSeen)
+  // Số cột ước lượng của lưới ảnh (ô ~88px + khe 8px), chỉ để đoán chiều cao những khối chưa từng được vẽ.
+  const columns = useStore((s) => Math.max(3, Math.floor((s.panelWidth - 24) / 96)))
   const [tips, setTips] = useState<{ x: number; y: number } | null>(null)
   const closeTips = useCallback(() => setTips(null), [])
-  const { pickPhotos, dismissImport, clearSelection, deletePhotos, toggleSelect, createAlbum, renameAlbum, removeAlbum, movePhotos, toast } =
+  const { pickPhotos, dismissImport, clearSelection, deletePhotos, toggleSelect, selectMany, createAlbum, renameAlbum, removeAlbum, movePhotos, toast } =
     useStore.getState()
 
   // Mọi kiểu xoá (một ảnh, ảnh đã chọn, cả album, tất cả) đều đi qua cùng một bước xác nhận: ảnh sắp xoá được tô đỏ trong lưới.
@@ -377,6 +387,11 @@ export function Library() {
   const scroller = useRef<HTMLDivElement>(null)
   const ghost = useRef<HTMLDivElement>(null)
   const press = useRef<{ id: string; x: number; y: number; pointerId: number; ids: string[] | null; over: string | null; lastY: number; raf: number } | null>(null)
+  /** Quét chọn: giữ chuột ở chỗ trống rồi kéo thành một vùng, mọi ảnh chạm vùng đó được đưa vào bố cục khi thả tay. */
+  const [swept, setSwept] = useState<Set<string> | null>(null)
+  const marquee = useRef<HTMLDivElement>(null)
+  /** Điểm bắt đầu tính theo nội dung danh sách (đã cộng độ cuộn), để vùng quét đứng yên so với ảnh khi danh sách tự cuộn. */
+  const sweep = useRef<{ pointerId: number; x: number; y: number; sx: number; sy: number; cx: number; cy: number; active: boolean; ids: string[]; raf: number } | null>(null)
   // Thả chuột sau khi kéo vẫn sinh ra một cú click lên ảnh → phải nuốt nó, nếu không ảnh bị chọn / bỏ chọn ngoài ý muốn.
   const swallowClick = useRef(false)
   const closeMenu = useCallback(() => setMenu(null), [])
@@ -420,11 +435,89 @@ export function Library() {
   const onPointerDown = (e: ReactPointerEvent) => {
     // Màn cảm ứng: vuốt là để cuộn danh sách; chuyển album thì dùng menu (nhấn giữ).
     if (e.button !== 0 || e.pointerType !== 'mouse') return
-    const tile = (e.target as HTMLElement).closest<HTMLElement>('[data-photo]')
-    if (!tile || (e.target as HTMLElement).closest('[data-no-drag]')) return
+    const target = e.target as HTMLElement
+    if (target.closest('[data-no-drag]')) return
+    const tile = target.closest<HTMLElement>('[data-photo]')
+    const box = scroller.current!
+    const r = box.getBoundingClientRect()
+    // Bắt đầu từ chỗ trống = quét chọn; giữ Shift thì quét được cả khi bắt đầu ngay trên một ảnh. Bấm vào thanh cuộn thì không.
+    if (!tile || e.shiftKey) {
+      if ((!tile && target.closest('button, input')) || e.clientX > r.left + box.clientWidth) return
+      sweep.current = { pointerId: e.pointerId, x: e.clientX - r.left, y: e.clientY - r.top + box.scrollTop, sx: e.clientX, sy: e.clientY, cx: e.clientX, cy: e.clientY, active: false, ids: [], raf: 0 }
+      return
+    }
     press.current = { id: tile.dataset.photo!, x: e.clientX, y: e.clientY, pointerId: e.pointerId, ids: null, over: null, lastY: e.clientY, raf: 0 }
   }
+  /** Vẽ lại vùng quét theo vị trí con trỏ mới nhất và tìm những ảnh nó chạm tới. */
+  const paintSweep = () => {
+    const s = sweep.current
+    const box = scroller.current
+    if (!s || !box) return
+    const r = box.getBoundingClientRect()
+    const x = Math.min(Math.max(s.cx - r.left, 0), box.clientWidth)
+    const y = Math.min(Math.max(s.cy - r.top, 0), box.clientHeight) + box.scrollTop
+    const area = { left: Math.min(s.x, x), top: Math.min(s.y, y), right: Math.max(s.x, x), bottom: Math.max(s.y, y) }
+    const el = marquee.current
+    if (el) {
+      el.style.left = `${area.left}px`
+      el.style.top = `${area.top}px`
+      el.style.width = `${area.right - area.left}px`
+      el.style.height = `${area.bottom - area.top}px`
+    }
+    // Đổi sang toạ độ cửa sổ để so với vị trí thật của từng ô.
+    const dx = r.left
+    const dy = r.top - box.scrollTop
+    const hit = (t: DOMRect) => t.left < area.right + dx && t.right > area.left + dx && t.top < area.bottom + dy && t.bottom > area.top + dy
+    const ids: string[] = []
+    // Xét theo từng khối trước: khối nằm ngoài vùng quét thì khỏi phải đo từng ô bên trong (thư viện có thể vài nghìn ảnh).
+    for (const chunk of box.querySelectorAll<HTMLElement>('ul.tile-chunk')) {
+      if (!hit(chunk.getBoundingClientRect())) continue
+      for (const tile of chunk.querySelectorAll<HTMLElement>('[data-photo]')) if (hit(tile.getBoundingClientRect())) ids.push(tile.dataset.photo!)
+    }
+    if (ids.join() === s.ids.join()) return
+    s.ids = ids
+    setSwept(new Set(ids))
+  }
+  const onSweepMove = (e: ReactPointerEvent) => {
+    const s = sweep.current
+    if (!s || e.pointerId !== s.pointerId) return
+    s.cx = e.clientX
+    s.cy = e.clientY
+    if (!s.active) {
+      if (Math.hypot(e.clientX - s.sx, e.clientY - s.sy) < DRAG_THRESHOLD) return
+      s.active = true
+      scroller.current!.setPointerCapture(e.pointerId)
+      setSwept(new Set())
+      // Quét sát mép trên / dưới thì danh sách tự cuộn để quét tiếp được những ảnh nằm ngoài vùng nhìn.
+      const tick = () => {
+        const box = scroller.current
+        const now = sweep.current
+        if (!box || !now) return
+        const r = box.getBoundingClientRect()
+        const speed = now.cy < r.top + AUTO_SCROLL_EDGE ? now.cy - (r.top + AUTO_SCROLL_EDGE) : now.cy > r.bottom - AUTO_SCROLL_EDGE ? now.cy - (r.bottom - AUTO_SCROLL_EDGE) : 0
+        if (speed) {
+          box.scrollTop += speed * 0.25
+          paintSweep()
+        }
+        now.raf = requestAnimationFrame(tick)
+      }
+      s.raf = requestAnimationFrame(tick)
+    }
+    paintSweep()
+  }
+  const endSweep = (commit: boolean) => {
+    const s = sweep.current
+    sweep.current = null
+    if (!s?.active) return
+    cancelAnimationFrame(s.raf)
+    swallowClick.current = true
+    setTimeout(() => (swallowClick.current = false))
+    setSwept(null)
+    if (commit) selectMany(s.ids)
+  }
+
   const onPointerMove = (e: ReactPointerEvent) => {
+    if (sweep.current) return onSweepMove(e)
     const p = press.current
     if (!p || e.pointerId !== p.pointerId) return
     if (!p.ids) {
@@ -453,6 +546,7 @@ export function Library() {
     }
   }
   const endDrag = (e: ReactPointerEvent, commit: boolean) => {
+    if (sweep.current) return endSweep(commit)
     const p = press.current
     press.current = null
     if (!p?.ids) return
@@ -513,17 +607,18 @@ export function Library() {
         const slice = list.slice(chunk * CHUNK, (chunk + 1) * CHUNK)
         // Ảnh đang được chuẩn bị giữ sẵn chỗ ở đầu lưới, xong cái nào hiện cái đó.
         const shimmers = chunk === 0 ? waiting : []
-        const rows = Math.ceil((slice.length + shimmers.length) / 3)
+        const rows = Math.ceil((slice.length + shimmers.length) / columns)
         return (
           <ul key={chunk} className={cx(GRID, 'tile-chunk')} style={{ containIntrinsicSize: `auto ${rows * ROW_HEIGHT - 8}px` }}>
             {shimmers.map((u) => (
-              <li key={`pending-${u.key}`} title={`Đang chuẩn bị ${u.name}…`} className="shimmer aspect-square animate-tile rounded-xl" />
+              <li key={`pending-${u.key}`} data-tip={`Đang chuẩn bị ${u.name}…`} className="shimmer aspect-square animate-tile rounded-xl" />
             ))}
             {slice.map((photo, index) => (
               <Tile
                 key={photo.id}
                 photo={photo}
                 selected={selectedSet.has(photo.id)}
+                swept={!!swept && swept.has(photo.id)}
                 doomed={doomed.has(photo.id)}
                 index={chunk * CHUNK + index}
                 moving={!!drag && drag.ids.includes(photo.id)}
@@ -545,7 +640,7 @@ export function Library() {
       <div className="flex items-center gap-0.5 px-3 py-2.5 lg:px-4">
         <Button
           variant="primary"
-          title="Bấm để chọn ảnh, hoặc kéo thả ảnh / thư mục vào cửa sổ"
+          data-tip="Bấm để chọn ảnh, hoặc kéo thả ảnh / thư mục vào cửa sổ"
           onClick={() => void pickPhotos()}
           className="h-9 shrink-0 gap-1.5 pl-3 pr-3.5 text-[13px]"
         >
@@ -555,7 +650,7 @@ export function Library() {
         <span className="min-w-0 flex-1 truncate px-2 text-xs tabular-nums text-muted">
           {pending.length ? `Đang thêm ${pending.length}…` : photos.length ? `${photos.length} ảnh` : ''}
         </span>
-        <button type="button" aria-label="Tạo album" title="Tạo album để phân loại ảnh" onClick={() => newAlbum()} className="grid size-8 shrink-0 place-items-center rounded-full text-muted transition-colors hover:bg-sand hover:text-ink">
+        <button type="button" aria-label="Tạo album" data-tip="Tạo album để phân loại ảnh" onClick={() => newAlbum()} className="grid size-8 shrink-0 place-items-center rounded-full text-muted transition-colors hover:bg-sand hover:text-ink">
           <FolderPlus className="size-4" />
         </button>
         {photos.length > 0 && (
@@ -563,7 +658,7 @@ export function Library() {
             type="button"
             aria-label="Xoá ảnh khỏi thư viện"
             aria-haspopup="menu"
-            title="Xoá ảnh khỏi thư viện…"
+            data-tip="Xoá ảnh khỏi thư viện…"
             onClick={(e) => {
               const r = e.currentTarget.getBoundingClientRect()
               setMenu({
@@ -587,7 +682,7 @@ export function Library() {
           type="button"
           aria-label="Mẹo thao tác"
           aria-haspopup="dialog"
-          title="Mẹo thao tác"
+          data-tip="Mẹo thao tác"
           onClick={(e) => {
             const r = e.currentTarget.getBoundingClientRect()
             setTips({ x: r.right, y: r.bottom + 6 })
@@ -650,7 +745,7 @@ export function Library() {
 
       <div
         ref={scroller}
-        className={cx('scroll-soft min-h-0 flex-1 overflow-y-auto border-t border-line px-3 pb-4 lg:px-4', drag && 'cursor-grabbing')}
+        className={cx('scroll-soft relative min-h-0 flex-1 select-none overflow-y-auto border-t border-line px-3 pb-4 lg:px-4', drag && 'cursor-grabbing')}
         onPointerDown={onPointerDown}
         onPointerMove={onPointerMove}
         onPointerUp={(e) => endDrag(e, true)}
@@ -727,6 +822,7 @@ export function Library() {
             })}
           </div>
         )}
+        {swept && <div ref={marquee} className="pointer-events-none absolute z-20 rounded-md border border-coral bg-coral/15" />}
         {/* Chỉ hiện trong lúc kéo ảnh, dính ở đáy danh sách: thả vào đây = tạo album mới chứa luôn những ảnh đó. */}
         {drag && (
           <div
@@ -747,12 +843,12 @@ export function Library() {
         <div className="flex animate-fade items-start gap-2 border-t border-line bg-card px-3 py-2 lg:px-4">
           <Lightbulb className="mt-0.5 size-3.5 shrink-0 text-amber" />
           <p className="min-w-0 flex-1 text-xs leading-snug text-soft">
-            <b className="text-ink">Bấm</b> ảnh để ghép · <b className="text-ink">kéo</b> để xếp album · <b className="text-ink">chuột phải</b> để xem thêm
+            <b className="text-ink">Bấm</b> ảnh để ghép · <b className="text-ink">quét</b> để chọn nhiều · <b className="text-ink">kéo</b> để xếp album · <b className="text-ink">chuột phải</b> để xem thêm
           </p>
           <button
             type="button"
             aria-label="Ẩn mẹo"
-            title="Ẩn mẹo (xem lại bằng nút ?)"
+            data-tip="Ẩn mẹo (xem lại bằng nút ?)"
             onClick={() => useStore.getState().set({ libraryTipSeen: true })}
             className="-mr-1 grid size-5 shrink-0 place-items-center rounded-full text-muted hover:bg-sand hover:text-ink"
           >

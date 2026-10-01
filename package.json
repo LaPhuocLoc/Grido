@@ -1,11 +1,11 @@
 {
   "name": "grido",
-  "productName": "Grido",
+  "productName": "Tiệm Ghép Ảnh",
   "description": "Ghép ảnh nhiều bố cục, xuất ảnh sắc nét cho Instagram, Facebook, TikTok.",
   "author": "LA PHUOC LOC",
   "repository": "github:LaPhuocLoc/Grido",
   "private": true,
-  "version": "1.3.0",
+  "version": "1.4.0",
   "type": "module",
   "main": "dist-electron/main.cjs",
   "scripts": {
@@ -47,7 +47,8 @@
   },
   "build": {
     "appId": "app.grido.desktop",
-    "productName": "Grido",
+    "productName": "Tiệm Ghép Ảnh",
+    "executableName": "TiemGhepAnh",
     "directories": {
       "output": "release",
       "buildResources": "build"
@@ -56,7 +57,7 @@
       "dist/**",
       "dist-electron/**"
     ],
-    "artifactName": "Grido-${version}-${os}-${arch}.${ext}",
+    "artifactName": "TiemGhepAnh-${version}-${os}-${arch}.${ext}",
     "win": {
       "icon": "build/icon.ico",
       "target": [
@@ -110,8 +111,8 @@
       "oneClick": true,
       "perMachine": false,
       "deleteAppDataOnUninstall": false,
-      "artifactName": "Grido-Setup-${version}.${ext}",
-      "shortcutName": "Grido"
+      "artifactName": "TiemGhepAnh-Setup-${version}.${ext}",
+      "shortcutName": "Tiệm Ghép Ảnh"
     }
   }
 }

@@ -1,6 +1,6 @@
 import { CircleAlert, CircleCheck, Info, Moon, Sun } from 'lucide-react'
-import type { ButtonHTMLAttributes, CSSProperties, MouseEvent, ReactNode } from 'react'
-import { flushSync } from 'react-dom'
+import { useEffect, useLayoutEffect, useRef, useState, type ButtonHTMLAttributes, type CSSProperties, type MouseEvent, type ReactNode } from 'react'
+import { createPortal, flushSync } from 'react-dom'
 import { isDark } from '../lib/theme'
 import { useStore } from '../store'
 
@@ -21,7 +21,7 @@ export function Logo({ size = 28 }: { size?: number }) {
         <rect x="324" y="48" width="140" height="416" rx="56" fill="url(#logo-g)" />
         <rect x="48" y="324" width="244" height="140" rx="56" fill="url(#logo-g)" />
       </svg>
-      <span className="font-display text-[1.35em] font-bold tracking-tight text-ink">Grido</span>
+      <span className="font-display text-[1.35em] font-bold tracking-tight text-ink">Tiệm Ghép Ảnh</span>
     </span>
   )
 }
@@ -58,7 +58,7 @@ export function IconButton({
     <button
       type="button"
       aria-label={label}
-      title={label}
+      data-tip={label}
       {...props}
       className={cx(
         'inline-grid place-items-center size-9 rounded-full text-soft hover:bg-sand hover:text-ink transition-colors disabled:opacity-40',
@@ -75,7 +75,7 @@ export function ThemeToggle({ className }: { className?: string }) {
   const dark = isDark(theme)
   const toggle = (e: MouseEvent) => {
     const apply = () => flushSync(() => useStore.getState().set({ theme: dark ? 'light' : 'dark' }))
-    if (!document.startViewTransition || matchMedia('(prefers-reduced-motion: reduce)').matches) return apply()
+    if (!document.startViewTransition) return apply()
     // Giao diện mới loang ra thành hình tròn từ chính nút vừa bấm.
     const { clientX: x, clientY: y } = e
     const radius = Math.hypot(Math.max(x, innerWidth - x), Math.max(y, innerHeight - y))
@@ -206,5 +206,86 @@ export function Toasts() {
         </div>
       ))}
     </div>
+  )
+}
+
+/** Chờ bấy lâu mới hiện chú thích, để lướt chuột ngang qua không làm nó nháy lên. */
+const TIP_DELAY = 350
+const TIP_GAP = 8
+
+/**
+ * Chú thích nổi khi rê chuột vào phần tử có `data-tip` (thay cho tooltip mặc định của hệ điều hành).
+ * Chỉ có một cái cho cả app, gắn vào body nên không bị vùng chứa nào cắt mất.
+ */
+export function Tooltip() {
+  const [tip, setTip] = useState<{ text: string; rect: DOMRect } | null>(null)
+  const box = useRef<HTMLDivElement>(null)
+  const [pos, setPos] = useState<{ left: number; top: number } | null>(null)
+
+  useEffect(() => {
+    let target: Element | null = null
+    let timer: number | undefined
+    let lastShown = 0
+    const hide = () => {
+      clearTimeout(timer)
+      if (target) lastShown = Date.now()
+      target = null
+      setTip(null)
+    }
+    const over = (e: PointerEvent) => {
+      const el = e.pointerType === 'mouse' && e.buttons === 0 ? (e.target as Element).closest?.('[data-tip]') : null
+      if (el === target) return
+      hide()
+      const text = el?.getAttribute('data-tip')
+      if (!el || !text) return
+      target = el
+      const show = () => el.isConnected && setTip({ text, rect: el.getBoundingClientRect() })
+      // Vừa xem chú thích của nút bên cạnh thì nút này hiện ngay, không bắt chờ lại.
+      if (Date.now() - lastShown < 400) show()
+      else timer = window.setTimeout(show, TIP_DELAY)
+    }
+    const leave = (e: PointerEvent) => !e.relatedTarget && hide()
+    document.addEventListener('pointerover', over)
+    document.addEventListener('pointerout', leave)
+    document.addEventListener('pointerdown', hide, true)
+    document.addEventListener('keydown', hide, true)
+    document.addEventListener('wheel', hide, { capture: true, passive: true })
+    window.addEventListener('blur', hide)
+    return () => {
+      clearTimeout(timer)
+      document.removeEventListener('pointerover', over)
+      document.removeEventListener('pointerout', leave)
+      document.removeEventListener('pointerdown', hide, true)
+      document.removeEventListener('keydown', hide, true)
+      document.removeEventListener('wheel', hide, true)
+      window.removeEventListener('blur', hide)
+    }
+  }, [])
+
+  // Đặt ngay dưới phần tử, canh giữa; sát đáy cửa sổ thì lật lên trên, sát mép thì dịch vào trong.
+  useLayoutEffect(() => {
+    const el = box.current
+    if (!tip || !el) return setPos(null)
+    const { rect } = tip
+    const below = rect.bottom + TIP_GAP
+    const top = below + el.offsetHeight > window.innerHeight - 4 ? rect.top - TIP_GAP - el.offsetHeight : below
+    const left = Math.min(window.innerWidth - el.offsetWidth - 6, Math.max(6, rect.left + rect.width / 2 - el.offsetWidth / 2))
+    setPos({ left, top })
+  }, [tip])
+
+  if (!tip) return null
+  return createPortal(
+    <div
+      ref={box}
+      role="tooltip"
+      className={cx(
+        'pointer-events-none fixed z-[80] max-w-64 rounded-lg bg-[#1b1b2b] px-2.5 py-1.5 text-xs font-semibold leading-snug text-white shadow-lift dark:bg-[#34384d] dark:ring-1 dark:ring-white/10',
+        pos ? 'animate-fade' : 'invisible',
+      )}
+      style={pos ?? { left: 0, top: 0 }}
+    >
+      {tip.text}
+    </div>,
+    document.body,
   )
 }

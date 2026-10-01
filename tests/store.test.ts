@@ -201,13 +201,13 @@ describe('removing a photo from the collage', () => {
   })
 })
 
-describe('side panels', () => {
-  it('remembers which panels are collapsed the next time the app opens', async () => {
-    expect(get()).toMatchObject({ leftCollapsed: false, rightCollapsed: false })
+describe('sidebar', () => {
+  it('remembers that it is collapsed the next time the app opens', async () => {
+    expect(get()).toMatchObject({ leftCollapsed: false })
     get().set({ leftCollapsed: true })
     vi.advanceTimersByTime(1000)
     await boot()
-    expect(get()).toMatchObject({ leftCollapsed: true, rightCollapsed: false })
+    expect(get()).toMatchObject({ leftCollapsed: true })
   })
 })
 
@@ -267,7 +267,21 @@ describe('text', () => {
     const old = { id: 't1', text: 'Đà Lạt', x: 0.5, y: 0.5, size: 8, color: '#ffffff', font: 'round', bold: true, shadow: true }
     localStorage.setItem('grido-settings', JSON.stringify({ state: { texts: [old] }, version: 0 }))
     await boot()
-    expect(get().texts).toEqual([{ ...old, italic: false, underline: false, strike: false, align: 'center', rotation: 0, width: null }])
+    expect(get().texts).toEqual([
+      {
+        ...old,
+        italic: false,
+        underline: false,
+        strike: false,
+        align: 'center',
+        rotation: 0,
+        width: null,
+        spacing: 0,
+        lineHeight: 1.25,
+        anchor: 'middle',
+        opacity: 100,
+      },
+    ])
   })
 })
 
@@ -432,11 +446,257 @@ describe('frame size', () => {
   })
 
   it('clamps a custom size that is still being typed', () => {
-    expect(mod.canvasSize({ presetId: 'custom', customW: 10, customH: 99999 })).toEqual({ width: 200, height: 6000 })
+    expect(mod.canvasSize({ presetId: 'custom', customW: 10, customH: 99999 })).toEqual({ width: 200, height: 10000 })
     expect(mod.canvasSize({ presetId: 'custom', customW: Number.NaN, customH: 1500.6 })).toEqual({ width: 200, height: 1501 })
   })
 
   it('falls back to the custom size for a preset id that no longer exists', () => {
     expect(mod.canvasSize({ presetId: 'removed-preset', customW: 800, customH: 600 })).toEqual({ width: 800, height: 600 })
+  })
+})
+
+describe('original frame', () => {
+  const size = () => mod.canvasSize(get())
+
+  it('starts a new collage at the first photo’s original resolution and keeps it as photos are added', async () => {
+    mod.useStore.setState({ photos: [photo('p1', { sourceWidth: 4000, sourceHeight: 5000 }), photo('p2')] })
+    get().toggleSelect('p1')
+    expect(get().presetId).toBe('original')
+    expect(size()).toEqual({ width: 4000, height: 5000 })
+    get().clearSelection()
+    // Ảnh máy ảnh lớn hơn 6000px vẫn giữ nguyên độ phân giải.
+    mod.useStore.setState({ photos: [photo('p1', { sourceWidth: 4672, sourceHeight: 7008 }), photo('p2')] })
+    get().toggleSelect('p1')
+    expect(size()).toEqual({ width: 4672, height: 7008 })
+    get().toggleSelect('p2')
+    expect(size()).toEqual({ width: 4672, height: 7008 })
+  })
+
+  it('keeps a frame the user picked until the collage is emptied', () => {
+    get().toggleSelect('p1')
+    get().set({ presetId: 'story' })
+    get().toggleSelect('p2')
+    expect(get().presetId).toBe('story')
+    get().clearSelection()
+    get().toggleSelect('p2')
+    expect(get().presetId).toBe('original')
+    expect(size()).toEqual({ width: 6000, height: 4000 })
+  })
+
+  it('shrinks an oversized original to the canvas limit, and uses the preview when the file is gone', async () => {
+    mod.useStore.setState({ photos: [photo('p1', { sourceWidth: 12000, sourceHeight: 8000 }), photo('p2', { missing: true })] })
+    get().toggleSelect('p1')
+    expect(size()).toEqual({ width: 10000, height: 6667 })
+    get().clearSelection()
+    get().toggleSelect('p2')
+    expect(size()).toEqual({ width: 2560, height: 1707 })
+  })
+
+  it('goes back to the original size on request', () => {
+    get().toggleSelect('p1')
+    get().set({ presetId: 'ig-square' })
+    get().applyOriginalSize()
+    expect(get().presetId).toBe('original')
+    expect(size()).toEqual({ width: 6000, height: 4000 })
+  })
+
+  it('moves a draft that used a retired frame to the same custom size', async () => {
+    localStorage.setItem('grido-settings', JSON.stringify({ state: { presetId: 'a4' }, version: 0 }))
+    await boot()
+    expect(get().presetId).toBe('custom')
+    expect(size()).toEqual({ width: 2480, height: 3508 })
+  })
+})
+
+describe('favourite fonts and frames', () => {
+  it('toggles and survives a restart', async () => {
+    get().toggleFavoriteFont('lora')
+    get().toggleFavoritePreset('story')
+    get().toggleFavoritePreset('fb-cover')
+    get().toggleFavoritePreset('story')
+    expect(get().favoriteFonts).toEqual(['lora'])
+    expect(get().favoritePresets).toEqual(['fb-cover'])
+    window.dispatchEvent(new Event('pagehide'))
+    await boot()
+    expect(get().favoriteFonts).toEqual(['lora'])
+    expect(get().favoritePresets).toEqual(['fb-cover'])
+  })
+})
+
+describe('designs', () => {
+  const titles = () => get().designs.map((d) => d.snapshot.selected.join('+'))
+  const caption = (text: string) => {
+    get().addText()
+    get().updateText(get().activeText!, { text })
+  }
+
+  it('saves the collage as a design as soon as it has a photo, and keeps it up to date', () => {
+    expect(get().designs).toEqual([])
+    get().toggleSelect('p1')
+    expect(get().designs).toHaveLength(1)
+    expect(get().currentDesignId).toBe(get().designs[0].id)
+    get().toggleSelect('p2')
+    get().set({ bg: '#000000' })
+    expect(get().designs).toHaveLength(1)
+    expect(get().designs[0].snapshot).toMatchObject({ selected: ['p1', 'p2'], bg: '#000000' })
+  })
+
+  it('starts a new design without touching the one being put away', () => {
+    get().toggleSelect('p1')
+    get().toggleSelect('p2')
+    const first = get().currentDesignId
+    get().newDesign()
+    expect(get()).toMatchObject({ selected: [], tree: null, currentDesignId: null, tab: 'library', past: [] })
+    get().toggleSelect('p3')
+    expect(get().currentDesignId).not.toBe(first)
+    expect(titles()).toEqual(['p3', 'p1+p2'])
+  })
+
+  it('switches between designs, restoring each one exactly and resetting undo', () => {
+    get().toggleSelect('p1')
+    caption('Đà Lạt')
+    const a = get().currentDesignId!
+    get().newDesign()
+    get().toggleSelect('p2')
+    get().toggleSelect('p3')
+    get().set({ presetId: 'story' })
+    const b = get().currentDesignId!
+
+    get().openDesign(a)
+    expect(get()).toMatchObject({ selected: ['p1'], currentDesignId: a, presetId: 'original', past: [], activeText: null })
+    expect(get().texts.map((t) => t.text)).toEqual(['Đà Lạt'])
+    get().undo()
+    expect(get().selected).toEqual(['p1'])
+
+    get().openDesign(b)
+    expect(get()).toMatchObject({ selected: ['p2', 'p3'], presetId: 'story', texts: [] })
+    // Mở qua lại không được làm đổi nội dung đã lưu.
+    expect(get().designs.find((d) => d.id === a)!.snapshot.selected).toEqual(['p1'])
+  })
+
+  it('keeps a design that was emptied by mistake so undo brings it back under the same name', () => {
+    get().toggleSelect('p1')
+    const id = get().currentDesignId!
+    get().renameDesign(id, 'Kỷ yếu')
+    pause()
+    get().clearSelection()
+    expect(get().currentDesignId).toBe(id)
+    get().undo()
+    expect(get().designs).toMatchObject([{ id, name: 'Kỷ yếu', snapshot: { selected: ['p1'] } }])
+  })
+
+  it('forgets an emptied design once the user moves on', () => {
+    get().toggleSelect('p1')
+    get().clearSelection()
+    get().newDesign()
+    expect(get().designs).toEqual([])
+  })
+
+  it('renames, falls back to the automatic name when cleared, and duplicates under a free name', () => {
+    get().toggleSelect('p1')
+    const id = get().currentDesignId!
+    get().renameDesign(id, '  Sado  ')
+    expect(get().designs[0].name).toBe('Sado')
+    get().duplicateDesign(id)
+    get().duplicateDesign(id)
+    expect(get().designs.map((d) => d.name)).toEqual(['Sado (bản sao 2)', 'Sado (bản sao)', 'Sado'])
+    expect(get().currentDesignId).toBe(id)
+    get().renameDesign(id, '   ')
+    expect(get().designs[2].name).toBeNull()
+  })
+
+  it('deletes a design with an undo, clearing the stage when it was the open one', () => {
+    get().toggleSelect('p1')
+    const id = get().currentDesignId!
+    get().removeDesign(id)
+    expect(get()).toMatchObject({ designs: [], currentDesignId: null, selected: [], tree: null })
+    get().toasts[0].action!.run()
+    expect(get().designs.map((d) => d.id)).toEqual([id])
+    // Ảnh vẫn còn trong thư viện.
+    expect(get().photos).toHaveLength(14)
+  })
+
+  it('drops deleted photos from saved designs and removes designs left with no photo', async () => {
+    get().toggleSelect('p1')
+    get().newDesign()
+    get().toggleSelect('p1')
+    get().toggleSelect('p2')
+    get().toggleSelect('p3')
+    get().newDesign()
+    await get().deletePhotos(['p1'])
+    expect(titles()).toEqual(['p2+p3'])
+    expect(get().designs[0].snapshot.layoutId).toBe('H(*,*)')
+  })
+
+  it('remembers every design and which one is open after a restart', async () => {
+    get().toggleSelect('p1')
+    get().newDesign()
+    get().toggleSelect('p2')
+    const open = get().currentDesignId
+    window.dispatchEvent(new Event('pagehide'))
+    await boot()
+    expect(titles()).toEqual(['p2', 'p1'])
+    expect(get()).toMatchObject({ currentDesignId: open, selected: ['p2'] })
+  })
+
+  it('turns a draft from a version without designs into the first design', async () => {
+    const tree = { kind: 'cell' }
+    localStorage.setItem('grido-settings', JSON.stringify({ state: { selected: ['p4'], layoutId: '*', tree }, version: 0 }))
+    await boot()
+    expect(titles()).toEqual(['p4'])
+    expect(get().currentDesignId).toBe(get().designs[0].id)
+  })
+})
+
+describe('selecting many photos at once', () => {
+  it('adds the swept photos in order, skipping ones already in the collage', () => {
+    get().toggleSelect('p2')
+    get().selectMany(['p1', 'p2', 'p3'])
+    expect(get().selected).toEqual(['p2', 'p1', 'p3'])
+    expect(get().layoutId).not.toBeNull()
+    expect(get().toasts).toEqual([])
+  })
+
+  it('stops at the photo limit and says how many were added', () => {
+    ids(10).forEach((id) => get().toggleSelect(id))
+    get().selectMany(['p11', 'p12', 'p13', 'p14'])
+    expect(get().selected).toEqual(ids(12))
+    expect(get().toasts.map((t) => t.message)).toEqual(['Chỉ thêm được 2 ảnh: một ảnh ghép chứa tối đa 12 ảnh.'])
+  })
+
+  it('does nothing when every swept photo is already there', () => {
+    get().toggleSelect('p1')
+    const before = get().designs
+    get().selectMany(['p1'])
+    expect(get().selected).toEqual(['p1'])
+    expect(get().designs).toBe(before)
+  })
+})
+
+describe('font picker memory', () => {
+  it('keeps the most recently used fonts, newest first, without reshuffling ones already listed', () => {
+    ;['a', 'b', 'c'].forEach((id) => get().noteRecentFont(id))
+    get().noteRecentFont('a')
+    expect(get().recentFonts).toEqual(['c', 'b', 'a'])
+    ;['d', 'e', 'f', 'g'].forEach((id) => get().noteRecentFont(id))
+    expect(get().recentFonts).toEqual(['g', 'f', 'e', 'd', 'c', 'b'])
+  })
+
+  it('previews a font without touching the caption, its design or the undo history', () => {
+    get().toggleSelect('p1')
+    get().addText()
+    pause()
+    const { texts, designs, past } = get()
+    get().setPreviewFont({ id: texts[0].id, font: 'serif' })
+    expect(get()).toMatchObject({ texts, designs, past })
+  })
+
+  it('remembers recent fonts and the panel width after a restart, but not a preview', async () => {
+    get().noteRecentFont('serif')
+    get().set({ panelWidth: 520 })
+    get().setPreviewFont({ id: 't', font: 'serif' })
+    vi.advanceTimersByTime(1000)
+    await boot()
+    expect(get()).toMatchObject({ recentFonts: ['serif'], panelWidth: 520, previewFont: null })
   })
 })

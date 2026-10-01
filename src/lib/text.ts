@@ -21,12 +21,25 @@ export interface TextItem {
   rotation: number
   /** Bề rộng hộp chữ theo tỉ lệ chiều rộng khung (chữ tự xuống dòng); null = hộp ôm vừa nội dung. */
   width: number | null
+  /** Giãn cách chữ, tính bằng phần nghìn cỡ chữ (0 = mặc định của font). */
+  spacing: number
+  /** Khoảng cách dòng, theo bội số cỡ chữ. */
+  lineHeight: number
+  /** Mép nào của hộp chữ đứng yên khi hộp cao lên / thấp đi (gõ thêm dòng, đổi khoảng cách dòng, đổi cỡ…). */
+  anchor: TextAnchor
+  /** Độ đậm nhạt của chữ, 0..100 (100 = không trong suốt). */
+  opacity: number
 }
 
 export type TextAlign = 'left' | 'center' | 'right'
+export type TextAnchor = 'top' | 'middle' | 'bottom'
 
 export const MIN_TEXT_SIZE = 1
 export const MAX_TEXT_SIZE = 60
+export const SPACING_RANGE = { min: -100, max: 500, step: 5 }
+export const LINE_HEIGHT_RANGE = { min: 0.6, max: 2.5, step: 0.05 }
+/** Khoảng cách dòng mặc định. */
+export const LINE_HEIGHT = 1.25
 
 const TEXT_DEFAULTS: Omit<TextItem, 'id'> = {
   text: '',
@@ -43,6 +56,10 @@ const TEXT_DEFAULTS: Omit<TextItem, 'id'> = {
   align: 'center',
   rotation: 0,
   width: null,
+  spacing: 0,
+  lineHeight: LINE_HEIGHT,
+  anchor: 'middle',
+  opacity: 100,
 }
 
 /** Bản nháp lưu từ phiên bản cũ thiếu các trường kiểu chữ mới → bù giá trị mặc định. */
@@ -89,6 +106,17 @@ export function wrapLines(text: string, maxWidth: number | null, measure: (s: st
 export const lineStart = (align: TextAlign, boxWidth: number, lineWidth: number) =>
   align === 'left' ? -boxWidth / 2 : align === 'right' ? boxWidth / 2 - lineWidth : -lineWidth / 2
 
+/**
+ * Hộp chữ vừa cao thêm `deltaH` (px khung xuất): tâm hộp phải dời bao nhiêu để mép được neo đứng yên.
+ * Neo giữa thì hộp nở đều hai phía nên tâm không đổi.
+ */
+export function anchorShift(anchor: TextAnchor, deltaH: number, rotation: number): { dx: number; dy: number } {
+  const half = anchor === 'top' ? deltaH / 2 : anchor === 'bottom' ? -deltaH / 2 : 0
+  const rad = (rotation * Math.PI) / 180
+  // Dời dọc theo trục đứng của chính hộp chữ (đã xoay). `|| 0` để không trả về -0.
+  return { dx: -Math.sin(rad) * half || 0, dy: Math.cos(rad) * half || 0 }
+}
+
 /** Góc (độ) trong khoảng -180..180, hít vào bội số của 45° khi lại gần. */
 export function snapAngle(deg: number, threshold = 4): number {
   const near = Math.round(deg / 45) * 45
@@ -129,10 +157,37 @@ export const FONTS: FontInfo[] = [
 
 const BY_ID = new Map(FONTS.map((f) => [f.id, f]))
 
-export const LINE_HEIGHT = 1.25
-export const TEXT_COLORS = ['#ffffff', '#2b2622', '#f2603c', '#ffb23e', '#f7c7b8', '#4f8a7a']
+export const TEXT_COLORS = [
+  '#ffffff',
+  '#000000',
+  '#2b2622',
+  '#8a8f98',
+  '#f2603c',
+  '#e5306c',
+  '#ffb23e',
+  '#ffe14d',
+  '#8fe0a8',
+  '#4f8a7a',
+  '#25c2f4',
+  '#3f6bff',
+  '#9a4cf2',
+  '#c58bff',
+  '#f7c7b8',
+  '#f1e4d3',
+]
 
-export const fontInfo = (id: FontId) => BY_ID.get(id) ?? FONTS[0]
+/** Font cài sẵn trên máy người dùng (không đi kèm app) có id dạng "sys:<tên họ font>". */
+const SYSTEM_PREFIX = 'sys:'
+export const isSystemFont = (id: FontId) => id.startsWith(SYSTEM_PREFIX)
+export const systemFont = (family: string): FontInfo => ({
+  id: SYSTEM_PREFIX + family,
+  label: family,
+  // Máy khác không có font này thì rơi về font không chân mặc định.
+  family: `"${family.replace(/["\\]/g, '')}", sans-serif`,
+  group: 'sans',
+})
+
+export const fontInfo = (id: FontId) => BY_ID.get(id) ?? (isSystemFont(id) ? systemFont(id.slice(SYSTEM_PREFIX.length)) : FONTS[0])
 export const fontFamily = (id: FontId) => fontInfo(id).family
 export const fontWeight = (bold: boolean) => (bold ? 700 : 500)
 
@@ -161,6 +216,9 @@ export async function drawText(
   ctx.translate(cx, cy)
   ctx.rotate((item.rotation * Math.PI) / 180)
   ctx.font = font
+  // Phải đặt trước khi đo chữ để bề rộng dòng tính cả giãn cách, như CSS letter-spacing.
+  ctx.letterSpacing = `${(px * item.spacing) / 1000}px`
+  ctx.globalAlpha *= item.opacity / 100
   ctx.fillStyle = item.color
   ctx.textAlign = 'left'
   ctx.textBaseline = 'alphabetic'
@@ -174,7 +232,7 @@ export async function drawText(
   const lines = wrapLines(item.text, wrapWidth, measure)
   const widths = lines.map(measure)
   const boxWidth = wrapWidth ?? Math.max(...widths)
-  const lineHeight = px * LINE_HEIGHT
+  const lineHeight = px * item.lineHeight
   const m = ctx.measureText('Hg')
   // CSS đặt vùng chữ (ascent + descent) vào giữa dòng → suy ra vị trí baseline tương ứng.
   const baselineShift = (m.fontBoundingBoxAscent - m.fontBoundingBoxDescent) / 2

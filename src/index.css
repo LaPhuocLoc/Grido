@@ -333,11 +333,4 @@ input[type='range']:active::-webkit-slider-thumb {
   transform: scale(1.15);
 }
 
-@media (prefers-reduced-motion: reduce) {
-  *,
-  *::before,
-  *::after {
-    animation-duration: 0.01ms !important;
-    transition-duration: 0.01ms !important;
-  }
-}
+/* Tiệm Ghép Ảnh luôn chạy hiệu ứng chuyển động, kể cả khi hệ điều hành bật "giảm chuyển động" (quyết định có chủ ý của sản phẩm). */
