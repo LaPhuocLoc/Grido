@@ -1,0 +1,72 @@
+# Đẩy tag dạng v1.2.3 → chạy test, build bộ cài cho Windows / macOS / Linux và gắn vào GitHub Release.
+# App đang chạy ở máy người dùng đọc latest*.yml trong Release mới nhất để tự cập nhật.
+#
+# Ký số (tuỳ chọn — không có secret thì vẫn build, chỉ là không ký):
+#   Windows  WIN_CSC_LINK (file .pfx mã hoá base64) + WIN_CSC_KEY_PASSWORD
+#   macOS    MAC_CSC_LINK (Developer ID Application .p12, base64) + MAC_CSC_KEY_PASSWORD
+#            APPLE_ID + APPLE_APP_SPECIFIC_PASSWORD + APPLE_TEAM_ID (để notarize)
+name: Release
+
+on:
+  push:
+    tags: ['v*']
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [windows-latest, macos-latest, ubuntu-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm test
+
+      # Chỉ đưa chứng chỉ vào môi trường khi secret có thật: biến rỗng làm electron-builder báo lỗi.
+      - name: Signing credentials
+        shell: bash
+        env:
+          WIN_CSC_LINK: ${{ secrets.WIN_CSC_LINK }}
+          WIN_CSC_KEY_PASSWORD: ${{ secrets.WIN_CSC_KEY_PASSWORD }}
+          MAC_CSC_LINK: ${{ secrets.MAC_CSC_LINK }}
+          MAC_CSC_KEY_PASSWORD: ${{ secrets.MAC_CSC_KEY_PASSWORD }}
+          APPLE_ID: ${{ secrets.APPLE_ID }}
+          APPLE_APP_SPECIFIC_PASSWORD: ${{ secrets.APPLE_APP_SPECIFIC_PASSWORD }}
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+        run: |
+          if [ "$RUNNER_OS" = "Windows" ] && [ -n "$WIN_CSC_LINK" ]; then
+            echo "CSC_LINK=$WIN_CSC_LINK" >> "$GITHUB_ENV"
+            echo "CSC_KEY_PASSWORD=$WIN_CSC_KEY_PASSWORD" >> "$GITHUB_ENV"
+          elif [ "$RUNNER_OS" = "macOS" ] && [ -n "$MAC_CSC_LINK" ]; then
+            echo "CSC_LINK=$MAC_CSC_LINK" >> "$GITHUB_ENV"
+            echo "CSC_KEY_PASSWORD=$MAC_CSC_KEY_PASSWORD" >> "$GITHUB_ENV"
+            if [ -n "$APPLE_ID" ]; then
+              echo "APPLE_ID=$APPLE_ID" >> "$GITHUB_ENV"
+              echo "APPLE_APP_SPECIFIC_PASSWORD=$APPLE_APP_SPECIFIC_PASSWORD" >> "$GITHUB_ENV"
+              echo "APPLE_TEAM_ID=$APPLE_TEAM_ID" >> "$GITHUB_ENV"
+            fi
+          else
+            echo "CSC_IDENTITY_AUTO_DISCOVERY=false" >> "$GITHUB_ENV"
+          fi
+
+      - run: npm run dist
+
+      - uses: softprops/action-gh-release@v2
+        with:
+          generate_release_notes: true
+          files: |
+            release/*.exe
+            release/*.exe.blockmap
+            release/*.dmg
+            release/*.zip
+            release/*.zip.blockmap
+            release/*.AppImage
+            release/latest*.yml
