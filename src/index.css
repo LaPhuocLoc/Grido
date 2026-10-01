@@ -1,0 +1,344 @@
+@import 'tailwindcss';
+
+@custom-variant dark (&:where([data-theme='dark'], [data-theme='dark'] *));
+
+@theme {
+  --font-sans: 'Nunito Variable', 'Be Vietnam Pro', ui-sans-serif, system-ui, sans-serif;
+  --font-display: 'Nunito Variable', 'Be Vietnam Pro', ui-sans-serif, sans-serif;
+
+  --color-paper: #f7f7fb;
+  --color-card: #fdfdff;
+  --color-surface: #ffffff;
+  --color-edge: #cdcfe0;
+  --color-ink: #1b1b2b;
+  --color-soft: #5c5e75;
+  --color-muted: #8c8ea3;
+  --color-line: #e7e8f1;
+  --color-sand: #eeeff6;
+  --color-coral: #6a4dff;
+  --color-coral-dark: #5335e6;
+  --color-amber: #ffb23e;
+  --color-blush: #ece8ff;
+  /* Hai đầu dải màu thương hiệu và màu chữ / biểu tượng đặt trên dải đó. */
+  --color-brand-from: #e5306c;
+  --color-brand-mid: #9a4cf2;
+  --color-brand-to: #3f6bff;
+  --color-on-brand: #ffffff;
+  --color-danger: #e5484d;
+
+  --shadow-soft: 0 1px 2px rgb(27 27 43 / 0.04), 0 8px 24px -8px rgb(27 27 43 / 0.12);
+  --shadow-lift: 0 2px 4px rgb(27 27 43 / 0.05), 0 24px 60px -20px rgb(27 27 43 / 0.26);
+
+  --animate-pop: pop 0.25s cubic-bezier(0.2, 0.9, 0.3, 1.3);
+  --animate-rise: rise 0.5s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+  --animate-drift: drift 9s ease-in-out infinite;
+  --animate-fade: fade 0.2s ease-out both;
+  --animate-app: app-in 0.45s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+  --animate-tile: tile-in 0.36s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+  --animate-cell: cell-in 0.34s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+  --animate-overlay: overlay-in 0.18s ease-out both;
+  --animate-bob: bob 1.4s ease-in-out infinite;
+  --animate-toast-in: toast-in 0.32s cubic-bezier(0.2, 0.9, 0.3, 1.2) both;
+  --animate-toast-out: toast-out 0.22s ease-in both;
+  --animate-spin-in: spin-in 0.4s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+  --ease-glide: cubic-bezier(0.2, 0.8, 0.2, 1);
+
+  /* Mọi hiệu ứng chỉ đổi opacity / transform để chạy trên compositor, không gây dàn trang lại. */
+  @keyframes app-in {
+    from {
+      opacity: 0;
+    }
+  }
+  @keyframes tile-in {
+    from {
+      opacity: 0;
+      transform: scale(0.86) translateY(6px);
+    }
+  }
+  @keyframes cell-in {
+    from {
+      opacity: 0;
+      scale: 0.96;
+    }
+  }
+  @keyframes overlay-in {
+    from {
+      opacity: 0;
+    }
+  }
+  @keyframes bob {
+    50% {
+      transform: translateY(-6px);
+    }
+  }
+  @keyframes toast-in {
+    from {
+      opacity: 0;
+      transform: translateY(14px) scale(0.94);
+    }
+  }
+  @keyframes toast-out {
+    to {
+      opacity: 0;
+      transform: translateY(8px) scale(0.96);
+    }
+  }
+  @keyframes spin-in {
+    from {
+      opacity: 0;
+      transform: rotate(-90deg) scale(0.6);
+    }
+  }
+  @keyframes shimmer {
+    to {
+      background-position: -200% 0;
+    }
+  }
+  @keyframes dash {
+    to {
+      stroke-dashoffset: -28;
+    }
+  }
+
+  @keyframes pop {
+    from {
+      transform: scale(0.85);
+      opacity: 0;
+    }
+  }
+  @keyframes rise {
+    from {
+      transform: translateY(14px);
+      opacity: 0;
+    }
+  }
+  @keyframes fade {
+    from {
+      transform: translateY(4px);
+      opacity: 0;
+    }
+  }
+  @keyframes drift {
+    50% {
+      transform: translateY(-10px) rotate(0.6deg);
+    }
+  }
+}
+
+/* Giao diện tối: chỉ đổi giá trị token, mọi class bg-paper/text-ink… tự đổi theo. */
+:root[data-theme='dark'] {
+  color-scheme: dark;
+  /* Nền gần đen ngả xanh tím, điểm nhấn tím xanh; dải thương hiệu hồng → tím → xanh dùng chung cho cả hai giao diện. */
+  --color-paper: #111218;
+  --color-card: #171922;
+  --color-surface: #252836;
+  --color-edge: #424660;
+  --color-ink: #eeeef6;
+  --color-soft: #a8abc0;
+  --color-muted: #777b93;
+  --color-line: #282b3a;
+  --color-sand: #1c1e29;
+  --color-coral: #8a84ff;
+  --color-coral-dark: #b7b8ff;
+  --color-amber: #f2cf8a;
+  --color-blush: #28285a;
+  --color-brand-from: #e5306c;
+  --color-brand-to: #3f6bff;
+  --color-on-brand: #ffffff;
+  --color-danger: #ff6b81;
+  --shadow-soft: 0 1px 2px rgb(4 6 12 / 0.35), 0 8px 24px -8px rgb(4 6 12 / 0.55);
+  --shadow-lift: 0 2px 4px rgb(4 6 12 / 0.35), 0 24px 60px -20px rgb(4 6 12 / 0.75);
+}
+
+/* Vùng làm việc ở giao diện tối có thêm hai quầng sáng rất nhạt cho đỡ phẳng. */
+:root[data-theme='dark'] .stage-bg {
+  background-image:
+    radial-gradient(color-mix(in srgb, var(--color-ink) 8%, transparent) 1px, transparent 1px),
+    radial-gradient(60% 55% at 12% 0%, rgb(229 48 108 / 0.09), transparent 70%),
+    radial-gradient(55% 50% at 100% 100%, rgb(63 107 255 / 0.12), transparent 70%);
+  background-size:
+    18px 18px,
+    100% 100%,
+    100% 100%;
+}
+
+/* Mọi thứ bấm được đều hiện con trỏ bàn tay; nút đang khoá thì không. */
+@layer base {
+  button:not(:disabled),
+  [role='button'],
+  [role='switch']:not(:disabled),
+  a[href],
+  select,
+  summary,
+  label:has(input[type='color'], input[type='checkbox'], input[type='radio']),
+  input:is([type='color'], [type='checkbox'], [type='radio'], [type='range']) {
+    cursor: pointer;
+  }
+}
+
+html,
+body,
+#root {
+  height: 100%;
+}
+
+body {
+  background: var(--color-paper);
+  color: var(--color-ink);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  overscroll-behavior: none;
+  overflow: hidden;
+  /* Như app desktop thật: không bôi đen được chữ giao diện, con trỏ luôn là mũi tên. */
+  user-select: none;
+  cursor: default;
+}
+
+input,
+textarea,
+[contenteditable] {
+  user-select: text;
+}
+
+img {
+  -webkit-user-drag: none;
+}
+
+/* Thanh tiêu đề: kéo để di chuyển cửa sổ, trừ các nút bấm. Chừa chỗ cho cụm nút cửa sổ của hệ điều hành. */
+.titlebar {
+  -webkit-app-region: drag;
+  padding-left: 14px;
+  padding-right: calc(100vw - env(titlebar-area-width, calc(100vw - 150px)) - env(titlebar-area-x, 0px) + 10px);
+}
+:root[data-platform='darwin'] .titlebar {
+  padding-left: 84px;
+  padding-right: 12px;
+}
+.no-drag {
+  -webkit-app-region: no-drag;
+}
+
+@layer base {
+  :focus-visible {
+    outline: 2px solid var(--color-coral);
+    outline-offset: 2px;
+  }
+}
+
+/* Nền chấm bi cho vùng làm việc */
+.stage-bg {
+  background-color: var(--color-sand);
+  background-image: radial-gradient(color-mix(in srgb, var(--color-ink) 9%, transparent) 1px, transparent 1px);
+  background-size: 18px 18px;
+}
+
+/* Ô ảnh trượt mượt sang vị trí mới khi đổi bố cục / trộn / đổi chỗ. Chỉ bật cho thay đổi rời rạc, không bật lúc đang kéo. */
+.glide {
+  transition-property: left, top, width, height, transform, border-radius, opacity;
+  transition-duration: 0.32s;
+  transition-timing-function: var(--ease-glide);
+}
+
+/* Ô giữ chỗ cho ảnh đang được chuẩn bị. */
+.shimmer {
+  background: linear-gradient(100deg, var(--color-sand) 30%, var(--color-line) 50%, var(--color-sand) 70%) 0 0 / 200% 100%;
+  animation:
+    tile-in 0.36s var(--ease-glide) both,
+    shimmer 1.3s linear infinite;
+}
+
+/* Thư viện dài: trình duyệt bỏ qua việc vẽ những ô nằm ngoài vùng nhìn thấy. */
+.tile {
+  content-visibility: auto;
+  contain-intrinsic-size: auto 84px;
+}
+
+/* Khung thả file: viền nét đứt màu thương hiệu. */
+.drop-frame {
+  outline: 2.5px dashed var(--color-coral);
+  outline-offset: -10px;
+}
+
+/* Đổi giao diện sáng / tối: lớp mới loang ra từ nút bấm (xem ThemeToggle), lớp cũ đứng yên bên dưới. */
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation: none;
+  mix-blend-mode: normal;
+}
+
+.gradient-brand {
+  background-image: linear-gradient(100deg, var(--color-brand-from), var(--color-brand-mid) 52%, var(--color-brand-to));
+  color: var(--color-on-brand);
+}
+/* Quầng sáng cùng màu bên dưới các nút / huy hiệu mang màu thương hiệu. */
+.glow-brand {
+  box-shadow: 0 8px 20px -8px color-mix(in srgb, var(--color-brand-from) 75%, transparent);
+}
+
+/* Thanh cuộn mảnh, mềm */
+.scroll-soft {
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-edge) transparent;
+}
+
+/* Slider */
+input[type='range'] {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100%;
+  height: 22px;
+  background: transparent;
+  cursor: pointer;
+}
+input[type='range']::-webkit-slider-runnable-track {
+  height: 6px;
+  border-radius: 99px;
+  background: linear-gradient(
+    to right,
+    var(--color-coral) var(--fill, 0%),
+    var(--color-line) var(--fill, 0%)
+  );
+}
+input[type='range']::-moz-range-track {
+  height: 6px;
+  border-radius: 99px;
+  background: var(--color-line);
+}
+input[type='range']::-moz-range-progress {
+  height: 6px;
+  border-radius: 99px;
+  background: var(--color-coral);
+}
+input[type='range']::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 18px;
+  height: 18px;
+  margin-top: -6px;
+  border-radius: 50%;
+  background: #fff;
+  border: 2px solid var(--color-coral);
+  box-shadow: 0 2px 6px rgb(43 38 34 / 0.2);
+  transition: transform 0.15s;
+  cursor: grab;
+}
+input[type='range']::-moz-range-thumb {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: #fff;
+  border: 2px solid var(--color-coral);
+  box-shadow: 0 2px 6px rgb(43 38 34 / 0.2);
+}
+input[type='range']:active::-webkit-slider-thumb {
+  transform: scale(1.15);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}
