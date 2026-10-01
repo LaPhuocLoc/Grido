@@ -180,7 +180,9 @@ app.setPath('userData', path.join(app.getPath('appData'), 'Grido'))
 app.userAgentFallback = asciiUserAgent(app.userAgentFallback, app.getVersion())
 
 // Trùng appId của bộ cài để Windows gộp cửa sổ với shortcut đã ghim và dùng đúng icon.
-app.setAppUserModelId('app.grido.desktop')
+// Bản chạy từ mã nguồn dùng id riêng: nếu trùng, taskbar lấy icon từ shortcut của bản đã cài (có thể là logo cũ)
+// thay vì icon của cửa sổ.
+app.setAppUserModelId(app.isPackaged ? 'app.grido.desktop' : 'app.grido.desktop.dev')
 if (!app.requestSingleInstanceLock()) app.quit()
 else {
   app.on('second-instance', () => {

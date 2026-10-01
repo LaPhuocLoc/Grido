@@ -5,7 +5,7 @@ import { thumbUrl } from '../lib/desktop'
 import { designTitle, frameLabel } from '../lib/designs'
 import { placeImage } from '../lib/geometry'
 import { collageLayout } from '../lib/imaging/exportCollage'
-import { fontFamily, fontWeight } from '../lib/text'
+import { textLayoutStyle } from '../lib/text'
 import { buildSpec } from '../lib/useCollage'
 import { canvasSize, useStore, type Design, type Snapshot } from '../store'
 import { imageStyle } from './Stage'
@@ -70,16 +70,9 @@ const DesignThumb = memo(function DesignThumb({ snapshot, photos }: { snapshot: 
             left: t.x * spec.width * k,
             top: t.y * spec.height * k,
             transform: `translate(-50%, -50%) rotate(${t.rotation}deg)`,
-            width: t.width === null ? undefined : t.width * spec.width * k,
-            whiteSpace: t.width === null ? 'pre' : 'pre-wrap',
-            overflowWrap: 'break-word',
-            textAlign: t.align,
-            fontFamily: fontFamily(t.font),
-            fontWeight: fontWeight(t.bold),
-            fontStyle: t.italic ? 'italic' : undefined,
-            fontSize: (Math.min(spec.width, spec.height) * t.size * k) / 100,
-            lineHeight: t.lineHeight,
-            letterSpacing: `${t.spacing / 1000}em`,
+            ...textLayoutStyle(t, (Math.min(spec.width, spec.height) * t.size * k) / 100, t.width === null ? null : t.width * spec.width * k),
+            minWidth: undefined,
+            minHeight: undefined,
             opacity: t.opacity / 100,
             color: t.color,
           }}

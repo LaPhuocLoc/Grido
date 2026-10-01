@@ -9,18 +9,7 @@ export const cx = (...parts: (string | false | null | undefined)[]) => parts.fil
 export function Logo({ size = 28 }: { size?: number }) {
   return (
     <span className="inline-flex items-center gap-2.5 select-none">
-      <svg width={size} height={size} viewBox="0 0 512 512" aria-hidden>
-        <defs>
-          <linearGradient id="logo-g" gradientUnits="userSpaceOnUse" x1="48" y1="48" x2="464" y2="464">
-            <stop offset="0" stopColor="#e5306c" />
-            <stop offset="0.52" stopColor="#9a4cf2" />
-            <stop offset="1" stopColor="#3f6bff" />
-          </linearGradient>
-        </defs>
-        <rect x="48" y="48" width="244" height="244" rx="56" fill="url(#logo-g)" />
-        <rect x="324" y="48" width="140" height="416" rx="56" fill="url(#logo-g)" />
-        <rect x="48" y="324" width="244" height="140" rx="56" fill="url(#logo-g)" />
-      </svg>
+      <img src="/logo.png" width={size} height={size} alt="" draggable={false} />
       <span className="font-display text-[1.35em] font-bold tracking-tight text-ink">Tiệm Ghép Ảnh</span>
     </span>
   )

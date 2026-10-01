@@ -5,7 +5,7 @@
   "author": "LA PHUOC LOC",
   "repository": "github:LaPhuocLoc/Grido",
   "private": true,
-  "version": "1.4.1",
+  "version": "1.5.0",
   "type": "module",
   "main": "dist-electron/main.cjs",
   "scripts": {

@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { anchorShift, drawText, fontInfo, isSystemFont, systemFont, lineStart, normalizeText, snapAngle, wrapLines, type TextItem } from '../src/lib/text'
+import { anchorShift, drawText, fontInfo, isSystemFont, systemFont, lineStart, normalizeText, snapAngle, textLayoutStyle, wrapLines, type TextItem } from '../src/lib/text'
 
 afterEach(() => vi.unstubAllGlobals())
 
@@ -55,6 +55,7 @@ describe('normalizeText', () => {
       lineHeight: 1.25,
       anchor: 'middle',
       opacity: 100,
+      vertical: false,
     })
   })
 
@@ -96,6 +97,37 @@ describe('anchorShift', () => {
     const { dx, dy } = anchorShift('top', 40, 90)
     expect(dx).toBeCloseTo(-20)
     expect(dy).toBeCloseTo(0)
+  })
+
+  it('vertical text grows sideways: columns run right to left, so the “top” anchor keeps the right edge put', () => {
+    expect(anchorShift('top', 40, 0, true)).toEqual({ dx: -20, dy: 0 })
+    expect(anchorShift('bottom', 40, 0, true)).toEqual({ dx: 20, dy: 0 })
+    expect(anchorShift('middle', 40, 0, true)).toEqual({ dx: 0, dy: 0 })
+    const turned = anchorShift('top', 40, 90, true)
+    expect(turned.dx).toBeCloseTo(0)
+    expect(turned.dy).toBeCloseTo(-20)
+  })
+})
+
+describe('textLayoutStyle', () => {
+  const item = (extra: Partial<TextItem>) => normalizeText({ id: 't', text: 'abc', ...extra })
+
+  it('wraps a horizontal caption by width', () => {
+    const style = textLayoutStyle(item({}), 40, 300)
+    expect(style).toMatchObject({ width: '300px', whiteSpace: 'pre-wrap', writingMode: 'horizontal-tb', fontSize: '40px' })
+    expect(style.height).toBeUndefined()
+  })
+
+  it('a vertical caption stacks upright letters and wraps by height instead', () => {
+    const style = textLayoutStyle(item({ vertical: true }), 40, 300)
+    expect(style).toMatchObject({ height: '300px', whiteSpace: 'pre-wrap', writingMode: 'vertical-rl', textOrientation: 'upright' })
+    expect(style.width).toBeUndefined()
+  })
+
+  it('hugs the content when there is no box size', () => {
+    const style = textLayoutStyle(item({ vertical: true }), 40, null)
+    expect(style.whiteSpace).toBe('pre')
+    expect(style.height).toBeUndefined()
   })
 })
 

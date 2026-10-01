@@ -1,5 +1,7 @@
 import {
   ArrowDownToLine,
+  ArrowLeftToLine,
+  ArrowRightToLine,
   ArrowUpToLine,
   Bold,
   Copy,
@@ -14,6 +16,7 @@ import {
   TextAlignStart,
   Trash2,
   Underline,
+  UnfoldHorizontal,
   UnfoldVertical,
 } from 'lucide-react'
 import { useEffect, useLayoutEffect, useRef, useState, type CSSProperties, type PointerEvent as ReactPointerEvent, type ReactNode } from 'react'
@@ -22,15 +25,14 @@ import { clamp } from '../lib/geometry'
 import {
   anchorShift,
   DECORATION,
-  fontFamily,
   fontInfo,
-  fontWeight,
   LINE_HEIGHT_RANGE,
   MAX_TEXT_SIZE,
   MIN_TEXT_SIZE,
   snapAngle,
   SPACING_RANGE,
   TEXT_COLORS,
+  textLayoutStyle,
   textShadow,
   type TextAlign,
   type TextAnchor,
@@ -107,15 +109,17 @@ export function TextLayer({
   /**
    * Neo ô văn bản: lần đo gần nhất của hộp chữ (chiều cao theo px khung xuất) cùng vị trí lúc đó.
    * Hộp cao lên / thấp đi vì nội dung hay kiểu chữ đổi thì dời tâm để mép được neo đứng yên.
+   * Văn bản dọc thì hộp nở theo chiều ngang nên đo bề rộng; đổi qua lại ngang / dọc tính như đổi khung, không bù.
    */
   const anchored = useRef<{ h: number; x: number; y: number; frame: string } | null>(null)
-  const frame = `${k}|${width}|${height}`
+  const frame = `${k}|${width}|${height}|${stored.vertical}`
   const frameRef = useRef(frame)
   frameRef.current = frame
   const measure = () => {
     const current = useStore.getState().texts.find((t) => t.id === id)
     if (!el.current || !current) return null
-    return { h: el.current.offsetHeight / Number(frameRef.current.split('|')[0]), x: current.x, y: current.y, frame: frameRef.current }
+    const block = current.vertical ? el.current.offsetWidth : el.current.offsetHeight
+    return { h: block / Number(frameRef.current.split('|')[0]), x: current.x, y: current.y, frame: frameRef.current }
   }
 
   // Khung chọn bám theo kích thước thật của khối chữ (đổi khi gõ, đổi font, font tải xong…).
@@ -135,7 +139,7 @@ export function TextLayer({
       if (!prev || liveRef.current || prev.frame !== next.frame || prev.x !== next.x || prev.y !== next.y) return
       const delta = next.h - prev.h
       if (current.anchor === 'middle' || Math.abs(delta * scale) < 1) return
-      const { dx, dy } = anchorShift(current.anchor, delta, current.rotation)
+      const { dx, dy } = anchorShift(current.anchor, delta, current.rotation, current.vertical)
       const moved = { x: round(current.x + dx / w, 4), y: round(current.y + dy / h, 4) }
       anchored.current = { ...next, ...moved }
       updateText(id, moved)
@@ -214,13 +218,16 @@ export function TextLayer({
       return { size: round(size, 2), width: stored.width === null ? null : round((stored.width * size) / stored.size, 4) }
     }
   })
-  /** Kéo cạnh trái / phải: đổi bề rộng hộp, cạnh đối diện đứng yên. side = 1 là cạnh phải. */
+  /**
+   * Kéo cạnh trái / phải: đổi bề rộng hộp, cạnh đối diện đứng yên. side = 1 là cạnh phải.
+   * Văn bản dọc: tay nắm ở cạnh trên / dưới và đổi chiều cao hộp; side = 1 là cạnh dưới.
+   */
   const resize = (side: 1 | -1) =>
     grip((e) => {
       const p0 = { x: e.clientX, y: e.clientY }
-      const w0 = el.current!.offsetWidth
+      const w0 = stored.vertical ? el.current!.offsetHeight : el.current!.offsetWidth
       const rad = (stored.rotation * Math.PI) / 180
-      const u = { x: Math.cos(rad), y: Math.sin(rad) }
+      const u = stored.vertical ? { x: -Math.sin(rad), y: Math.cos(rad) } : { x: Math.cos(rad), y: Math.sin(rad) }
       return (e) => {
         const along = ((e.clientX - p0.x) * u.x + (e.clientY - p0.y) * u.y) * side
         const w = Math.max(px, w0 + along)
@@ -246,8 +253,11 @@ export function TextLayer({
   const barAbove = cyPx - halfH - 60 > -52
   const dot =
     'pointer-events-auto absolute size-3.5 -translate-x-1/2 -translate-y-1/2 touch-none rounded-full bg-white shadow-[0_1px_4px_rgb(0_0_0/0.4)] ring-2 ring-coral transition-transform hover:scale-125'
-  const pill =
-    'pointer-events-auto absolute h-6 w-2 -translate-x-1/2 -translate-y-1/2 cursor-ew-resize touch-none rounded-full bg-white shadow-[0_1px_4px_rgb(0_0_0/0.4)] ring-2 ring-coral'
+  const pill = cx(
+    'pointer-events-auto absolute -translate-x-1/2 -translate-y-1/2 touch-none rounded-full bg-white shadow-[0_1px_4px_rgb(0_0_0/0.4)] ring-2 ring-coral',
+    item.vertical ? 'h-2 w-6 cursor-ns-resize' : 'h-6 w-2 cursor-ew-resize',
+  )
+  const pillTip = `Kéo để đổi ${item.vertical ? 'chiều cao' : 'bề rộng'} hộp chữ · bấm đúp để hộp ôm vừa chữ`
 
   return (
     <>
@@ -302,18 +312,7 @@ export function TextLayer({
           left: cxPx,
           top: cyPx,
           transform: `translate(-50%, -50%) rotate(${item.rotation}deg)`,
-          width: item.width === null ? undefined : item.width * width * k,
-          minWidth: '0.5em',
-          minHeight: `${item.lineHeight}em`,
-          whiteSpace: item.width === null ? 'pre' : 'pre-wrap',
-          overflowWrap: 'break-word',
-          textAlign: item.align,
-          fontFamily: fontFamily(previewFont ?? item.font),
-          fontWeight: fontWeight(item.bold),
-          fontStyle: item.italic ? 'italic' : undefined,
-          fontSize: px,
-          lineHeight: item.lineHeight,
-          letterSpacing: `${item.spacing / 1000}em`,
+          ...textLayoutStyle(item, px, item.width === null ? null : item.width * width * k, previewFont ?? item.font),
           opacity: item.opacity / 100,
           color: item.color,
           caretColor: item.color,
@@ -354,16 +353,16 @@ export function TextLayer({
                 />
               ))}
               <span
-                data-tip="Kéo để đổi bề rộng hộp chữ · bấm đúp để hộp ôm vừa chữ"
+                data-tip={pillTip}
                 className={pill}
-                style={{ left: 0, top: '50%' }}
+                style={item.vertical ? { left: '50%', top: 0 } : { left: 0, top: '50%' }}
                 onDoubleClick={() => updateText(stored.id, { width: null })}
                 {...resize(-1)}
               />
               <span
-                data-tip="Kéo để đổi bề rộng hộp chữ · bấm đúp để hộp ôm vừa chữ"
+                data-tip={pillTip}
                 className={pill}
-                style={{ left: '100%', top: '50%' }}
+                style={item.vertical ? { left: '50%', top: '100%' } : { left: '100%', top: '50%' }}
                 onDoubleClick={() => updateText(stored.id, { width: null })}
                 {...resize(1)}
               />
@@ -426,6 +425,22 @@ const ALIGN: { value: TextAlign; label: string; icon: ReactNode }[] = [
   { value: 'center', label: 'Căn giữa', icon: <TextAlignCenter className="size-4.5" /> },
   { value: 'right', label: 'Căn phải', icon: <TextAlignEnd className="size-4.5" /> },
 ]
+// Văn bản dọc: chữ chạy từ trên xuống nên "trái / phải" thành "trên / dưới"; icon là bản xoay 90° của icon căn lề ngang.
+const ALIGN_VERTICAL: typeof ALIGN = [
+  { value: 'left', label: 'Căn trên', icon: <TextAlignStart className="size-4.5 rotate-90" /> },
+  { value: 'center', label: 'Căn giữa', icon: <TextAlignCenter className="size-4.5 rotate-90" /> },
+  { value: 'right', label: 'Căn dưới', icon: <TextAlignEnd className="size-4.5 rotate-90" /> },
+]
+
+/** Chữ T kèm mũi tên chỉ xuống: chữ chạy từ trên xuống dưới. */
+function VerticalTextIcon() {
+  return (
+    <svg viewBox="0 0 24 24" className="size-4.5" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+      <path d="M3 6V4h10v2M8 4v16M6 20h4" />
+      <path d="M18 5v14M15 16l3 3 3-3" />
+    </svg>
+  )
+}
 
 const RAINBOW = 'linear-gradient(90deg, #ff3b30, #ff9500, #ffd60a, #34c759, #00c7be, #007aff, #af52de)'
 const HEX = /^#?([0-9a-f]{6})$/i
@@ -434,6 +449,12 @@ const ANCHORS: { value: TextAnchor; label: string; icon: ReactNode }[] = [
   { value: 'top', label: 'Neo mép trên · hộp chữ dài ra phía dưới', icon: <ArrowDownToLine className="size-4.5" /> },
   { value: 'middle', label: 'Neo ở giữa · hộp chữ nở đều hai phía', icon: <UnfoldVertical className="size-4.5" /> },
   { value: 'bottom', label: 'Neo mép dưới · hộp chữ dài ra phía trên', icon: <ArrowUpToLine className="size-4.5" /> },
+]
+// Văn bản dọc: thêm cột thì hộp rộng ra theo chiều ngang, cột mới nằm bên trái.
+const ANCHORS_VERTICAL: typeof ANCHORS = [
+  { value: 'top', label: 'Neo mép phải · hộp chữ rộng ra bên trái', icon: <ArrowRightToLine className="size-4.5" /> },
+  { value: 'middle', label: 'Neo ở giữa · hộp chữ nở đều hai phía', icon: <UnfoldHorizontal className="size-4.5" /> },
+  { value: 'bottom', label: 'Neo mép trái · hộp chữ rộng ra bên phải', icon: <ArrowLeftToLine className="size-4.5" /> },
 ]
 
 function Toggle({ label, on, onClick, children }: { label: string; on: boolean; onClick: () => void; children: ReactNode }) {
@@ -542,7 +563,8 @@ export function TextToolbar({ item, unit }: { item: TextItem; unit: number }) {
   }, [menu])
 
   const resize = (delta: number) => set({ size: clamp(round(item.size + delta, 2), MIN_TEXT_SIZE, MAX_TEXT_SIZE) })
-  const align = ALIGN.find((a) => a.value === item.align) ?? ALIGN[1]
+  const aligns = item.vertical ? ALIGN_VERTICAL : ALIGN
+  const align = aligns.find((a) => a.value === item.align) ?? aligns[1]
   const divider = <span className="mx-1 h-5 w-px shrink-0 bg-line" />
 
   return (
@@ -636,10 +658,13 @@ export function TextToolbar({ item, unit }: { item: TextItem; unit: number }) {
         <IconButton
           label={`${align.label} · bấm để đổi`}
           className="shrink-0"
-          onClick={() => set({ align: ALIGN[(ALIGN.indexOf(align) + 1) % ALIGN.length].value })}
+          onClick={() => set({ align: aligns[(aligns.indexOf(align) + 1) % aligns.length].value })}
         >
           {align.icon}
         </IconButton>
+        <Toggle label={item.vertical ? 'Văn bản dọc · bấm để về chữ ngang' : 'Văn bản dọc'} on={item.vertical} onClick={() => set({ vertical: !item.vertical })}>
+          <VerticalTextIcon />
+        </Toggle>
         <div data-text-menu className="relative shrink-0">
           <IconButton label="Giãn cách" aria-expanded={menu === 'spacing'} className={cx(menu === 'spacing' && 'bg-sand')} onClick={() => toggle('spacing')}>
             <ListChevronsUpDown className="size-4.5" />
@@ -647,11 +672,11 @@ export function TextToolbar({ item, unit }: { item: TextItem; unit: number }) {
           {menu === 'spacing' && (
             <Popover label="Giãn cách" className="w-[264px] space-y-3">
               <SliderRow label="Giãn cách chữ" value={item.spacing} {...SPACING_RANGE} onChange={(spacing) => set({ spacing })} />
-              <SliderRow label="Khoảng cách dòng" value={item.lineHeight} {...LINE_HEIGHT_RANGE} onChange={(lineHeight) => set({ lineHeight })} />
+              <SliderRow label={item.vertical ? 'Khoảng cách cột' : 'Khoảng cách dòng'} value={item.lineHeight} {...LINE_HEIGHT_RANGE} onChange={(lineHeight) => set({ lineHeight })} />
               <div className="flex items-center justify-between border-t border-line pt-3">
                 <p className="text-[13px] font-semibold text-ink">Neo ô văn bản</p>
                 <div className="flex gap-1">
-                  {ANCHORS.map((a) => (
+                  {(item.vertical ? ANCHORS_VERTICAL : ANCHORS).map((a) => (
                     <Toggle key={a.value} label={a.label} on={item.anchor === a.value} onClick={() => set({ anchor: a.value })}>
                       {a.icon}
                     </Toggle>

@@ -1,33 +1,32 @@
-"""Dựng icon app từ đúng hình trong public/logo.svg: build/icon.png (1024), build/icon.ico, public/icon.png (256).
+"""Dựng mọi icon của app từ ảnh gốc logo/tiem-ghep-anh.png (PNG vuông, nền ngoài góc bo trong suốt):
+build/icon.png (1024, macOS / Linux), build/icon.ico (Windows), public/icon.png (cửa sổ + taskbar),
+public/favicon.png và public/logo.png (logo trên thanh tiêu đề).
 Chạy lại khi đổi logo: python scripts/make-icons.py (cần Pillow + numpy)."""
 import numpy as np
-from PIL import Image, ImageDraw
+from PIL import Image
 
-S = 4096  # vẽ to rồi thu nhỏ để mép bo mịn
-K = S / 512
-STOPS = [(0.0, (0xE5, 0x30, 0x6C)), (0.52, (0x9A, 0x4C, 0xF2)), (1.0, (0x3F, 0x6B, 0xFF))]
+SOURCE = 'logo/tiem-ghep-anh.png'
+MARGIN = 0.02  # chừa mép mỗi bên, tính theo cạnh icon
 
-y, x = np.mgrid[0:S, 0:S]
-t = (x + y) / (2 * (S - 1))
-rgb = np.zeros((S, S, 3), np.float32)
-for (t0, c0), (t1, c1) in zip(STOPS, STOPS[1:]):
-    m = (t >= t0) & (t <= t1)
-    f = ((t - t0) / (t1 - t0))[m][:, None]
-    rgb[m] = np.array(c0) * (1 - f) + np.array(c1) * f
-
-
-def mask(x, y, w, h, r, alpha=1.0):
-    im = Image.new('L', (S, S), 0)
-    ImageDraw.Draw(im).rounded_rectangle([x * K, y * K, (x + w) * K - 1, (y + h) * K - 1], r * K, fill=round(255 * alpha))
-    return np.asarray(im, np.float32)[..., None] / 255
+src = Image.open(SOURCE).convert('RGBA')
+# Cắt sát hình rồi đặt vào giữa khung vuông: ảnh gốc thường có viền trống không đều.
+alpha = np.asarray(src)[..., 3]
+ys, xs = np.where(alpha > 8)
+art = src.crop((xs.min(), ys.min(), xs.max() + 1, ys.max() + 1))
+side = round(max(art.size) / (1 - 2 * MARGIN))
+icon = Image.new('RGBA', (side, side), (0, 0, 0, 0))
+icon.paste(art, ((side - art.width) // 2, (side - art.height) // 2))
 
 
-for cell in [(100, 100, 184, 184, 44, 1.0), (308, 100, 104, 312, 44, 0.82), (100, 308, 184, 104, 44, 0.64)]:
-    a = mask(*cell)
-    rgb = rgb * (1 - a) + 255 * a
+def sized(px):
+    return icon.resize((px, px), Image.LANCZOS)
 
-alpha = mask(0, 0, 512, 512, 116) * 255
-icon = Image.fromarray(np.concatenate([rgb, alpha], 2).round().astype(np.uint8), 'RGBA')
-icon.resize((1024, 1024), Image.LANCZOS).save('build/icon.png')
-icon.resize((256, 256), Image.LANCZOS).save('public/icon.png')
-icon.resize((256, 256), Image.LANCZOS).save('build/icon.ico', sizes=[(s, s) for s in (16, 24, 32, 48, 64, 128, 256)])
+
+sized(1024).save('build/icon.png')
+sized(256).save('public/icon.png')
+sized(128).save('public/logo.png')
+sized(64).save('public/favicon.png')
+# Mỗi cỡ thu nhỏ riêng từ ảnh gốc thay vì để Pillow thu từ bản 256.
+sizes = (256, 128, 64, 48, 32, 24, 16)
+frames = [sized(s) for s in sizes]
+frames[0].save('build/icon.ico', sizes=[(s, s) for s in sizes], append_images=frames[1:])

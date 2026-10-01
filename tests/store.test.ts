@@ -280,6 +280,7 @@ describe('text', () => {
         lineHeight: 1.25,
         anchor: 'middle',
         opacity: 100,
+        vertical: false,
       },
     ])
   })
