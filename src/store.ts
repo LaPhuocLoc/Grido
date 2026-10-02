@@ -150,6 +150,13 @@ interface State extends Settings {
   previewFont: { id: string; font: string } | null
   /** Nhóm chữ đang được kéo / phóng / xoay: giá trị tạm của từng dòng, thả tay mới ghi vào `texts`. Không lưu, không vào lịch sử. */
   liveTexts: TextPatches | null
+  /** Các dòng chữ đang được chọn chung (khoanh vùng, Shift + bấm) mà chưa thành nhóm. Không lưu, không vào lịch sử. */
+  pickedTexts: string[]
+  /**
+   * Dòng chữ đang được chỉnh riêng dù nằm trong nhóm: bấm lần nữa vào một dòng của nhóm (vào chế độ gõ) thì từ đó đổi
+   * font, màu, kiểu chữ chỉ áp dụng cho dòng ấy, tới khi chọn lại nhóm. Không lưu, không vào lịch sử.
+   */
+  soloText: string | null
   /** Bảng Chữ đang mở mục nào: các mẫu chữ dựng sẵn, hay kho font của dòng chữ đang chọn. */
   textView: 'templates' | 'font'
   /** Id các khung ảnh được thả tim. */
@@ -217,14 +224,18 @@ interface State extends Settings {
   updateText: (id: string, patch: Partial<TextItem>) => void
   /** Sửa nhiều dòng chữ một lượt (thao tác trên cả nhóm) thành một bước undo. */
   updateTexts: (patches: TextPatches) => void
-  /** Xoá dòng chữ; dòng thuộc một nhóm thì xoá cả nhóm, trừ khi `alone`. */
+  /** Xoá dòng chữ; dòng thuộc một nhóm (hoặc đang được chọn chung) thì xoá hết, trừ khi `alone`. */
   removeText: (id: string, alone?: boolean) => void
-  /** Nhân bản dòng chữ; dòng thuộc một nhóm thì nhân bản cả nhóm. */
+  /** Nhân bản dòng chữ; dòng thuộc một nhóm (hoặc đang được chọn chung) thì nhân bản hết. */
   duplicateText: (id: string) => void
   /** Chèn một mẫu chữ vào giữa khung thành một nhóm mới. */
   insertTemplate: (template: TextTemplate) => void
   /** Tách nhóm: các dòng chữ trở lại độc lập. */
   ungroupTexts: (group: string) => void
+  /** Chọn chung nhiều dòng chữ (khoanh vùng); dòng nào thuộc nhóm thì cả nhóm được chọn theo. */
+  pickTexts: (ids: string[]) => void
+  /** Gộp các dòng chữ thành một nhóm mới. */
+  groupTexts: (ids: string[]) => void
   setActiveText: (id: string | null) => void
   setEditingText: (id: string | null) => void
   undo: () => void
@@ -409,6 +420,8 @@ export const useStore = create<State>()(
       recentFonts: [],
       previewFont: null,
       liveTexts: null,
+      pickedTexts: [],
+      soloText: null,
       textView: 'templates',
       favoritePresets: [],
       albums: [],
@@ -679,7 +692,7 @@ export const useStore = create<State>()(
       setAdjust: (photoId, patch) =>
         set((s) => ({ adjust: { ...s.adjust, [photoId]: { ...(s.adjust[photoId] ?? DEFAULT_ADJUST), ...patch } } })),
 
-      setActiveCell: (activeCell) => set(activeCell === null ? { activeCell } : { activeCell, activeText: null, editingText: null }),
+      setActiveCell: (activeCell) => set(activeCell === null ? { activeCell } : { activeCell, activeText: null, pickedTexts: [], soloText: null, editingText: null }),
 
       removeActiveCell: () => {
         const s = get()
@@ -688,6 +701,7 @@ export const useStore = create<State>()(
       },
 
       addText: () => {
+        set({ pickedTexts: [], soloText: null })
         const id = `t${Date.now().toString(36)}${seq++}`
         const item = normalizeText({ id, text: 'Chữ của bạn' })
         // Vào luôn chế độ gõ để người dùng thay chữ mẫu ngay trên ảnh.
@@ -700,9 +714,10 @@ export const useStore = create<State>()(
 
       removeText: (id, alone = false) =>
         set((s) => {
-          const group = alone ? null : s.texts.find((t) => t.id === id)?.group
-          const gone = new Set(s.texts.filter((t) => t.id === id || (group && t.group === group)).map((t) => t.id))
+          const gone = new Set(alone ? [id] : selectionOf(s, id))
           return {
+            pickedTexts: [],
+            soloText: null,
             texts: s.texts.filter((t) => !gone.has(t.id)),
             activeText: s.activeText && gone.has(s.activeText) ? null : s.activeText,
             editingText: s.editingText && gone.has(s.editingText) ? null : s.editingText,
@@ -712,14 +727,18 @@ export const useStore = create<State>()(
       duplicateText: (id) => {
         const source = get().texts.find((t) => t.id === id)
         if (!source) return
-        const members = source.group ? get().texts.filter((t) => t.group === source.group) : [source]
-        const group = source.group ? `g${Date.now().toString(36)}${seq++}` : null
+        const ids = selectionOf(get(), id)
+        const members = get().texts.filter((t) => ids.includes(t.id))
+        // Mỗi nhóm cũ thành một nhóm mới, để bản sao không dính vào bản gốc.
+        const groups = new Map<string, string>()
+        for (const t of members) if (t.group && !groups.has(t.group)) groups.set(t.group, `g${Date.now().toString(36)}${seq++}`)
         // Lệch nhẹ để thấy bản sao; sát mép thì lệch ngược lại cho khỏi ra ngoài khung.
         const dx = source.x > 0.9 ? -0.04 : 0.04
         const dy = source.y > 0.9 ? -0.04 : 0.04
-        const copies = members.map((t): TextItem => ({ ...t, id: `t${Date.now().toString(36)}${seq++}`, group, x: t.x + dx, y: t.y + dy }))
+        const copies = members.map((t): TextItem => ({ ...t, id: `t${Date.now().toString(36)}${seq++}`, group: t.group && groups.get(t.group)!, x: t.x + dx, y: t.y + dy }))
         const active = copies[members.indexOf(source)].id
-        set((s) => ({ texts: [...s.texts, ...copies], activeText: active, editingText: null, activeCell: null, tab: 'text' }))
+        const picked = get().pickedTexts.includes(id) ? copies.map((t) => t.id) : []
+        set((s) => ({ texts: [...s.texts, ...copies], activeText: active, pickedTexts: picked, soloText: null, editingText: null, activeCell: null, tab: 'text' }))
       },
 
       insertTemplate: (template) => {
@@ -735,6 +754,8 @@ export const useStore = create<State>()(
         set((s) => ({
           texts: [...(untouched ? s.texts.filter((t) => !previous.includes(t)) : s.texts), ...items],
           activeText: items[0].id,
+          pickedTexts: [],
+          soloText: null,
           editingText: null,
           activeCell: null,
           tab: 'text',
@@ -743,11 +764,33 @@ export const useStore = create<State>()(
 
       ungroupTexts: (group) => set((s) => ({ texts: s.texts.map((t) => (t.group === group ? { ...t, group: null } : t)) })),
 
+      pickTexts: (ids) => {
+        const s = get()
+        const all = [...new Set(ids.flatMap((id) => selectionOf({ texts: s.texts, pickedTexts: [] }, id)))]
+        const groups = new Set(s.texts.filter((t) => all.includes(t.id)).map((t) => t.group ?? t.id))
+        // Chỉ một dòng (hoặc đúng một nhóm): chọn như bấm vào nó.
+        if (groups.size < 2) {
+          set({ pickedTexts: [] })
+          return s.setActiveText(all[0] ?? null)
+        }
+        set({ pickedTexts: all, activeText: all[0], soloText: null, editingText: null, activeCell: null, tab: 'text' })
+      },
+
+      groupTexts: (ids) => {
+        if (ids.length < 2) return
+        const group = `g${Date.now().toString(36)}${seq++}`
+        set((s) => ({ texts: s.texts.map((t) => (ids.includes(t.id) ? { ...t, group } : t)), pickedTexts: [] }))
+      },
+
       setActiveText: (activeText) =>
-        set(activeText === null ? { activeText, editingText: null } : { activeText, editingText: null, activeCell: null, tab: 'text' }),
+        set((s) => {
+          const pickedTexts = activeText !== null && s.pickedTexts.includes(activeText) ? s.pickedTexts : []
+          const base = { activeText, pickedTexts, soloText: null, editingText: null }
+          return activeText === null ? base : { ...base, activeCell: null, tab: 'text' }
+        }),
 
       setEditingText: (editingText) =>
-        set(editingText === null ? { editingText } : { editingText, activeText: editingText, activeCell: null, tab: 'text' }),
+        set(editingText === null ? { editingText } : { editingText, soloText: editingText, activeText: editingText, activeCell: null, tab: 'text' }),
 
       undo: () => step('past', 'future'),
       redo: () => step('future', 'past'),
@@ -948,6 +991,25 @@ async function refreshStale(): Promise<void> {
 }
 
 /** Phần state được lưu lại giữa các phiên: thiết kế, album, bố cục đã lưu, cài đặt. Dùng cho file sao lưu. */
+/**
+ * Những dòng chữ đi cùng dòng `id` khi thao tác (kéo, phóng, xoá, đổi kiểu…): các dòng đang được chọn chung nếu `id` nằm
+ * trong đó, không thì cả nhóm của nó, không thì chỉ mình nó.
+ */
+export function selectionOf(s: { texts: TextItem[]; pickedTexts: string[] }, id: string): string[] {
+  const here = (list: string[]) => list.filter((other) => s.texts.some((t) => t.id === other))
+  if (s.pickedTexts.includes(id)) {
+    const picked = here(s.pickedTexts)
+    if (picked.length > 1) return picked
+  }
+  const group = s.texts.find((t) => t.id === id)?.group
+  return group ? s.texts.filter((t) => t.group === group).map((t) => t.id) : here([id])
+}
+
+/** Những dòng chữ nhận thay đổi font, màu, kiểu chữ khi chỉnh dòng `id`: như `selectionOf`, trừ khi dòng đó đang được chỉnh riêng. */
+export function styleTargets(s: { texts: TextItem[]; pickedTexts: string[]; soloText: string | null }, id: string): string[] {
+  return s.soloText === id ? [id] : selectionOf(s, id)
+}
+
 export const savedState = (): unknown => useStore.persist.getOptions().partialize?.(useStore.getState())
 
 /** Nạp lại state từ file sao lưu (thay cho thiết kế, album và cài đặt hiện tại) rồi đối chiếu với thư viện. */

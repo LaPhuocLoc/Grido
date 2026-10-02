@@ -20,6 +20,7 @@ import { buildSpec, exportToFile, useExportProgress } from '../lib/useCollage'
 import { canvasSize, originalCanvasOf, pctToPx, currentDesign, useStore, type ExportFormat, type ExportSharpen } from '../store'
 import { FontPicker } from './FontPicker'
 import { PresetArt } from './PresetArt'
+import { styleTexts } from './TextLayer'
 import { TemplatePicker } from './TemplatePicker'
 import { Button, cx, Section, Segmented, Slider } from './ui'
 
@@ -488,7 +489,7 @@ export function TextPanel() {
   // Thiết kế đang mở mà đã bỏ hết ảnh vẫn có khung để đặt chữ.
   const hasCollage = useStore((s) => !!s.tree || currentDesign(s) !== null)
   const view = useStore((s) => s.textView)
-  const { addText, updateText, setPreviewFont } = useStore.getState()
+  const { addText, setPreviewFont } = useStore.getState()
   const item = texts.find((t) => t.id === activeText)
 
   if (!hasCollage)
@@ -521,7 +522,7 @@ export function TextPanel() {
         <FontPicker
           value={item.font}
           text={item.text}
-          onChange={(font) => updateText(item.id, { font })}
+          onChange={(font) => styleTexts(item.id, { font })}
           onPreview={(font) => setPreviewFont(font ? { id: item.id, font } : null)}
         />
       ) : (

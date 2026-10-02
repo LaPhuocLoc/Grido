@@ -51,6 +51,15 @@ lên mọi thành viên quanh tâm nhóm. Bấm lần nữa vào một dòng đ�
 xoá tác động lên cả nhóm. Nút "Tách nhóm" bỏ `group` của các thành viên. Trạng thái đang kéo của nhóm nằm ở
 `liveTexts` trong store (không lưu, không vào lịch sử), thả tay mới ghi thành một bước undo.
 
+**Chọn nhiều dòng**: kéo chuột từ chỗ trống (ngoài khung, nền khung, hoặc giữ Shift rồi kéo trên ảnh) để khoanh vùng; Shift +
+bấm để thêm một dòng. Các dòng được chọn chung (`pickedTexts`, không lưu) dùng chung khung chọn với nhóm: kéo, phóng, xoay,
+nhân bản, xoá đều tác động lên cả cụm. Thanh nút có chữ "Nhóm" (Ctrl+G) khi các dòng chưa cùng nhóm và "Bỏ nhóm"
+(Ctrl+Shift+G) khi đã là một nhóm.
+
+**Chỉnh kiểu cho cả nhóm**: đang chọn nhóm (hay nhiều dòng) thì đổi font, màu, cỡ, hiệu ứng… áp dụng cho mọi dòng; cỡ chữ đổi
+theo tỉ lệ. Bấm lần nữa vào một dòng (vào chế độ gõ) thì dòng đó được chỉnh riêng (`soloText`, có viền nét đứt) cho tới khi
+chọn lại nhóm.
+
 **Mẫu**: `src/templates/<fontId>.json`
 
 ```json

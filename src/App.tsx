@@ -29,7 +29,7 @@ import { DataDialog } from './components/DataDialog'
 import { DesignsPanel } from './components/Designs'
 import { Library } from './components/Library'
 import { designTitle } from './lib/designs'
-import { toggleStyle } from './components/TextLayer'
+import { toggleGroup, toggleStyle } from './components/TextLayer'
 import { ExportPanel, LayoutPanel, SizePanel, StylePanel, TextPanel } from './components/Panels'
 import { Stage } from './components/Stage'
 import { Button, cx, IconButton, Logo, ThemeToggle, Toasts, Tooltip } from './components/ui'
@@ -162,6 +162,9 @@ function Editor() {
       } else if (mod && (key === 'b' || key === 'i' || key === 'u') && !typing(e) && s.activeText) {
         e.preventDefault()
         toggleStyle(s.activeText, key)
+      } else if (mod && key === 'g' && !typing(e) && s.activeText) {
+        e.preventDefault()
+        toggleGroup(s.activeText, e.shiftKey ? 'ungroup' : 'group')
       } else if (mod && key === 'd' && !typing(e) && s.activeText) {
         e.preventDefault()
         s.duplicateText(s.activeText)

@@ -343,6 +343,72 @@ describe('text', () => {
       expect(get().texts.map((t) => t.id)).toEqual([sub.id])
     })
 
+    it('picks loose captions together, groups them, and ungrouping leaves them independent', () => {
+      get().toggleSelect('p1')
+      get().addText()
+      get().addText()
+      get().addText()
+      const [a, b, c] = get().texts
+      get().pickTexts([a.id, b.id])
+      expect(get()).toMatchObject({ pickedTexts: [a.id, b.id], activeText: a.id, editingText: null })
+      expect(mod.selectionOf(get(), b.id)).toEqual([a.id, b.id])
+      expect(mod.selectionOf(get(), c.id)).toEqual([c.id])
+
+      get().groupTexts(mod.selectionOf(get(), a.id))
+      const group = get().texts[0].group
+      expect(group).toBeTruthy()
+      expect(get().texts.map((t) => t.group)).toEqual([group, group, null])
+      expect(get().pickedTexts).toEqual([])
+      expect(mod.selectionOf(get(), b.id)).toEqual([a.id, b.id])
+
+      get().ungroupTexts(group!)
+      expect(mod.selectionOf(get(), a.id)).toEqual([a.id])
+    })
+
+    it('picking a line of a group takes the whole group, and picking a single thing just selects it', () => {
+      get().toggleSelect('p1')
+      get().insertTemplate(template)
+      get().addText()
+      const [title, sub, loose] = get().texts
+      get().pickTexts([sub.id, loose.id])
+      expect([...get().pickedTexts].sort()).toEqual([title.id, sub.id, loose.id].sort())
+      // Bấm sang dòng khác ngoài vùng chọn thì thôi chọn chung.
+      get().pickTexts([sub.id])
+      expect(get().pickedTexts).toEqual([])
+      expect(get().activeText).toBe(title.id)
+      get().pickTexts([])
+      expect(get().activeText).toBeNull()
+    })
+
+    it('deletes and duplicates everything picked together', () => {
+      get().toggleSelect('p1')
+      get().addText()
+      get().addText()
+      get().addText()
+      const [a, b, c] = get().texts
+      get().pickTexts([a.id, b.id])
+      get().duplicateText(a.id)
+      expect(get().texts).toHaveLength(5)
+      const copies = get().texts.slice(3).map((t) => t.id)
+      expect(get().pickedTexts).toEqual(copies)
+      get().removeText(copies[0])
+      expect(get().texts.map((t) => t.id)).toEqual([a.id, b.id, c.id])
+    })
+
+    it('style changes go to the whole group unless one line is being edited on its own', () => {
+      get().toggleSelect('p1')
+      get().insertTemplate(template)
+      const [title, sub] = get().texts
+      expect(mod.styleTargets(get(), sub.id)).toEqual([title.id, sub.id])
+      // Bấm lần nữa vào một dòng (vào chế độ gõ): từ đó chỉ chỉnh riêng dòng ấy, kể cả sau khi thôi gõ.
+      get().setEditingText(sub.id)
+      get().setEditingText(null)
+      expect(mod.styleTargets(get(), sub.id)).toEqual([sub.id])
+      // Chọn lại nhóm (bấm một dòng khác của nhóm) thì lại chỉnh cả nhóm.
+      get().setActiveText(title.id)
+      expect(mod.styleTargets(get(), title.id)).toEqual([title.id, sub.id])
+    })
+
     it('applies a group move to all lines as a single undo step, and live values never enter the history', () => {
       get().toggleSelect('p1')
       pause()

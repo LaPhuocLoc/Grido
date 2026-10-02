@@ -19,7 +19,6 @@ import {
   Underline,
   UnfoldHorizontal,
   UnfoldVertical,
-  Ungroup,
 } from 'lucide-react'
 import { useEffect, useLayoutEffect, useRef, useState, type CSSProperties, type PointerEvent as ReactPointerEvent, type ReactNode } from 'react'
 import { createPortal, flushSync } from 'react-dom'
@@ -52,7 +51,7 @@ import {
   type TextItem,
 } from '../lib/text'
 import { moveGroup, rotateGroup, scaleGroup } from '../lib/textGroup'
-import { useStore } from '../store'
+import { selectionOf, styleTargets, useStore } from '../store'
 import type { Guide } from './Stage'
 import { cx, IconButton } from './ui'
 
@@ -97,11 +96,16 @@ export function TextLayer({
   const liveRef = useRef<Live | null>(null)
   const [box, setBox] = useState({ w: 0, h: 0 })
   // Đang rê chuột xem thử font trong bảng font: chỉ đổi cách hiển thị, không đụng tới nội dung đã lưu.
-  const previewFont = useStore((s) => (s.previewFont?.id === stored.id ? s.previewFont.font : null))
+  const previewFont = useStore((s) => (s.previewFont && (s.previewFont.id === stored.id || styleTargets(s, s.previewFont.id).includes(stored.id)) ? s.previewFont.font : null))
   // Cả nhóm đang được kéo / phóng / xoay: giá trị tạm của dòng này nằm ở store để mọi dòng trong nhóm cùng đổi.
   const shared = useStore((s) => s.liveTexts?.[stored.id])
   const id = stored.id
   const group = stored.group
+  // Các dòng cùng được chọn với dòng này (nhóm của nó, hoặc vùng vừa khoanh): khung chọn bao hết, kéo là kéo hết.
+  const together = useStore(useShallow((s) => (active ? selectionOf(s, stored.id) : NONE)))
+  const multi = together.length > 1
+  // Dòng này đang được chỉnh riêng trong nhóm: viền thêm quanh nó để biết đổi màu, font… chỉ áp dụng cho nó.
+  const solo = useStore((s) => s.soloText === stored.id)
   const item = live ? { ...stored, ...live } : shared ? { ...stored, ...shared } : stored
   // Dòng chữ có hiệu ứng: chữ thật do canvas bên dưới vẽ (bằng chính hàm vẽ lúc xuất), khối DOM này chỉ còn dàn chữ, bắt chuột và gõ.
   const effects = hasEffects(item)
@@ -318,9 +322,18 @@ export function TextLayer({
         onPointerDown={(e) => {
           e.stopPropagation()
           if (editing || e.button !== 0) return
+          const before = useStore.getState()
+          // Shift + bấm: thêm dòng này (và nhóm của nó) vào những dòng đang chọn.
+          if (e.shiftKey && before.activeText && !selectionOf(before, before.activeText).includes(stored.id)) {
+            before.pickTexts([...selectionOf(before, before.activeText), stored.id])
+            return
+          }
           e.currentTarget.setPointerCapture(e.pointerId)
-          const members = group ? useStore.getState().texts.filter((t) => t.group === group) : null
-          const rect = group && overlay ? groupRect(group, overlay) : null
+          if (!active) setActiveText(stored.id)
+          const now = useStore.getState()
+          const ids = selectionOf(now, stored.id)
+          const members = ids.length > 1 ? now.texts.filter((t) => ids.includes(t.id)) : null
+          const rect = members && overlay ? groupRect(ids, overlay) : null
           drag.current = {
             x: e.clientX,
             y: e.clientY,
@@ -331,7 +344,6 @@ export function TextLayer({
             members,
             centre: rect && { x: (rect.left + rect.right) / 2 / (width * k), y: (rect.top + rect.bottom) / 2 / (height * k) },
           }
-          if (!active) setActiveText(stored.id)
         }}
         onPointerMove={(e) => {
           const d = drag.current
@@ -406,10 +418,18 @@ export function TextLayer({
         {stored.text || ' '}
       </div>
 
-      {active && group && overlay && createPortal(<GroupFrame group={group} width={width} height={height} k={k} overlay={overlay} hidden={editing} onGuides={onGuides} />, overlay)}
+      {active && multi && overlay && createPortal(<GroupFrame ids={together} width={width} height={height} k={k} overlay={overlay} hidden={editing} onGuides={onGuides} />, overlay)}
+
+      {active && multi && solo && overlay && box.w > 0 && createPortal(
+        <span
+          className="pointer-events-none absolute rounded-[3px] outline-dashed outline-2 outline-coral"
+          style={{ left: cxPx, top: cyPx, width: box.w + 4, height: box.h + 4, transform: `translate(-50%, -50%) rotate(${item.rotation}deg)` }}
+        />,
+        overlay,
+      )}
 
       {active &&
-        !group &&
+        !multi &&
         overlay &&
         box.w > 0 &&
         createPortal(
@@ -540,6 +560,8 @@ function EffectCanvas({ item, px, wrap, left, top }: { item: TextItem; px: numbe
   )
 }
 
+const NONE: string[] = []
+
 interface Box {
   left: number
   top: number
@@ -547,10 +569,12 @@ interface Box {
   bottom: number
 }
 
-/** Hình chữ nhật bao quanh mọi dòng chữ của nhóm, theo px màn hình tính từ góc lớp phủ. */
-export function groupRect(group: string, overlay: HTMLElement): Box | null {
+const textNodes = (ids: string[]) => ids.map((id) => document.querySelector(`[data-text="${id}"]`)).filter((node): node is Element => !!node)
+
+/** Hình chữ nhật bao quanh các dòng chữ `ids`, theo px màn hình tính từ góc lớp phủ. */
+export function groupRect(ids: string[], overlay: HTMLElement): Box | null {
   const origin = overlay.getBoundingClientRect()
-  const rects = [...document.querySelectorAll(`[data-text-group="${group}"]`)].map((node) => node.getBoundingClientRect())
+  const rects = textNodes(ids).map((node) => node.getBoundingClientRect())
   if (!rects.length) return null
   return {
     left: Math.min(...rects.map((r) => r.left)) - origin.left,
@@ -568,9 +592,12 @@ function commitGroup(updateTexts: (patches: Record<string, Partial<TextItem>>) =
   onGuides([])
 }
 
-/** Khung chọn của một nhóm chữ: bao quanh mọi dòng, có tay nắm phóng / xoay cả nhóm và các nút nhân bản, tách nhóm, xoá. */
+/**
+ * Khung chọn của nhiều dòng chữ (một nhóm, hoặc các dòng vừa khoanh vùng): bao quanh mọi dòng, có tay nắm phóng / xoay cả
+ * cụm và các nút Nhóm / Bỏ nhóm, nhân bản, xoá.
+ */
 function GroupFrame({
-  group,
+  ids,
   width,
   height,
   k,
@@ -578,7 +605,7 @@ function GroupFrame({
   hidden,
   onGuides,
 }: {
-  group: string
+  ids: string[]
   width: number
   height: number
   k: number
@@ -587,8 +614,10 @@ function GroupFrame({
   hidden: boolean
   onGuides: (guides: Guide[]) => void
 }) {
-  const { updateTexts, removeText, duplicateText, ungroupTexts } = useStore.getState()
-  const members = useStore(useShallow((s) => s.texts.filter((t) => t.group === group)))
+  const { updateTexts, removeText, duplicateText } = useStore.getState()
+  const members = useStore(useShallow((s) => s.texts.filter((t) => ids.includes(t.id))))
+  // Mọi dòng đang chọn thuộc cùng một nhóm: nút là "Bỏ nhóm"; còn không (vừa khoanh vùng) thì là "Nhóm".
+  const group = members[0]?.group && members.every((t) => t.group === members[0].group) ? members[0].group : null
   const live = useStore((s) => s.liveTexts)
   const [rect, setRect] = useState<Box | null>(null)
   const [angle, setAngle] = useState<number | null>(null)
@@ -596,14 +625,14 @@ function GroupFrame({
   // Khung bám theo kích thước thật của các dòng chữ (đổi khi gõ, đổi font, font tải xong, đang kéo…).
   useLayoutEffect(() => {
     const read = () => {
-      const next = groupRect(group, overlay)
+      const next = groupRect(ids, overlay)
       setRect((now) => (now && next && now.left === next.left && now.top === next.top && now.right === next.right && now.bottom === next.bottom ? now : next))
     }
     read()
     const observer = new ResizeObserver(read)
-    document.querySelectorAll(`[data-text-group="${group}"]`).forEach((node) => observer.observe(node))
+    textNodes(ids).forEach((node) => observer.observe(node))
     return () => observer.disconnect()
-  }, [group, overlay, members, live, k, width, height])
+  }, [ids, overlay, members, live, k, width, height])
 
   const move = useRef<((e: ReactPointerEvent) => void) | null>(null)
   const end = () => {
@@ -620,7 +649,7 @@ function GroupFrame({
       const origin = overlay.getBoundingClientRect()
       const x = (rect.left + rect.right) / 2
       const y = (rect.top + rect.bottom) / 2
-      move.current = begin(e, { clientX: origin.left + x, clientY: origin.top + y, x: x / k, y: y / k }, useStore.getState().texts.filter((t) => t.group === group))
+      move.current = begin(e, { clientX: origin.left + x, clientY: origin.top + y, x: x / k, y: y / k }, useStore.getState().texts.filter((t) => ids.includes(t.id)))
     },
     onPointerMove: (e: ReactPointerEvent) => move.current?.(e),
     onPointerUp: end,
@@ -690,7 +719,7 @@ function GroupFrame({
       {/* Chỉ hiện khi đang chọn mà chưa gõ; đang gõ hoặc đang kéo thì ẩn cho đỡ vướng. */}
       {!hidden && !live && (
         <div
-          className="pointer-events-auto absolute flex animate-pop rounded-full bg-card p-0.5 shadow-lift ring-1 ring-black/5"
+          className="pointer-events-auto absolute flex animate-pop items-center rounded-full bg-card p-0.5 shadow-lift ring-1 ring-black/5"
           style={{
             left: rect.left + w / 2,
             top: barAbove ? rect.top - 18 : rect.bottom + ROTATE_GAP + 34,
@@ -698,13 +727,19 @@ function GroupFrame({
           }}
           onPointerDown={(e) => e.stopPropagation()}
         >
-          <IconButton label="Nhân bản nhóm chữ (Ctrl+D)" onClick={() => duplicateText(members[0].id)}>
+          <button
+            type="button"
+            data-tip={group ? 'Bỏ nhóm: các dòng chữ rời nhau ra (Ctrl+Shift+G)' : 'Gộp các dòng chữ đang chọn thành một nhóm (Ctrl+G)'}
+            onClick={() => toggleGroup(members[0].id)}
+            className="h-9 whitespace-nowrap rounded-full px-3 text-[13px] font-semibold text-ink hover:bg-sand"
+          >
+            {group ? 'Bỏ nhóm' : 'Nhóm'}
+          </button>
+          <span className="mx-0.5 h-5 w-px shrink-0 bg-line" />
+          <IconButton label="Nhân bản (Ctrl+D)" onClick={() => duplicateText(members[0].id)}>
             <Copy className="size-4" />
           </IconButton>
-          <IconButton label="Tách nhóm: chỉnh từng dòng chữ riêng" onClick={() => ungroupTexts(group)}>
-            <Ungroup className="size-4" />
-          </IconButton>
-          <IconButton label="Xoá nhóm chữ (Delete)" onClick={() => removeText(members[0].id)}>
+          <IconButton label="Xoá (Delete)" onClick={() => removeText(members[0].id)}>
             <Trash2 className="size-4" />
           </IconButton>
         </div>
@@ -713,14 +748,36 @@ function GroupFrame({
   )
 }
 
+/**
+ * Nhóm / bỏ nhóm các dòng đang chọn cùng dòng `id`. Bỏ nhóm xong các dòng vẫn được chọn chung, để gộp lại được ngay.
+ * `want`: chỉ làm khi đúng chiều đó (phím tắt Ctrl+G / Ctrl+Shift+G).
+ */
+export function toggleGroup(id: string, want?: 'group' | 'ungroup') {
+  const s = useStore.getState()
+  const ids = selectionOf(s, id)
+  const members = s.texts.filter((t) => ids.includes(t.id))
+  if (members.length < 2) return
+  const group = members[0].group && members.every((t) => t.group === members[0].group) ? members[0].group : null
+  if (group && want !== 'group') {
+    s.ungroupTexts(group)
+    s.pickTexts(ids)
+  } else if (!group && want !== 'ungroup') s.groupTexts(ids)
+}
+
+/** Sửa kiểu chữ của dòng `id`; dòng nằm trong nhóm (hoặc đang được chọn chung) thì cả cụm đổi theo, trừ khi dòng đó đang được chỉnh riêng. */
+export function styleTexts(id: string, patch: Partial<TextItem> | ((item: TextItem) => Partial<TextItem>)) {
+  const s = useStore.getState()
+  const ids = styleTargets(s, id)
+  s.updateTexts(Object.fromEntries(s.texts.filter((t) => ids.includes(t.id)).map((t) => [t.id, typeof patch === 'function' ? patch(t) : patch])))
+}
+
 /** Bật / tắt đậm, nghiêng, gạch chân — dùng chung cho phím tắt Ctrl+B / I / U. */
 export function toggleStyle(id: string, key: string) {
-  const { texts, updateText } = useStore.getState()
-  const item = texts.find((t) => t.id === id)
+  const item = useStore.getState().texts.find((t) => t.id === id)
   if (!item) return
-  if (key === 'b') updateText(id, { bold: !item.bold })
-  else if (key === 'i') updateText(id, { italic: !item.italic })
-  else if (key === 'u') updateText(id, { underline: !item.underline })
+  if (key === 'b') styleTexts(id, { bold: !item.bold })
+  else if (key === 'i') styleTexts(id, { italic: !item.italic })
+  else if (key === 'u') styleTexts(id, { underline: !item.underline })
 }
 
 const ALIGN: { value: TextAlign; label: string; icon: ReactNode }[] = [
@@ -898,8 +955,9 @@ type Menu = 'color' | 'effects' | 'spacing' | 'opacity'
 
 /** Thanh công cụ ở đáy khung ghép cho dòng chữ đang chọn. `unit`: số px ảnh xuất ứng với 1% cỡ chữ. */
 export function TextToolbar({ item, unit }: { item: TextItem; unit: number }) {
-  const { updateText } = useStore.getState()
-  const set = (patch: Partial<TextItem>) => updateText(item.id, patch)
+  // Dòng chữ nằm trong nhóm: chỉnh ở đây là chỉnh cả nhóm; bấm lần nữa vào một dòng thì chỉ chỉnh dòng đó.
+  const count = useStore((s) => styleTargets(s, item.id).length)
+  const set = (patch: Partial<TextItem>) => styleTexts(item.id, patch)
   const [menu, setMenu] = useState<Menu | null>(null)
   const toggle = (next: Menu) => setMenu(menu === next ? null : next)
   useEffect(() => {
@@ -909,7 +967,11 @@ export function TextToolbar({ item, unit }: { item: TextItem; unit: number }) {
     return () => window.removeEventListener('pointerdown', close, true)
   }, [menu])
 
-  const resize = (delta: number) => set({ size: clamp(round(item.size + delta, 2), MIN_TEXT_SIZE, MAX_TEXT_SIZE) })
+  // Cả cụm cùng to / nhỏ theo một tỉ lệ, để giữ tương quan giữa dòng to và dòng nhỏ.
+  const resize = (delta: number) => {
+    const factor = (item.size + delta) / item.size
+    styleTexts(item.id, (t) => ({ size: clamp(round(t.size * factor, 2), MIN_TEXT_SIZE, MAX_TEXT_SIZE) }))
+  }
   const aligns = item.vertical ? ALIGN_VERTICAL : ALIGN
   const align = aligns.find((a) => a.value === item.align) ?? aligns[1]
   const divider = <span className="mx-1 h-5 w-px shrink-0 bg-line" />
@@ -921,6 +983,14 @@ export function TextToolbar({ item, unit }: { item: TextItem; unit: number }) {
       onMouseDown={(e) => e.preventDefault()}
     >
       <div role="toolbar" aria-label="Định dạng chữ" className="flex max-w-full animate-pop items-center gap-0.5 rounded-full bg-card p-1.5 shadow-lift">
+        {count > 1 && (
+          <span
+            data-tip="Đang chỉnh mọi dòng chữ được chọn · bấm lần nữa vào một dòng để chỉnh riêng dòng đó"
+            className="hidden h-7 shrink-0 items-center rounded-full bg-blush px-2.5 text-[12px] font-semibold text-coral-dark lg:flex"
+          >
+            {count} dòng
+          </span>
+        )}
         <button
           type="button"
           data-tip="Đổi font ở bảng bên trái"

@@ -206,6 +206,8 @@ export function Stage() {
 
   const onCellDown = (e: ReactPointerEvent, cell: number) => {
     if (e.button !== 0 || !spec) return
+    // Giữ Shift rồi kéo trên ảnh: khoanh vùng chọn chữ thay vì dời ảnh.
+    if (e.shiftKey) return startMarquee(e)
     e.currentTarget.setPointerCapture(e.pointerId)
     drag.current = { cell, startX: e.clientX, startY: e.clientY, startAdjust: spec.cells[cell].adjust, moved: false }
   }
@@ -336,6 +338,44 @@ export function Stage() {
     setActiveText(null)
   }
 
+  /**
+   * Khoanh vùng: giữ chuột trái ở chỗ trống (ngoài khung, nền khung, hoặc Shift + kéo trên ảnh) rồi kéo thành hình chữ
+   * nhật; thả tay thì mọi dòng chữ chạm vào vùng đó được chọn chung, sẵn sàng để gộp nhóm.
+   */
+  const [marquee, setMarquee] = useState<{ x0: number; y0: number; x1: number; y1: number } | null>(null)
+  const marqueeStart = useRef<{ x: number; y: number } | null>(null)
+  const [marqueeHits, setMarqueeHits] = useState<DOMRect[]>([])
+  const touching = (m: { x0: number; y0: number; x1: number; y1: number }) => {
+    const left = Math.min(m.x0, m.x1)
+    const right = Math.max(m.x0, m.x1)
+    const top = Math.min(m.y0, m.y1)
+    const bottom = Math.max(m.y0, m.y1)
+    return [...document.querySelectorAll<HTMLElement>('[data-text]')]
+      .map((node) => ({ id: node.dataset.text!, rect: node.getBoundingClientRect() }))
+      .filter(({ rect }) => rect.left < right && rect.right > left && rect.top < bottom && rect.bottom > top)
+  }
+  const startMarquee = (e: ReactPointerEvent) => {
+    if (e.button !== 0) return
+    deselect()
+    if (!spec?.texts.length || !wrap.current) return
+    wrap.current.setPointerCapture(e.pointerId)
+    marqueeStart.current = { x: e.clientX, y: e.clientY }
+  }
+  const moveMarquee = (e: ReactPointerEvent) => {
+    const from = marqueeStart.current
+    if (!from || (!marquee && Math.hypot(e.clientX - from.x, e.clientY - from.y) < 4)) return
+    const next = { x0: from.x, y0: from.y, x1: e.clientX, y1: e.clientY }
+    setMarquee(next)
+    setMarqueeHits(touching(next).map((hit) => hit.rect))
+  }
+  const endMarquee = () => {
+    marqueeStart.current = null
+    if (!marquee) return
+    useStore.getState().pickTexts(touching(marquee).map((hit) => hit.id))
+    setMarquee(null)
+    setMarqueeHits([])
+  }
+
   // Thứ tự DOM cố định theo id ảnh: khi trộn / đổi chỗ, React chỉ đổi style chứ không dời node,
   // nhờ vậy transition chạy được và ảnh trượt sang ô mới thay vì nhảy cóc.
   const order = useMemo(
@@ -462,8 +502,27 @@ export function Stage() {
           // Chỉ chừa chỗ cho thanh công cụ ảnh khi nó đang hiện, để khung ghép được to nhất có thể trên mobile.
           active || activeItem ? 'mb-16' : 'mb-3 lg:mb-12',
         )}
-        onPointerDown={(e) => e.target === e.currentTarget && deselect()}
+        onPointerDown={(e) => e.target === e.currentTarget && startMarquee(e)}
+        onPointerMove={moveMarquee}
+        onPointerUp={endMarquee}
+        onPointerCancel={endMarquee}
       >
+        {marquee && (
+          <>
+            {marqueeHits.map((r, i) => (
+              <span key={i} className="pointer-events-none fixed z-40 rounded-[3px] shadow-[0_0_0_1.5px_var(--color-coral)]" style={{ left: r.left - 3, top: r.top - 3, width: r.width + 6, height: r.height + 6 }} />
+            ))}
+            <span
+              className="pointer-events-none fixed z-40 rounded-[2px] border border-coral bg-coral/15"
+              style={{
+                left: Math.min(marquee.x0, marquee.x1),
+                top: Math.min(marquee.y0, marquee.y1),
+                width: Math.abs(marquee.x1 - marquee.x0),
+                height: Math.abs(marquee.y1 - marquee.y0),
+              }}
+            />
+          </>
+        )}
         {!spec || !layout ? (
           <EmptyStage />
         ) : (
@@ -476,7 +535,7 @@ export function Stage() {
             <div
               className="absolute inset-0 overflow-hidden shadow-lift"
               style={{ background: spec.bg }}
-              onPointerDown={(e) => e.target === e.currentTarget && deselect()}
+              onPointerDown={(e) => e.target === e.currentTarget && startMarquee(e)}
             >
               {openEmpty && (
                 // Chỗ của ảnh: nằm dưới chữ, không bắt chuột để vẫn bấm / kéo được chữ trên khung.
@@ -736,7 +795,9 @@ export function Stage() {
           <p className="pointer-events-none absolute inset-x-0 bottom-3 hidden text-center text-xs text-muted lg:block">
             {openEmpty
               ? 'Thiết kế vẫn đang mở: khung, viền và chữ được giữ nguyên · chọn ảnh để ghép tiếp · bấm Tạo ở góc trái để làm thiết kế mới'
-              : 'Kéo ảnh để căn khung · thả sang ô khác để đổi chỗ · bấm ảnh rồi kéo nút ở góc để phóng to · kéo đường viền để đổi kích thước ô'}
+              : spec.texts.length > 1
+                ? 'Kéo ảnh để căn khung · thả sang ô khác để đổi chỗ · kéo từ chỗ trống ngoài khung (hoặc giữ Shift rồi kéo trên ảnh) để khoanh vùng chọn nhiều dòng chữ'
+                : 'Kéo ảnh để căn khung · thả sang ô khác để đổi chỗ · bấm ảnh rồi kéo nút ở góc để phóng to · kéo đường viền để đổi kích thước ô'}
           </p>
         )
       )}
