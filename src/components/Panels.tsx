@@ -572,6 +572,9 @@ export function ExportPanel() {
   const inCollage = state.tree ? state.selected.length : 0
   const missing = new Set(state.photos.filter((p) => p.missing).map((p) => p.id))
   const fromOriginal = state.selected.filter((id) => !missing.has(id)).length
+  // Bản web: ảnh còn file gốc nhưng trình duyệt chưa được cấp lại quyền đọc trong phiên này.
+  const lockedIds = new Set(state.photos.filter((p) => p.locked).map((p) => p.id))
+  const lockedInCollage = state.selected.filter((id) => lockedIds.has(id)).length
 
   return (
     <div className="space-y-6">
@@ -611,8 +614,20 @@ export function ExportPanel() {
               <b className="text-ink">
                 {fromOriginal}/{inCollage} ảnh xuất từ file gốc.
               </b>{' '}
-              Ảnh còn lại không còn file gốc ở chỗ cũ (đã bị di chuyển, đổi tên hoặc xoá) nên dùng bản xem trước
-              2560px. Muốn nét tối đa, hãy thêm lại những ảnh đó từ vị trí mới.
+              {lockedInCollage > 0 ? (
+                <>
+                  Trình duyệt chưa được phép đọc file gốc của {lockedInCollage} ảnh trong phiên này nên sẽ dùng bản xem trước
+                  2560px.{' '}
+                  <button type="button" className="font-semibold text-coral-dark hover:underline" onClick={() => void state.grantAccess()}>
+                    Cho phép đọc ảnh gốc
+                  </button>
+                </>
+              ) : (
+                <>
+                  Ảnh còn lại không còn file gốc ở chỗ cũ (đã bị di chuyển, đổi tên hoặc xoá) nên dùng bản xem trước 2560px.
+                  Muốn nét tối đa, hãy thêm lại những ảnh đó từ vị trí mới.
+                </>
+              )}
             </>
           )}
         </p>

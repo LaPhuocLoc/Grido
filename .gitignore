@@ -18,3 +18,7 @@ fontvn/cache
 
 # Ghi chú tài khoản tải font, không đưa lên repo
 font/
+
+# Token Netlify dùng để tạo secret cho CI: không bao giờ đưa lên repo
+docs/netlify-token.txt
+*-token.txt

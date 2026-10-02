@@ -261,7 +261,10 @@ export async function drawText(
 ) {
   const font = `${item.italic ? 'italic ' : ''}${fontWeight(item.bold)} ${px}px ${fontFamily(item.font)}`
   // Font web chỉ tải khi được dùng; phải chờ xong, nếu không canvas sẽ vẽ bằng font dự phòng.
-  await document.fonts.load(font, item.text).catch(() => {})
+  // Tải hỏng (bản web mất mạng giữa chừng) thì dừng hẳn: thà báo lỗi còn hơn xuất ra ảnh sai font.
+  await document.fonts.load(font, item.text).catch(() => {
+    throw new Error(`Chưa tải được font "${fontInfo(item.font).label}". Kiểm tra kết nối mạng rồi xuất lại nhé.`)
+  })
   ctx.save()
   ctx.translate(cx, cy)
   ctx.rotate((item.rotation * Math.PI) / 180)

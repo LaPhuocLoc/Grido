@@ -26,6 +26,9 @@ sized(1024).save('build/icon.png')
 sized(256).save('public/icon.png')
 sized(128).save('public/logo.png')
 sized(64).save('public/favicon.png')
+# Icon khi cài bản web thành ứng dụng (public/manifest.webmanifest).
+sized(192).save('public/icon-192.png')
+sized(512).save('public/icon-512.png')
 # Mỗi cỡ thu nhỏ riêng từ ảnh gốc thay vì để Pillow thu từ bản 256.
 sizes = (256, 128, 64, 48, 32, 24, 16)
 frames = [sized(s) for s in sizes]

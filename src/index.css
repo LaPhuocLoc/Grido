@@ -211,6 +211,10 @@ img {
   padding-left: 14px;
   padding-right: calc(100vw - env(titlebar-area-width, calc(100vw - 150px)) - env(titlebar-area-x, 0px) + 10px);
 }
+/* Bản web: tab trình duyệt không có cụm nút cửa sổ; khi cài thành app (PWA) thì trình duyệt báo vùng còn trống qua env(). */
+:root[data-platform='web'] .titlebar {
+  padding-right: calc(100vw - env(titlebar-area-width, 100vw) - env(titlebar-area-x, 0px) + 12px);
+}
 :root[data-platform='darwin'] .titlebar {
   padding-left: 84px;
   padding-right: 12px;

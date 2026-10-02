@@ -1,7 +1,7 @@
 import { create } from 'zustand'
 import { persist, type PersistStorage, type StorageValue } from 'zustand/middleware'
 import type { ImportCandidate, Photo, StageResult } from '../shared/types'
-import { desktop, importUrl } from './lib/desktop'
+import { desktop } from './lib/desktop'
 import { DEFAULT_ADJUST, type CellAdjust } from './lib/geometry'
 import { POOL_SIZE, prepareImport } from './lib/imaging/tasks'
 import { countCells, parseLayout } from './lib/layout/dsl'
@@ -52,7 +52,7 @@ export interface SavedLayout {
 const MAX_SAVED_LAYOUTS = 60
 const MAX_RECENT_FONTS = 6
 /** Bề rộng mặc định (và nhỏ nhất) của bảng công cụ, cùng mức "rộng" khi bấm đúp vào mép. */
-export const PANEL_WIDTH = 340
+export const PANEL_WIDTH = 380
 export const PANEL_WIDTH_WIDE = 640
 /** Khớp với thời lượng hiệu ứng toast-out trong index.css. */
 const TOAST_EXIT_MS = 220
@@ -157,8 +157,12 @@ interface State extends Settings {
   loadPhotos: () => Promise<void>
   /** Mở hộp thoại chọn ảnh của hệ điều hành. */
   pickPhotos: (albumId?: string) => Promise<void>
-  /** Nhận file kéo thả hoặc dán vào cửa sổ. */
-  importFiles: (files: File[], albumId?: string) => Promise<void>
+  /** Mở hộp thoại chọn cả thư mục ảnh (nền tảng có hỗ trợ). */
+  pickFolder: (albumId?: string) => Promise<void>
+  /** Nhận file dán vào cửa sổ (mảng file) hoặc vừa được thả vào (DataTransfer của sự kiện drop). */
+  importFiles: (files: File[] | DataTransfer, albumId?: string) => Promise<void>
+  /** Bản web: xin lại quyền đọc file gốc rồi cập nhật trạng thái từng ảnh. Gọi từ một thao tác bấm. */
+  grantAccess: () => Promise<void>
   dismissImport: (key: number) => void
   deletePhotos: (ids: string[]) => Promise<void>
   /** Tạo album; trả về id. Không truyền tên thì đặt "Album N". */
@@ -225,6 +229,7 @@ type Persisted = Settings & Snapshot & Pick<State, 'designs' | 'currentDesignId'
  */
 function lazyStorage(): PersistStorage<Persisted> {
   let pending: { name: string; value: StorageValue<Persisted> } | null = null
+  let failed = false
   let timer: number | undefined
   const flush = () => {
     clearTimeout(timer)
@@ -232,8 +237,11 @@ function lazyStorage(): PersistStorage<Persisted> {
     if (!pending) return
     try {
       localStorage.setItem(pending.name, JSON.stringify(pending.value))
+      failed = false
     } catch {
-      // Hết chỗ hoặc bị chặn: bỏ qua, app vẫn chạy, chỉ là không lưu được bản nháp.
+      // Hết chỗ hoặc bị chặn: app vẫn chạy, chỉ là không lưu được bản nháp. Báo một lần cho tới khi ghi lại được.
+      if (!failed) queueMicrotask(() => useStore.getState().toast('Không lưu được thiết kế vào bộ nhớ trình duyệt (đã đầy hoặc bị chặn). Xoá bớt thiết kế cũ nhé.', 'error'))
+      failed = true
     }
     pending = null
   }
@@ -384,32 +392,52 @@ export const useStore = create<State>()(
           saveDesign(get())
           // Đối chiếu bản nháp với thư viện không phải thao tác của user → không tính vào lịch sử undo.
           set({ past: [], future: [] })
+          void refreshStale()
         } catch (err) {
           get().toast((err as Error).message, 'error')
         }
       },
 
-      pickPhotos: async (albumId) => importStaged(await desktop.library.pick(), true, albumId),
+      pickPhotos: async (albumId) => {
+        try {
+          await importStaged(await desktop.library.pick(), true, albumId)
+        } catch (err) {
+          get().toast((err as Error).message, 'error')
+        }
+      },
+
+      pickFolder: async (albumId) => {
+        try {
+          const staged = await desktop.library.pickFolder?.()
+          if (staged) await importStaged(staged, true, albumId)
+        } catch (err) {
+          get().toast((err as Error).message, 'error')
+        }
+      },
 
       importFiles: async (files, albumId) => {
-        const paths: string[] = []
-        const staged: StageResult = { candidates: [], duplicates: 0 }
-        const merge = (r: StageResult) => {
-          staged.candidates.push(...r.candidates)
-          staged.duplicates += r.duplicates
-        }
+        let staged: StageResult
         try {
-          for (const file of files) {
-            const path = desktop.pathForFile(file)
-            if (path) paths.push(path)
-            // Không có đường dẫn (ảnh dán từ clipboard, kéo từ trình duyệt): app tự giữ một bản.
-            else if (file.type.startsWith('image/')) merge(await desktop.library.stageBytes(file.name, await file.arrayBuffer()))
-          }
-          if (paths.length) merge(await desktop.library.stage(paths))
+          // Không được có `await` nào trước lời gọi này: nội dung vừa thả chỉ đọc được ngay trong sự kiện drop.
+          staged = await (Array.isArray(files) ? desktop.library.stageFiles(files) : desktop.library.stageDrop(files))
         } catch (err) {
           return get().toast((err as Error).message, 'error')
         }
         await importStaged(staged, false, albumId)
+      },
+
+      grantAccess: async () => {
+        try {
+          await desktop.library.grantAccess?.()
+          const photos = await desktop.library.list()
+          set({ photos })
+          void refreshStale()
+          const locked = photos.filter((p) => p.locked).length
+          if (locked) get().toast(`Còn ${locked} ảnh chưa được cấp quyền đọc file gốc. Bấm "Cho phép" lần nữa để cấp tiếp.`)
+          else get().toast('Đã đọc được file gốc của mọi ảnh.', 'success')
+        } catch (err) {
+          get().toast((err as Error).message, 'error')
+        }
       },
 
       dismissImport: (key) => set((s) => ({ imports: s.imports.filter((u) => u.key !== key) })),
@@ -733,11 +761,17 @@ useStore.subscribe((s, prev) => {
 
 /** Tạo bản xem trước + thumbnail cho từng file đã được main process nhận rồi đưa vào thư viện. */
 /** `albumId`: album nhận ảnh mới; bỏ trống thì ảnh nằm ở "Chưa phân loại". */
-async function importStaged({ candidates, duplicates }: StageResult, fromDialog: boolean, albumId?: string): Promise<void> {
+async function importStaged({ candidates, duplicates, relinked = 0 }: StageResult, fromDialog: boolean, albumId?: string): Promise<void> {
   const { toast } = useStore.getState()
+  if (relinked) {
+    // Ảnh đang mất file gốc vừa tìm lại được file: cập nhật trạng thái rồi dựng lại bản xem trước nếu cần.
+    useStore.setState({ photos: await desktop.library.list() })
+    void refreshStale()
+    toast(`Đã nối lại ${relinked} ảnh với file gốc.`, 'success')
+  }
   if (duplicates) toast(`${duplicates} ảnh đã có sẵn trong thư viện nên được bỏ qua.`)
   // Hộp thoại bị huỷ thì im lặng; kéo thả mà không có ảnh nào thì báo cho người dùng biết.
-  else if (!candidates.length && !fromDialog) toast('Không có file ảnh nào trong những gì bạn vừa thả vào.', 'error')
+  else if (!candidates.length && !relinked && !fromDialog) toast('Không có file ảnh nào trong những gì bạn vừa thả vào.', 'error')
   if (!candidates.length) return
 
   const items = candidates.map((candidate) => ({ candidate, key: seq++ }))
@@ -769,7 +803,7 @@ async function importStaged({ candidates, duplicates }: StageResult, fromDialog:
 }
 
 async function importOne({ token }: ImportCandidate): Promise<Photo> {
-  const { preview, thumb, ...size } = await prepareImport(importUrl(token))
+  const { preview, thumb, ...size } = await prepareImport(await desktop.images.importSource(token))
   return desktop.library.add({
     token,
     ...size,
@@ -777,6 +811,42 @@ async function importOne({ token }: ImportCandidate): Promise<Photo> {
     thumb: await thumb.arrayBuffer(),
     thumbType: thumb.type,
   })
+}
+
+let refreshing = false
+/**
+ * Bản web: ảnh có file gốc đã bị sửa sau khi nhập (hoặc vừa được nối lại từ file sao lưu) thì dựng lại bản xem trước +
+ * thumbnail ở nền, từng ảnh một. Lỗi ở ảnh nào thì bỏ qua ảnh đó, lần mở sau thử lại.
+ */
+async function refreshStale(): Promise<void> {
+  const { refresh } = desktop.library
+  if (!refresh || refreshing) return
+  refreshing = true
+  try {
+    for (const photo of useStore.getState().photos.filter((p) => p.stale)) {
+      try {
+        const [source] = await desktop.images.cellSources(photo)
+        if (!source) continue
+        const { preview, thumb, ...size } = await prepareImport(source)
+        const next = await refresh(photo.id, { ...size, preview: preview && (await preview.arrayBuffer()), thumb: await thumb.arrayBuffer(), thumbType: thumb.type })
+        useStore.setState((s) => ({ photos: s.photos.map((p) => (p.id === next.id ? next : p)) }))
+      } catch {
+        // bỏ qua ảnh này
+      }
+    }
+  } finally {
+    refreshing = false
+  }
+}
+
+/** Phần state được lưu lại giữa các phiên: thiết kế, album, bố cục đã lưu, cài đặt. Dùng cho file sao lưu. */
+export const savedState = (): unknown => useStore.persist.getOptions().partialize?.(useStore.getState())
+
+/** Nạp lại state từ file sao lưu (thay cho thiết kế, album và cài đặt hiện tại) rồi đối chiếu với thư viện. */
+export async function restoreState(saved: unknown): Promise<void> {
+  const merge = useStore.persist.getOptions().merge
+  if (merge) load({ ...merge(saved, useStore.getState()), activeCell: null, activeText: null, editingText: null })
+  await useStore.getState().loadPhotos()
 }
 
 /** Lùi/tiến một bước lịch sử. Bỏ qua những bước tham chiếu tới ảnh đã bị xoá khỏi thư viện. */

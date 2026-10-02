@@ -7,9 +7,12 @@ import { sourceCrop } from './crop'
 import { resample, type Raster } from './resample'
 import { sharpen } from './sharpen'
 
+/** Nguồn ảnh: địa chỉ để fetch (bản desktop) hoặc chính file / blob (bản web, đọc thẳng từ đĩa qua file handle). */
+export type ImageSource = string | Blob
+
 export type ImagingRequest =
-  | { kind: 'prepare'; url: string }
-  | { kind: 'cell'; urls: string[]; adjust: CellAdjust; width: number; height: number; sharpen: number }
+  | { kind: 'prepare'; source: ImageSource }
+  | { kind: 'cell'; sources: ImageSource[]; adjust: CellAdjust; width: number; height: number; sharpen: number }
   | { kind: 'jpeg'; bitmap: ImageBitmap; quality: number }
 
 export interface PreparedImport {
@@ -46,10 +49,15 @@ const ROTATIONS: Record<number, [number, number, number, number]> = {
   270: [0, -1, 1, 0],
 }
 
-async function load(url: string): Promise<{ blob: Blob; bitmap: ImageBitmap }> {
-  const res = await fetch(url)
+async function read(source: ImageSource): Promise<Blob> {
+  if (typeof source !== 'string') return source
+  const res = await fetch(source)
   if (!res.ok) throw new Error('Không đọc được file này')
-  const blob = await res.blob()
+  return res.blob()
+}
+
+async function load(source: ImageSource): Promise<{ blob: Blob; bitmap: ImageBitmap }> {
+  const blob = await read(source)
   try {
     // Áp dụng luôn hướng xoay EXIF và chuyển về sRGB.
     return { blob, bitmap: await createImageBitmap(blob, { imageOrientation: 'from-image', premultiplyAlpha: 'none' }) }
@@ -90,8 +98,8 @@ function encode(raster: Raster, type: string, quality: number): Promise<Blob> {
   return flat.convertToBlob({ type, quality })
 }
 
-async function prepare(url: string): Promise<PreparedImport> {
-  const { blob, bitmap } = await load(url)
+async function prepare(source: ImageSource): Promise<PreparedImport> {
+  const { blob, bitmap } = await load(source)
   const sourceWidth = bitmap.width
   const sourceHeight = bitmap.height
   const scale = Math.min(1, PREVIEW_EDGE / Math.max(sourceWidth, sourceHeight))
@@ -113,9 +121,9 @@ async function prepare(url: string): Promise<PreparedImport> {
 async function cell(req: Extract<ImagingRequest, { kind: 'cell' }>): Promise<{ buffer: ArrayBuffer }> {
   let failure: unknown
   // Thử lần lượt: file gốc trước, không đọc được (đã bị dời đi, quá lớn so với sức máy) thì dùng bản xem trước.
-  for (const url of req.urls) {
+  for (const source of req.sources) {
     try {
-      const { bitmap } = await load(url)
+      const { bitmap } = await load(source)
       try {
         const { sx, sy, sw, sh } = sourceCrop(bitmap.width, bitmap.height, { w: req.width, h: req.height }, req.adjust)
         // Cắt ở độ phân giải gốc rồi mới resize MỘT lần duy nhất về đúng kích thước ô → không mất nét do resize nhiều lần.
@@ -160,7 +168,7 @@ const ctx = self as unknown as DedicatedWorkerGlobalScope
 ctx.onmessage = async (e: MessageEvent<ImagingRequest & { id: number }>) => {
   const { id, ...req } = e.data
   try {
-    const result = req.kind === 'prepare' ? await prepare(req.url) : req.kind === 'cell' ? await cell(req) : await jpeg(req)
+    const result = req.kind === 'prepare' ? await prepare(req.source) : req.kind === 'cell' ? await cell(req) : await jpeg(req)
     ctx.postMessage({ id, result } satisfies ImagingResponse, 'buffer' in result ? [result.buffer] : [])
   } catch (err) {
     ctx.postMessage({ id, error: err instanceof Error ? err.message : String(err) } satisfies ImagingResponse)
