@@ -288,10 +288,8 @@ export function FontPicker({
   const favSet = useMemo(() => new Set(favorites), [favorites])
   const recentIds = useStore((s) => s.recentFonts)
   const view = useStore((s) => s.fontView)
-  // Phông Nhật / Hàn ở bản web rất nặng: danh sách viết tên bằng chính phông đó sẽ tải cả loạt file, nên chỉ xem được bằng ảnh mẫu.
-  const thumbsOnly = source !== 'system' && desktop.platform === 'web' && lang !== 'vi'
   // Phông của máy không có ảnh mẫu nên luôn xếp thành danh sách.
-  const asList = source === 'system' || (view === 'list' && !thumbsOnly)
+  const asList = source === 'system' || view === 'list'
 
   // Lướt chuột ngang qua cả lưới không được làm chữ trên ảnh nhấp nháy: xem thử trên ảnh có trễ một nhịp.
   const previewTimer = useRef<number | undefined>(undefined)
@@ -447,7 +445,7 @@ export function FontPicker({
           )}
         </label>
         {source !== 'system' && byLang && <LangSelect value={lang} langs={LANGS} onChange={setLang} tip="Phông chữ cho thứ tiếng nào" />}
-        {source !== 'system' && !thumbsOnly && (
+        {source !== 'system' && (
           <button
             type="button"
             aria-label={view === 'list' ? 'Đang xem dạng danh sách · bấm để xem ảnh mẫu' : 'Đang xem ảnh mẫu · bấm để xem dạng danh sách'}
