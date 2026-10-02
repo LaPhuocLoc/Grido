@@ -69,6 +69,8 @@ async function load(source: ImageSource): Promise<{ blob: Blob; bitmap: ImageBit
 /**
  * Lấy pixel thô của một vùng ảnh ở đúng độ phân giải gốc (không nội suy).
  * Toạ độ vùng cắt tính trên ảnh SAU khi đã lật ngang (`flip`) rồi xoay `rot` độ.
+ * Hàm này dùng xong là đóng luôn `bitmap` và trả lại bộ nhớ của canvas: với file vài chục MP mỗi bản sao là cả trăm MB,
+ * nhiều worker cùng giữ thì tab dễ bị trình duyệt đóng.
  */
 function readPixels(bitmap: ImageBitmap, sx = 0, sy = 0, sw?: number, sh?: number, rot = 0, flip = false): Raster {
   const sideways = rot % 180 !== 0
@@ -83,7 +85,10 @@ function readPixels(bitmap: ImageBitmap, sx = 0, sy = 0, sw?: number, sh?: numbe
   ctx.transform(...(ROTATIONS[rot] ?? ROTATIONS[0]), 0, 0)
   if (flip) ctx.scale(-1, 1)
   ctx.drawImage(bitmap, -bitmap.width / 2, -bitmap.height / 2)
-  return { data: ctx.getImageData(0, 0, sw, sh).data, width: sw, height: sh }
+  bitmap.close()
+  const { data } = ctx.getImageData(0, 0, sw, sh)
+  canvas.width = canvas.height = 0
+  return { data, width: sw, height: sh }
 }
 
 /** Mã hoá raster; JPEG/WebP không có alpha đẹp nên trải nền trắng bên dưới để vùng trong suốt không thành đen. */
@@ -106,7 +111,6 @@ async function prepare(source: ImageSource): Promise<PreparedImport> {
   const width = Math.max(1, Math.round(sourceWidth * scale))
   const height = Math.max(1, Math.round(sourceHeight * scale))
   const full = readPixels(bitmap)
-  bitmap.close()
   const main = scale < 1 ? resample(full, width, height) : full
 
   const keepOriginal = scale === 1 && KEEP_ORIGINAL_TYPES.includes(blob.type) && blob.size <= KEEP_ORIGINAL_MAX_BYTES

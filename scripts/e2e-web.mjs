@@ -160,7 +160,10 @@ try {
   await chrome?.close().catch(() => {})
   await new Promise((resolve) => server.httpServer.close(resolve))
   rmSync(photos, { recursive: true, force: true })
-  rmSync(profile, { recursive: true, force: true, maxRetries: 5, retryDelay: 300 })
+  // Chrome đôi khi còn giữ file trong hồ sơ tạm thêm vài giây sau khi tắt: dọn không được cũng không làm hỏng kết quả.
+  try {
+    rmSync(profile, { recursive: true, force: true, maxRetries: 10, retryDelay: 500 })
+  } catch {}
 }
 
 console.log(failed ? `\n${failed} bước không đạt.` : '\nTất cả đều đạt.')

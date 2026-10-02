@@ -200,7 +200,7 @@ Không thiết kế lại. Thay đổi cụ thể:
 | 10 | Tab cũ sau khi deploy bản mới | Nút "Có bản mới"; lỗi nạp chunk → mời tải lại. `persist` thêm `version` + `migrate`; IndexedDB nâng cấp theo `onupgradeneeded`. |
 | 11 | Xuất khi mạng rớt, font chưa tải | Dừng, báo tên font thiếu. Không xuất sai font. |
 | 12 | Xuất ảnh rất lớn (tới 10000px) | Trần canvas theo trình duyệt (mục 2.5). MozJPEG hết bộ nhớ → đã có đường lùi về bộ mã hoá sẵn có (`encode.ts`). |
-| 13 | File 45–60 MP | Pool tối đa 3 worker như hiện tại; thiết bị có `deviceMemory ≤ 4` → 1 worker. |
+| 13 | File 45–60 MP | Số worker theo sức máy (`poolSize` trong `tasks.ts`): `deviceMemory ≤ 4` → 1; dưới 8 GB → tối đa 3; từ 8 GB → tối đa 6; từ 16 GB → tối đa 8, luôn chừa hai nhân. |
 | 14 | Đóng tab / tải lại khi đang xuất hoặc nhập | `beforeunload` cảnh báo. Bản nháp đã tự lưu (ghi trễ 400ms + ghi ngay ở `pagehide`). |
 | 15 | Chuyển tab khi đang xuất | Việc nặng nằm trong worker nên ít bị bóp; thanh tiến độ có thể cập nhật chậm. Chấp nhận. |
 | 16 | Hết hạn mức lưu trữ | Bắt `QuotaExceededError` khi ghi OPFS/localStorage → báo và mở mục dọn cache. |
@@ -279,5 +279,18 @@ Chưa làm, có chủ ý:
 - Mức B (Safari / Firefox) và mobile: hoãn theo quyết định ở mục 8. Kéo theo: hồ sơ màu sRGB dạng hằng số, dò WebP và trần canvas
   theo trình duyệt (chỉ cần cho các engine đó).
 - Nhắc khi đang ở chế độ ẩn danh: trình duyệt không cho trang biết chắc điều này; thay bằng dòng cảnh báo trong "Dữ liệu & sao lưu".
-- So sánh tốc độ với bản desktop trên ảnh 24 MP (ngưỡng 10% ở mục 6): chưa đo.
-- Bấm vào hộp hỏi quyền của Chrome: không tự động hoá được, phải thử tay.
+- Bấm vào hộp hỏi quyền của Chrome: không tự động hoá được, phải thử tay. Đã kiểm trên Chrome thật (hồ sơ sạch): sau khi tải lại
+  trang ảnh chuyển sang khoá, bấm "Cho phép" thì `requestPermission()` chờ người dùng trả lời, tức là hộp hỏi có hiện.
+
+So với bản desktop (2026-10-02, máy 20 nhân / 32 GB, Chrome 154, 200 ảnh Sony 33 MP 4672×7008, xuất khung 7008×4672 JPEG 95):
+
+| | Desktop, 3 worker | Web, 3 worker | Web, 8 worker (hiện tại) |
+|---|---|---|---|
+| Nhập 200 ảnh | 98,3 s | 98,2 s | 57,0 s |
+| Xuất 1 ảnh (dựng + mã hoá) | 5,4 s | 5,2 s | 5,2 s |
+| Xuất 4 ảnh | 5,9 s | 5,8 s | 4,5 s |
+| Xuất 9 ảnh | 6,8 s | 6,7 s | 5,5 s |
+
+Hai bản chạy cùng một mã xử lý ảnh nên ngang nhau (đạt ngưỡng 10% ở mục 6); file xuất giống nhau từng byte trước và sau khi tăng số
+worker. Một lần nhập mất khoảng 1,45 giây mỗi ảnh trên một worker: giải mã 0,2 s, đọc pixel 0,3 s, thu nhỏ Lanczos 0,9 s.
+Lưu ý: khi tab bị trình duyệt coi là chạy nền thì mọi thứ chậm đi gần gấp đôi (đo được 183 s cho cùng 200 ảnh với 3 worker).

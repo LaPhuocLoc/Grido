@@ -3,7 +3,7 @@ import type { ImageSource, ImagingRequest, ImagingResponse, ImagingResult, Prepa
 import type { Raster } from './resample'
 
 // Pool Web Worker nhỏ: việc nặng về ảnh không chặn giao diện và tận dụng nhiều nhân CPU.
-// Tối đa 3 worker: mỗi file 45MP giải mã ra đã ~180MB nên không mở đồng loạt quá nhiều.
+// Số worker theo sức máy: mỗi file 45MP đang xử lý chiếm ~360MB (ảnh đã giải mã + pixel thô) nên không mở đồng loạt quá nhiều.
 
 interface Job {
   request: ImagingRequest
@@ -13,8 +13,15 @@ interface Job {
 }
 
 // Máy ít RAM (trình duyệt báo ≤ 4 GB) chỉ chạy một worker, kẻo vài ảnh lớn giải mã cùng lúc làm tab bị trình duyệt đóng.
-const lowMemory = ((navigator as Navigator & { deviceMemory?: number }).deviceMemory ?? 8) <= 4
-export const POOL_SIZE = lowMemory ? 1 : Math.max(1, Math.min(3, (navigator.hardwareConcurrency || 4) - 1))
+// Máy từ 8 GB trở lên được mở nhiều worker hơn, vẫn chừa lại hai nhân cho giao diện và phần còn lại của trình duyệt.
+export function poolSize(memory: number, cores: number): number {
+  if (memory <= 4) return 1
+  const few = Math.min(3, cores - 1)
+  const many = Math.min(memory >= 16 ? 8 : 6, cores - 2)
+  return Math.max(1, few, memory >= 8 ? many : 0)
+}
+
+export const POOL_SIZE = poolSize((navigator as Navigator & { deviceMemory?: number }).deviceMemory ?? 8, navigator.hardwareConcurrency || 4)
 const idle: Worker[] = []
 const queue: Job[] = []
 let spawned = 0
