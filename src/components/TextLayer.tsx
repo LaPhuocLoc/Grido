@@ -993,7 +993,7 @@ export function TextToolbar({ item, unit }: { item: TextItem; unit: number }) {
         )}
         <button
           type="button"
-          data-tip="Đổi font ở bảng bên trái"
+          data-tip="Đổi phông chữ ở bảng bên trái"
           onClick={() => useStore.setState({ tab: 'text', textView: 'font', leftCollapsed: false })}
           className="h-9 max-w-32 shrink truncate rounded-full px-3 text-[13px] font-semibold text-ink hover:bg-sand"
         >

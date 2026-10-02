@@ -53,7 +53,7 @@ export function AboutDialog({ version, onClose }: { version: string; onClose: ()
             sao lưu.
           </Point>
           <Point icon={<WifiOff className="size-5" />} title="Dùng được khi không có mạng">
-            Sau lần mở đầu tiên, trang chạy được cả khi mất mạng. Mạng chỉ cần để tải những font bạn chưa từng dùng và để nhận bản mới.
+            Sau lần mở đầu tiên, trang chạy được cả khi mất mạng. Mạng chỉ cần để tải những phông chữ bạn chưa từng dùng và để nhận bản mới.
           </Point>
         </div>
 

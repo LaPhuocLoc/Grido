@@ -334,7 +334,7 @@ export async function drawText(
  */
 export async function loadTextFont(item: TextItem, px: number) {
   await document.fonts.load(canvasFont(item, px), item.text).catch(() => {
-    throw new Error(`Chưa tải được font "${fontInfo(item.font).label}". Kiểm tra kết nối mạng rồi xuất lại nhé.`)
+    throw new Error(`Chưa tải được phông chữ "${fontInfo(item.font).label}". Kiểm tra kết nối mạng rồi xuất lại nhé.`)
   })
 }
 

@@ -501,7 +501,7 @@ export function TextPanel() {
     )
 
   return (
-    <div className="space-y-5">
+    <div className="space-y-3">
       <Button variant="primary" onClick={addText} className="h-11 w-full">
         <Type className="size-[18px]" />
         Thêm chữ
@@ -511,7 +511,7 @@ export function TextPanel() {
         value={view}
         options={[
           { value: 'templates', label: 'Mẫu chữ' },
-          { value: 'font', label: 'Font' },
+          { value: 'font', label: 'Phông chữ' },
         ]}
         onChange={(textView) => useStore.setState({ textView })}
       />

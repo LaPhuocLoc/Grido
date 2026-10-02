@@ -1,4 +1,4 @@
-import { Check, Heart, LayoutGrid, List, LoaderCircle, Monitor, Search, X } from 'lucide-react'
+import { Check, ChevronDown, Heart, LayoutGrid, List, LoaderCircle, Monitor, Search, X } from 'lucide-react'
 import { memo, useEffect, useLayoutEffect, useMemo, useRef, useState, type PointerEvent as ReactPointerEvent } from 'react'
 import { availableLangs, countByGroup, detectLang, sampleLine, searchFonts } from '../lib/fontSearch'
 import { FONT_GROUPS, FONT_LANGS, FONTS, fontInfo, isSystemFont, systemFont, type FontGroup, type FontId, type FontInfo, type FontLang } from '../lib/text'
@@ -47,13 +47,16 @@ const MIN_LIST_HEIGHT = 280
 const PANEL_PADDING = 4
 /** Bảng ở bề rộng mặc định xếp 2 cột; kéo rộng dần thì lên 3, 4 rồi tối đa 5 cột. */
 const GRID_COLUMNS = 'repeat(auto-fill, minmax(max(130px, calc((100% - 32px) / 5)), 1fr))'
-/** Danh sách (font trên máy, hoặc xem bằng chữ của bạn): 1 cột, bảng rộng thì thêm cột. */
+/** Danh sách: 1 cột, bảng rộng thì thêm cột. */
 const LIST_COLUMNS = 'repeat(auto-fill, minmax(250px, 1fr))'
 /** Con trỏ phải dừng trên một font bấy lâu (ms) thì dòng chữ trên ảnh mới đổi tạm sang font đó. */
 const CANVAS_PREVIEW_DELAY = 90
 
 const chip = (on: boolean) =>
-  cx('flex h-7 shrink-0 items-center gap-1 rounded-full px-2.5 text-xs font-semibold transition-colors', on ? 'bg-ink text-paper' : 'bg-sand text-soft hover:text-ink')
+  cx(
+    'flex h-7 min-w-fit flex-1 items-center justify-center whitespace-nowrap rounded-full px-2.5 text-xs font-semibold transition-colors',
+    on ? 'bg-ink text-paper' : 'bg-sand text-soft hover:text-ink',
+  )
 
 /** Ảnh minh hoạ của font; 4 font cơ bản không có ảnh nên hiện chữ mẫu bằng chính font đó. */
 function Sample({ font }: { font: FontInfo }) {
@@ -83,7 +86,7 @@ function FavButton({ font, fav, onToggle, className }: { font: FontInfo; fav: bo
     <button
       type="button"
       aria-pressed={fav}
-      aria-label={fav ? `Bỏ thích font ${font.label}` : `Thích font ${font.label}`}
+      aria-label={fav ? `Bỏ thích phông ${font.label}` : `Thích phông ${font.label}`}
       data-tip={fav ? 'Bỏ khỏi Yêu thích' : 'Thêm vào Yêu thích'}
       onClick={() => onToggle(font.id)}
       className={cx(
@@ -140,54 +143,32 @@ const FontCard = memo(function FontCard({ font, selected, fav, onSelect, onToggl
   )
 })
 
-/** Một dòng trong danh sách font của máy: tên font và mẫu chữ đều viết bằng chính font đó. */
-const FontRow = memo(function FontRow({ font, selected, fav, onSelect, onToggleFav }: ItemProps) {
+/**
+ * Một dòng của danh sách phông chữ: tên phông viết bằng chính phông đó, kế bên là câu chữ đang chọn (màu nhạt) cũng bằng
+ * phông đó, để vừa đọc được tên vừa thấy ngay chữ của mình trông ra sao.
+ */
+const FontRow = memo(function FontRow({ font, selected, fav, onSelect, onToggleFav, sample }: ItemProps & { sample: string }) {
   return (
-    // content-visibility: vài trăm dòng, mỗi dòng một font khác nhau; dòng ngoài vùng nhìn thì trình duyệt khỏi dàn chữ.
-    <div className="group relative [contain-intrinsic-size:auto_36px] [content-visibility:auto]" data-font={font.id} data-current={selected || undefined}>
-      <button
-        type="button"
-        aria-pressed={selected}
-        // Font ký hiệu viết tên mình bằng ký hiệu nên không đọc được; rê chuột để xem tên thật.
-        data-tip={font.label}
-        onClick={() => onSelect(font.id)}
-        className={cx(
-          'flex h-9 w-full items-baseline gap-2 overflow-hidden whitespace-nowrap rounded-lg pl-2.5 pr-9 text-left leading-9 transition-colors',
-          selected ? 'bg-blush text-coral-dark' : 'text-ink hover:bg-sand',
-        )}
-        style={{ fontFamily: font.family }}
-      >
-        <span className="min-w-0 shrink truncate text-[15px]">{font.label}</span>
-        <span className={cx('shrink-0 text-[13px]', selected ? 'opacity-70' : 'text-muted')}>AaBbCc</span>
-      </button>
-      {selected && !fav && <Check className="pointer-events-none absolute right-2.5 top-1/2 size-4 -translate-y-1/2 text-coral-dark group-hover:hidden" strokeWidth={3} />}
-      <FavButton font={font} fav={fav} onToggle={onToggleFav} className="right-1.5 top-1/2 -translate-y-1/2" />
-    </div>
-  )
-})
-
-/** Một dòng của cách xem "chữ của bạn": câu chữ đang chọn viết bằng font đó, tên font ghi nhỏ bên dưới. */
-const SampleRow = memo(function SampleRow({ font, selected, fav, onSelect, onToggleFav, sample }: ItemProps & { sample: string }) {
-  return (
-    // content-visibility: dòng ngoài vùng nhìn không được dàn chữ, nên file font của nó cũng chưa bị tải về.
-    <div className="group relative [contain-intrinsic-size:auto_54px] [content-visibility:auto]" data-font={font.id} data-current={selected || undefined}>
+    // content-visibility: dòng ngoài vùng nhìn không được dàn chữ, nên file phông của nó cũng chưa bị tải về.
+    <div className="group relative [contain-intrinsic-size:auto_44px] [content-visibility:auto]" data-font={font.id} data-current={selected || undefined}>
       <button
         type="button"
         aria-pressed={selected}
         aria-label={font.label}
+        // Phông trang trí / ký hiệu viết tên mình khó đọc; rê chuột để xem tên thật.
+        data-tip={font.label}
         onClick={() => onSelect(font.id)}
         className={cx(
-          'flex h-[54px] w-full flex-col justify-center overflow-hidden rounded-lg pl-2.5 pr-9 text-left transition-colors',
+          'flex h-11 w-full items-center gap-2.5 overflow-hidden whitespace-nowrap rounded-xl pl-3 pr-9 text-left transition-colors',
           selected ? 'bg-blush text-coral-dark' : 'text-ink hover:bg-sand',
         )}
+        style={{ fontFamily: font.family }}
       >
-        <span className="w-full truncate text-[18px] leading-7" style={{ fontFamily: font.family }}>
-          {sample}
-        </span>
-        <span className={cx('w-full truncate text-[11px] leading-4', selected ? 'opacity-70' : 'text-muted')}>{font.label}</span>
+        <span className="min-w-0 shrink truncate text-[20px] leading-[44px]">{font.label}</span>
+        <span className={cx('min-w-0 flex-1 truncate text-[17px] leading-[44px]', selected ? 'opacity-60' : 'text-muted')}>{sample}</span>
       </button>
-      {selected && !fav && <Check className="pointer-events-none absolute right-2.5 top-1/2 size-4 -translate-y-1/2 text-coral-dark group-hover:hidden" strokeWidth={3} />}
-      <FavButton font={font} fav={fav} onToggle={onToggleFav} className="right-1.5 top-1/2 -translate-y-1/2" />
+      {selected && !fav && <Check className="pointer-events-none absolute right-3 top-1/2 size-4 -translate-y-1/2 text-coral-dark group-hover:hidden" strokeWidth={3} />}
+      <FavButton font={font} fav={fav} onToggle={onToggleFav} className="right-2 top-1/2 -translate-y-1/2" />
     </div>
   )
 })
@@ -234,8 +215,10 @@ export function FontPicker({
   const favSet = useMemo(() => new Set(favorites), [favorites])
   const recentIds = useStore((s) => s.recentFonts)
   const view = useStore((s) => s.fontView)
-  // Font của máy không có ảnh mẫu nên luôn xếp thành danh sách.
-  const asList = source === 'system' || view === 'list'
+  // Phông Nhật / Hàn ở bản web rất nặng: danh sách viết tên bằng chính phông đó sẽ tải cả loạt file, nên chỉ xem được bằng ảnh mẫu.
+  const thumbsOnly = source !== 'system' && desktop.platform === 'web' && lang !== 'vi'
+  // Phông của máy không có ảnh mẫu nên luôn xếp thành danh sách.
+  const asList = source === 'system' || (view === 'list' && !thumbsOnly)
 
   // Lướt chuột ngang qua cả lưới không được làm chữ trên ảnh nhấp nháy: xem thử trên ảnh có trễ một nhịp.
   const previewTimer = useRef<number | undefined>(undefined)
@@ -348,48 +331,78 @@ export function FontPicker({
 
   const item = (f: FontInfo, key: string) => {
     const props = { font: f, selected: f.id === value, fav: favSet.has(f.id), onSelect: select, onToggleFav: toggleFavoriteFont }
-    if (source === 'system') return <FontRow key={key} {...props} />
-    return asList ? <SampleRow key={key} {...props} sample={sample} /> : <FontCard key={key} {...props} />
+    return asList ? <FontRow key={key} {...props} sample={sample} /> : <FontCard key={key} {...props} />
   }
 
   const sources: { id: Source; label: string; count?: number; tip?: string }[] = [
-    { id: 'catalog', label: 'Kho font', count: catalog.length },
+    { id: 'catalog', label: 'Kho phông', count: catalog.length },
     { id: 'fav', label: 'Yêu thích', count: favorites.length },
-    { id: 'system', label: 'Trên máy', tip: 'Font bạn đã cài trên máy tính này' },
+    { id: 'system', label: 'Trên máy', tip: 'Phông chữ bạn đã cài trên máy tính này' },
   ]
 
+  const total = source === 'system' && !Array.isArray(system) ? null : fonts.length
+  const langLabel = FONT_LANGS.find((l) => l.id === lang)?.label ?? ''
+
   return (
-    <div className="space-y-2.5">
-      <label className="relative block">
-        <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted" />
-        <input
-          type="text"
-          value={query}
-          onChange={(e) => search(e.target.value)}
-          onKeyDown={(e) => {
-            if (e.key !== 'Escape' || !query) return
-            e.stopPropagation()
-            setQuery('')
-          }}
-          placeholder={source === 'system' && Array.isArray(system) ? `Tìm trong ${system.length} font trên máy` : 'Tìm tên font hoặc kiểu chữ'}
-          aria-label="Tìm font"
-          className="h-9 w-full rounded-full border border-line bg-surface pl-9 pr-9 text-[13px] focus:border-coral focus:outline-none focus:ring-4 focus:ring-coral/15"
-        />
-        {query && (
+    <div className="space-y-2">
+      {/* Hàng 1: ô tìm chiếm hết chỗ; ngôn ngữ và cách xem là hai nút gọn ở bên phải. */}
+      <div className="flex items-center gap-1.5">
+        <label className="relative block min-w-0 flex-1">
+          <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted" />
+          <input
+            type="text"
+            value={query}
+            onChange={(e) => search(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key !== 'Escape' || !query) return
+              e.stopPropagation()
+              setQuery('')
+            }}
+            placeholder={total === null ? 'Tìm phông chữ' : `Tìm trong ${total} phông chữ`}
+            aria-label="Tìm phông chữ"
+            className="h-9 w-full rounded-full border border-line bg-surface pl-9 pr-8 text-[13px] focus:border-coral focus:outline-none focus:ring-4 focus:ring-coral/15"
+          />
+          {query && (
+            <button
+              type="button"
+              aria-label="Xoá từ khoá"
+              data-tip="Xoá từ khoá (Esc)"
+              onClick={() => setQuery('')}
+              className="absolute right-1.5 top-1/2 grid size-6 -translate-y-1/2 place-items-center rounded-full text-muted transition-colors hover:bg-sand hover:text-ink"
+            >
+              <X className="size-3.5" />
+            </button>
+          )}
+        </label>
+        {source !== 'system' && byLang && (
+          <label className="relative flex h-9 shrink-0 items-center rounded-full bg-sand pl-3 pr-7 text-xs font-semibold text-ink transition-colors hover:bg-line" data-tip="Phông chữ cho thứ tiếng nào">
+            {langLabel.replace('Tiếng ', '')}
+            <ChevronDown className="pointer-events-none absolute right-2 size-3.5 text-soft" />
+            <select aria-label="Ngôn ngữ" value={lang} onChange={(e) => setLang(e.target.value as FontLang)} className="absolute inset-0 size-full cursor-pointer opacity-0">
+              {FONT_LANGS.filter((l) => LANGS.includes(l.id)).map((l) => (
+                <option key={l.id} value={l.id}>
+                  {l.label}
+                </option>
+              ))}
+            </select>
+          </label>
+        )}
+        {source !== 'system' && !thumbsOnly && (
           <button
             type="button"
-            aria-label="Xoá từ khoá"
-            data-tip="Xoá từ khoá (Esc)"
-            onClick={() => setQuery('')}
-            className="absolute right-1.5 top-1/2 grid size-6 -translate-y-1/2 place-items-center rounded-full text-muted transition-colors hover:bg-sand hover:text-ink"
+            aria-label={view === 'list' ? 'Đang xem dạng danh sách · bấm để xem ảnh mẫu' : 'Đang xem ảnh mẫu · bấm để xem dạng danh sách'}
+            data-tip={view === 'list' ? 'Xem ảnh mẫu' : 'Xem dạng danh sách'}
+            data-view={view}
+            onClick={() => useStore.getState().set({ fontView: view === 'list' ? 'grid' : 'list' })}
+            className="grid size-9 shrink-0 place-items-center rounded-full bg-sand text-ink transition-colors hover:bg-line"
           >
-            <X className="size-3.5" />
+            {view === 'list' ? <LayoutGrid className="size-4" /> : <List className="size-4" />}
           </button>
         )}
-      </label>
+      </div>
 
-      {/* Nguồn font: ba lựa chọn loại trừ nhau, luôn nằm trên một hàng. */}
-      <div className="flex gap-1 rounded-full bg-sand p-1" role="group" aria-label="Nguồn font">
+      {/* Hàng 2: nguồn phông, ba lựa chọn loại trừ nhau. */}
+      <div className="flex gap-1 rounded-full bg-sand p-1" role="group" aria-label="Nguồn phông chữ">
         {sources.map((s) => (
           <button
             key={s.id}
@@ -410,89 +423,55 @@ export function FontPicker({
         ))}
       </div>
 
-      {source !== 'system' && byLang && (
-        <div className="flex flex-wrap gap-1.5" role="group" aria-label="Ngôn ngữ">
-          {FONT_LANGS.filter((l) => LANGS.includes(l.id)).map((l) => (
-            <button key={l.id} type="button" aria-pressed={lang === l.id} onClick={() => setLang(l.id)} className={chip(lang === l.id)}>
-              {l.label}
-            </button>
-          ))}
-        </div>
-      )}
-
       {source !== 'system' && (
-        // Một hàng duy nhất: bảng hẹp thì cuộn ngang chứ không xuống dòng, để lưới font bên dưới không bị đẩy lên xuống.
-        // Thanh cuộn ẩn đi; lăn chuột là cuộn ngang, mép mờ dần báo còn mục ở phía đó.
+        // Hàng 3: kiểu chữ. Bốn nút chia đều bề rộng nên luôn thấy đủ; bấm lại nút đang bật để về "mọi kiểu".
+        // Bảng hẹp quá mới phải cuộn ngang: thanh cuộn ẩn, lăn chuột là cuộn, mép mờ dần báo còn mục ở phía đó.
         <div
           ref={styles}
-          className="-mx-1 flex gap-1.5 overflow-x-auto px-1 [scrollbar-width:none]"
+          className="-mx-1 flex gap-1 overflow-x-auto px-1 [scrollbar-width:none]"
           style={{ maskImage: fade, WebkitMaskImage: fade }}
           onScroll={measureStyles}
           role="group"
           aria-label="Kiểu chữ"
         >
-          {[{ id: 'all' as const, label: 'Tất cả', count: matched.length }, ...FONT_GROUPS.map((g) => ({ ...g, count: counts[g.id] }))].map((g) => (
+          {FONT_GROUPS.map((g) => (
             <button
               key={g.id}
               type="button"
               aria-pressed={style === g.id}
+              data-tip={style === g.id ? 'Bấm lần nữa để xem mọi kiểu chữ' : `${counts[g.id]} phông chữ`}
               onClick={(e) => {
-                setStyle(g.id)
+                setStyle(style === g.id ? 'all' : g.id)
                 e.currentTarget.scrollIntoView({ block: 'nearest', inline: 'nearest' })
               }}
-              className={cx(chip(style === g.id), !g.count && style !== g.id && 'opacity-50')}
+              className={cx(chip(style === g.id), !counts[g.id] && style !== g.id && 'opacity-50')}
             >
               {g.label}
-              <span className="font-normal opacity-60">{g.count}</span>
             </button>
           ))}
         </div>
       )}
 
-      <div className="flex h-6 items-center justify-between gap-2">
-        <p className="min-w-0 truncate text-xs text-muted" aria-live="polite">
-          {source === 'system' && !Array.isArray(system) ? '' : `${fonts.length} font`}
-          {query.trim() && ` khớp “${query.trim()}”`}
-        </p>
-        {source !== 'system' && (
-          <div className="flex shrink-0 gap-0.5" role="group" aria-label="Cách xem">
-            {(
-              [
-                { id: 'grid', label: 'Xem ảnh mẫu', Icon: LayoutGrid },
-                { id: 'list', label: 'Xem bằng chữ của bạn', Icon: List },
-              ] as const
-            ).map(({ id, label, Icon }) => (
-              <button
-                key={id}
-                type="button"
-                aria-pressed={view === id}
-                aria-label={label}
-                data-tip={label}
-                onClick={() => useStore.getState().set({ fontView: id })}
-                className={cx('grid size-6 place-items-center rounded-md transition-colors', view === id ? 'bg-sand text-ink' : 'text-muted hover:text-ink')}
-              >
-                <Icon className="size-3.5" />
-              </button>
-            ))}
-          </div>
-        )}
-      </div>
-
       <div
         ref={list}
         // Lề 12px quanh lưới để ô font ở mép nhích to lên khi rê chuột mà không bị cắt.
-        className={cx('scroll-soft -mx-3 grid content-start overflow-y-auto overscroll-contain px-3 pb-3 pt-1', asList ? 'gap-x-2 gap-y-0.5' : 'gap-2')}
+        className={cx('scroll-soft -mx-3 grid content-start overflow-y-auto overscroll-contain px-3 pb-3 pt-1', asList ? 'gap-x-2 gap-y-px' : 'gap-2')}
         style={{ maxHeight: listHeight, gridTemplateColumns: asList ? LIST_COLUMNS : GRID_COLUMNS }}
         // Dừng chuột trên một font: dòng chữ đang chọn trên ảnh đổi tạm sang font đó (chưa ghi vào thiết kế).
         onPointerOver={hover}
         onPointerLeave={() => preview(null)}
         onScroll={() => preview(null)}
       >
+        {query.trim() && fonts.length > 0 && (
+          <p className="col-span-full px-0.5 text-xs text-muted" aria-live="polite">
+            {fonts.length} phông chữ khớp “{query.trim()}”
+          </p>
+        )}
         {recent.length > 0 && (
           <>
             <p className="col-span-full px-0.5 text-[11px] font-semibold uppercase tracking-wide text-muted">Dùng gần đây</p>
             {recent.map((f) => item(f, `recent-${f.id}`))}
-            <p className="col-span-full px-0.5 pt-1.5 text-[11px] font-semibold uppercase tracking-wide text-muted">Tất cả font</p>
+            <p className="col-span-full px-0.5 pt-1.5 text-[11px] font-semibold uppercase tracking-wide text-muted">Tất cả phông chữ</p>
           </>
         )}
         {fonts.map((f) => item(f, f.id))}
@@ -501,28 +480,28 @@ export function FontPicker({
             {source === 'system' && system === null ? (
               <span className="inline-flex items-center gap-2">
                 <LoaderCircle className="size-4 animate-spin" />
-                Đang đọc font trên máy…
+                Đang đọc phông chữ trên máy…
               </span>
             ) : source === 'system' && system === 'error' ? (
               <>
-                Không đọc được danh sách font trên máy.{' '}
+                Không đọc được danh sách phông chữ trên máy.{' '}
                 <button type="button" className="font-semibold text-coral-dark hover:underline" onClick={() => setSystem(null)}>
                   Thử lại
                 </button>
               </>
             ) : source === 'fav' && !favorites.length ? (
               <>
-                Chưa có font yêu thích nào. Bấm biểu tượng <Heart className="inline size-3.5 align-[-2px]" /> ở góc một font để thêm vào đây.
+                Chưa có phông chữ yêu thích nào. Bấm biểu tượng <Heart className="inline size-3.5 align-[-2px]" /> ở góc một phông chữ để thêm vào đây.
               </>
             ) : query.trim() ? (
               <>
-                Không có font nào khớp.{' '}
+                Không có phông chữ nào khớp.{' '}
                 <button type="button" className="font-semibold text-coral-dark hover:underline" onClick={() => setQuery('')}>
                   Xoá từ khoá
                 </button>
               </>
             ) : (
-              'Chưa có font nào trong nhóm này.'
+              'Chưa có phông chữ nào trong nhóm này.'
             )}
           </p>
         )}

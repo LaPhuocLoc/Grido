@@ -396,7 +396,7 @@ export const useStore = create<State>()(
       leftCollapsed: false,
       panelWidth: PANEL_WIDTH,
       libraryTipSeen: false,
-      fontView: 'grid',
+      fontView: 'list',
 
       photos: [],
       imports: [],
@@ -813,8 +813,9 @@ export const useStore = create<State>()(
       storage: lazyStorage(),
       // Số hiệu cấu trúc dữ liệu lưu. Đổi cấu trúc theo cách `merge` bên dưới không tự xử lý được thì tăng số này và
       // chuyển dữ liệu cũ trong `migrate`. Hiện mọi bản cũ (kể cả bản chưa có số hiệu) đều đọc được nguyên trạng.
-      version: 1,
-      migrate: (saved) => saved as Persisted,
+      version: 2,
+      // Bản 2: bảng phông chữ mặc định xem dạng danh sách; ai đang để lưới ảnh mẫu từ bản cũ cũng chuyển sang một lần.
+      migrate: (saved, version) => (version < 2 ? { ...(saved as Persisted), fontView: 'list' } : (saved as Persisted)),
       // Lưu cả cài đặt lẫn bản nháp đang ghép, để lần sau mở app làm tiếp được ngay.
       partialize: (s): Persisted => ({
         ...snapshot(s),
