@@ -1,5 +1,5 @@
 import { Check, ChevronDown, Heart, LayoutGrid, List, LoaderCircle, Monitor, Search, X } from 'lucide-react'
-import { memo, useEffect, useLayoutEffect, useMemo, useRef, useState, type PointerEvent as ReactPointerEvent } from 'react'
+import { memo, useEffect, useLayoutEffect, useMemo, useRef, useState, type KeyboardEvent as ReactKeyboardEvent, type PointerEvent as ReactPointerEvent } from 'react'
 import { availableLangs, countByGroup, detectLang, sampleLine, searchFonts } from '../lib/fontSearch'
 import { FONT_GROUPS, FONT_LANGS, FONTS, fontInfo, isSystemFont, systemFont, type FontGroup, type FontId, type FontInfo, type FontLang } from '../lib/text'
 import { desktop } from '../lib/desktop'
@@ -169,21 +169,80 @@ const FontRow = memo(function FontRow({ font, selected, fav, onSelect, onToggleF
   )
 })
 
-/** Nút chọn ngôn ngữ gọn (một chữ + mũi tên), dùng chung cho bảng phông chữ và bảng mẫu chữ. */
+/**
+ * Nút chọn ngôn ngữ gọn (một chữ + mũi tên) kèm bảng chọn tự vẽ, dùng chung cho bảng phông chữ và bảng mẫu chữ.
+ * Không dùng <select> của trình duyệt: danh sách thả xuống của nó không theo giao diện sáng / tối của app.
+ */
 export function LangSelect({ value, langs, onChange, tip }: { value: FontLang; langs: FontLang[]; onChange: (lang: FontLang) => void; tip: string }) {
   const options = FONT_LANGS.filter((l) => langs.includes(l.id))
+  const [open, setOpen] = useState(false)
+  const root = useRef<HTMLDivElement>(null)
+  useEffect(() => {
+    if (!open) return
+    const outside = (e: PointerEvent) => !root.current?.contains(e.target as Node) && setOpen(false)
+    window.addEventListener('pointerdown', outside, true)
+    return () => window.removeEventListener('pointerdown', outside, true)
+  }, [open])
+  // Mở bảng thì đưa focus vào mục đang chọn, để dùng được phím mũi tên ngay.
+  useEffect(() => {
+    if (open) root.current?.querySelector<HTMLElement>('[aria-selected="true"]')?.focus()
+  }, [open])
+  const step = (e: ReactKeyboardEvent, delta: number) => {
+    e.preventDefault()
+    const items = [...(root.current?.querySelectorAll<HTMLElement>('[role="option"]') ?? [])]
+    items[(items.indexOf(document.activeElement as HTMLElement) + delta + items.length) % items.length]?.focus()
+  }
   return (
-    <label className="relative flex h-9 shrink-0 items-center rounded-full bg-sand pl-3 pr-7 text-xs font-semibold text-ink transition-colors hover:bg-line" data-tip={tip}>
-      {(options.find((l) => l.id === value)?.label ?? '').replace('Tiếng ', '')}
-      <ChevronDown className="pointer-events-none absolute right-2 size-3.5 text-soft" />
-      <select aria-label="Ngôn ngữ" value={value} onChange={(e) => onChange(e.target.value as FontLang)} className="absolute inset-0 size-full cursor-pointer opacity-0">
-        {options.map((l) => (
-          <option key={l.id} value={l.id}>
-            {l.label}
-          </option>
-        ))}
-      </select>
-    </label>
+    <div
+      ref={root}
+      className="relative shrink-0"
+      onKeyDown={(e) => {
+        if (!open) return
+        if (e.key === 'Escape') {
+          // Chỉ đóng bảng chọn, không để Esc lọt ra thành "bỏ chọn dòng chữ".
+          e.stopPropagation()
+          setOpen(false)
+          root.current?.querySelector('button')?.focus()
+        } else if (e.key === 'ArrowDown') step(e, 1)
+        else if (e.key === 'ArrowUp') step(e, -1)
+      }}
+    >
+      <button
+        type="button"
+        aria-haspopup="listbox"
+        aria-expanded={open}
+        aria-label={`Ngôn ngữ: ${options.find((l) => l.id === value)?.label ?? ''}`}
+        data-tip={open ? undefined : tip}
+        onClick={() => setOpen(!open)}
+        className={cx('flex h-9 items-center gap-1 rounded-full pl-3 pr-2 text-xs font-semibold text-ink transition-colors', open ? 'bg-line' : 'bg-sand hover:bg-line')}
+      >
+        {(options.find((l) => l.id === value)?.label ?? '').replace('Tiếng ', '')}
+        <ChevronDown className={cx('size-3.5 text-soft transition-transform duration-150', open && 'rotate-180')} />
+      </button>
+      {open && (
+        <div role="listbox" aria-label="Ngôn ngữ" className="absolute right-0 top-full z-30 mt-1.5 min-w-36 origin-top-right animate-pop rounded-2xl bg-card p-1 shadow-lift ring-1 ring-black/5">
+          {options.map((l) => (
+            <button
+              key={l.id}
+              type="button"
+              role="option"
+              aria-selected={l.id === value}
+              onClick={() => {
+                onChange(l.id)
+                setOpen(false)
+              }}
+              className={cx(
+                'flex h-8 w-full items-center justify-between gap-3 whitespace-nowrap rounded-xl pl-3 pr-2 text-left text-[13px] font-semibold transition-colors focus-visible:outline-none',
+                l.id === value ? 'bg-blush text-coral-dark' : 'text-ink hover:bg-sand focus-visible:bg-sand',
+              )}
+            >
+              {l.label}
+              {l.id === value && <Check className="size-3.5" strokeWidth={3} />}
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
   )
 }
 
