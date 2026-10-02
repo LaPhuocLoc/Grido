@@ -1,9 +1,9 @@
-import { Check, ChevronDown, CircleAlert, CircleHelp, Ellipsis, FolderPlus, ImagePlus, Lightbulb, Trash2, TriangleAlert, X } from 'lucide-react'
+import { Check, ChevronDown, CircleAlert, CircleHelp, Ellipsis, FolderOpen, FolderPlus, ImagePlus, Lightbulb, LockKeyhole, Trash2, TriangleAlert, X } from 'lucide-react'
 import { memo, useCallback, useEffect, useMemo, useRef, useState, type PointerEvent as ReactPointerEvent, type ReactNode } from 'react'
 import { createPortal } from 'react-dom'
 import type { Photo } from '../../shared/types'
 import { groupByAlbum, UNCATEGORIZED, type Album } from '../lib/albums'
-import { desktop, prefetchFile, thumbUrl } from '../lib/desktop'
+import { desktop, prefetchFile, thumbUrl, usePhotoUrl } from '../lib/desktop'
 import { MAX_PHOTOS } from '../lib/layout/registry'
 import { useStore, type ImportItem } from '../store'
 import { Button, cx } from './ui'
@@ -77,6 +77,7 @@ const Tile = memo(function Tile({
   onMenu: (photo: Photo, x: number, y: number) => void
 }) {
   const [loaded, setLoaded] = useState(false)
+  const thumb = usePhotoUrl(photo.id, 'thumb')
   const { toggleSelect } = useStore.getState()
   return (
     <li
@@ -107,7 +108,7 @@ const Tile = memo(function Tile({
         )}
       >
         <img
-          src={thumbUrl(photo.id)}
+          src={thumb}
           // Chỉ tên file kèm đuôi; muốn biết ảnh nằm ở đâu thì dùng "Mở thư mục chứa ảnh" trong menu chuột phải.
           data-tip={photo.path.split(/[\\/]/).pop() || photo.name}
           alt=""
@@ -121,13 +122,22 @@ const Tile = memo(function Tile({
             !loaded ? 'scale-105 opacity-0' : doomed ? 'opacity-45' : 'opacity-100',
           )}
         />
-        {photo.missing && (
+        {photo.locked ? (
           <span
-            data-tip="Không tìm thấy file gốc (đã bị di chuyển hoặc xoá): xuất ảnh sẽ dùng bản xem trước"
-            className="absolute bottom-1 left-1 grid size-5 place-items-center rounded-full bg-amber text-ink"
+            data-tip="Trình duyệt chưa được phép đọc file gốc trong phiên này: bấm “Cho phép” ở đầu thư viện, nếu không xuất ảnh sẽ dùng bản xem trước"
+            className="absolute bottom-1 left-1 grid size-5 place-items-center rounded-full bg-black/60 text-white"
           >
-            <TriangleAlert className="size-3" />
+            <LockKeyhole className="size-3" />
           </span>
+        ) : (
+          photo.missing && (
+            <span
+              data-tip="Không tìm thấy file gốc (đã bị di chuyển hoặc xoá): xuất ảnh sẽ dùng bản xem trước"
+              className="absolute bottom-1 left-1 grid size-5 place-items-center rounded-full bg-amber text-ink"
+            >
+              <TriangleAlert className="size-3" />
+            </span>
+          )
         )}
         {/* Dấu tích ở góc: mờ khi chưa chọn, sáng lên khi ảnh đang nằm trong bố cục. */}
         <span
@@ -374,7 +384,8 @@ export function Library() {
   const columns = useStore((s) => Math.max(3, Math.floor((s.panelWidth - 24) / 96)))
   const [tips, setTips] = useState<{ x: number; y: number } | null>(null)
   const closeTips = useCallback(() => setTips(null), [])
-  const { pickPhotos, dismissImport, clearSelection, deletePhotos, toggleSelect, selectMany, createAlbum, renameAlbum, removeAlbum, movePhotos, toast } =
+  const lockedCount = useMemo(() => photos.filter((p) => p.locked).length, [photos])
+  const { pickPhotos, pickFolder, grantAccess, dismissImport, clearSelection, deletePhotos, toggleSelect, selectMany, createAlbum, renameAlbum, removeAlbum, movePhotos, toast } =
     useStore.getState()
 
   // Mọi kiểu xoá (một ảnh, ảnh đã chọn, cả album, tất cả) đều đi qua cùng một bước xác nhận: ảnh sắp xoá được tô đỏ trong lưới.
@@ -423,7 +434,7 @@ export function Library() {
       y,
       items: [
         { label: inCollage ? 'Bỏ khỏi bố cục' : 'Đưa vào bố cục', run: () => toggleSelect(photo.id) },
-        ...(photo.missing ? [] : [{ label: 'Mở thư mục chứa ảnh', run: () => void desktop.library.reveal(photo.id) }]),
+        ...(photo.missing || !desktop.features.reveal ? [] : [{ label: 'Mở thư mục chứa ảnh', run: () => void desktop.library.reveal(photo.id) }]),
         ...moves,
         { label: 'Xoá khỏi thư viện', danger: true, divider: true, run: () => setDoomed([photo.id]) },
       ],
@@ -647,6 +658,17 @@ export function Library() {
           <ImagePlus className="size-4" />
           Thêm ảnh
         </Button>
+        {desktop.library.pickFolder && (
+          <button
+            type="button"
+            aria-label="Thêm cả thư mục ảnh"
+            data-tip="Thêm cả thư mục: chỉ cần cho phép một lần cho mọi ảnh bên trong"
+            onClick={() => void pickFolder()}
+            className="ml-1 grid size-8 shrink-0 place-items-center rounded-full text-muted transition-colors hover:bg-sand hover:text-ink"
+          >
+            <FolderOpen className="size-4" />
+          </button>
+        )}
         <span className="min-w-0 flex-1 truncate px-2 text-xs tabular-nums text-muted">
           {pending.length ? `Đang thêm ${pending.length}…` : photos.length ? `${photos.length} ảnh` : ''}
         </span>
@@ -692,6 +714,22 @@ export function Library() {
           <CircleHelp className="size-4" />
         </button>
       </div>
+
+      {lockedCount > 0 && (
+        <div className="flex animate-fade items-center gap-2 border-t border-line bg-sand px-3 py-2 lg:px-4">
+          <LockKeyhole className="size-4 shrink-0 text-soft" />
+          <p className="min-w-0 flex-1 text-[12px] leading-snug text-soft">
+            <b className="text-ink">{lockedCount} ảnh</b> cần được cho phép đọc lại file gốc để xuất nét tối đa.
+          </p>
+          <button
+            type="button"
+            onClick={() => void grantAccess()}
+            className="h-7 shrink-0 rounded-full bg-ink px-3 text-[12px] font-semibold text-paper transition hover:brightness-110 active:scale-95"
+          >
+            Cho phép
+          </button>
+        </div>
+      )}
 
       {doomed.size > 0 ? (
         <div role="alertdialog" aria-label="Xác nhận xoá ảnh" className="animate-fade border-t border-line bg-blush px-3 py-2.5 lg:px-4">
@@ -864,7 +902,7 @@ export function Library() {
         createPortal(
           <div ref={ghost} className="pointer-events-none fixed left-0 top-0 z-50" style={{ transform: `translate(${press.current?.x ?? 0}px, ${press.current?.y ?? 0}px)` }}>
             <div className="relative size-14 animate-pop">
-              <img src={thumbUrl(drag.ids[0])} alt="" className="size-full rounded-xl object-cover shadow-lift ring-2 ring-white" />
+              <img src={thumbUrl(drag.ids[0]) || undefined} alt="" className="size-full rounded-xl object-cover shadow-lift ring-2 ring-white" />
               {drag.ids.length > 1 && (
                 <span className="absolute -right-2 -top-2 grid h-6 min-w-6 place-items-center rounded-full bg-coral px-1.5 text-xs font-bold text-white shadow">
                   {drag.ids.length}

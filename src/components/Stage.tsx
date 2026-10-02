@@ -2,7 +2,7 @@ import { Dices, FlipHorizontal2, ImageMinus, Maximize, Move, Redo2, RotateCcw, R
 import { useEffect, useMemo, useRef, useState, type CSSProperties, type PointerEvent as ReactPointerEvent } from 'react'
 import { flushSync } from 'react-dom'
 import { useShallow } from 'zustand/react/shallow'
-import { fileUrl, thumbUrl } from '../lib/desktop'
+import { fileUrl, thumbUrl, useUrlVersion } from '../lib/desktop'
 import { clamp, DEFAULT_ADJUST, isSideways, MAX_ZOOM, placeImage, type CellAdjust, type Rotation } from '../lib/geometry'
 import { collageLayout } from '../lib/imaging/exportCollage'
 import { MIN_SHARE, moveDivider } from '../lib/layout/compute'
@@ -59,6 +59,7 @@ export function imageStyle(placed: ReturnType<typeof placeImage>, adjust: CellAd
 }
 
 export function Stage() {
+  useUrlVersion()
   // Chỉ nghe đúng những trường ảnh hưởng tới khung ghép, để thông báo / tiến độ tải lên… không làm vẽ lại cả khung.
   const source = useStore(
     useShallow((s) => ({
@@ -507,7 +508,8 @@ export function Stage() {
                         if (el) imgEls.current.set(cell.photo.id, el)
                         else imgEls.current.delete(cell.photo.id)
                       }}
-                      src={fileUrl(cell.photo.id)}
+                      // Bản web: địa chỉ ảnh được tạo dần; chưa có thì để trống, thumbnail làm nền hiện trước.
+                      src={fileUrl(cell.photo.id) || undefined}
                       alt={cell.photo.name}
                       draggable={false}
                       decoding="async"
@@ -666,7 +668,7 @@ export function Stage() {
       {swapTarget !== null && dragging !== null && spec?.cells[dragging] && (
         <img
           ref={swapEl}
-          src={thumbUrl(spec.cells[dragging].photo.id)}
+          src={thumbUrl(spec.cells[dragging].photo.id) || undefined}
           alt=""
           className="pointer-events-none fixed z-50 size-20 -translate-x-1/2 -translate-y-1/2 animate-pop rounded-2xl object-cover shadow-lift ring-2 ring-white"
           style={{ left: swapPos.current.x, top: swapPos.current.y }}

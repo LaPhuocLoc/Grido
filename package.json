@@ -11,6 +11,9 @@
   "scripts": {
     "dev": "node scripts/dev.mjs",
     "build": "tsc -b && vite build && node scripts/build-electron.mjs",
+    "dev:web": "vite",
+    "build:web": "tsc -b && vite build",
+    "deploy:web": "npm run build:web && npx -y netlify deploy --dir dist --prod --no-build --site 8cb4bb05-3e50-4878-80d1-fddbde9f7949",
     "start": "electron .",
     "typecheck": "tsc -b",
     "dist": "npm run build && electron-builder --publish never",

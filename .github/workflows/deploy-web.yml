@@ -1,0 +1,33 @@
+# Đẩy lên nhánh main → chạy test, dựng bản web và đưa lên Netlify (https://tiemghepanh.io.vn).
+# Bản desktop phát hành riêng bằng tag v* (xem release.yml).
+#
+# Cần một secret trong repo: NETLIFY_AUTH_TOKEN (Netlify → User settings → Applications → Personal access tokens).
+# Chưa có secret thì workflow dừng ở bước deploy; test và build vẫn chạy.
+name: Deploy web
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: deploy-web
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm test
+      - run: npm run build:web
+      - name: Deploy to Netlify
+        env:
+          NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
+          NETLIFY_SITE_ID: 8cb4bb05-3e50-4878-80d1-fddbde9f7949
+        run: npx -y netlify deploy --dir dist --prod --no-build --message "${{ github.sha }}"

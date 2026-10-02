@@ -2,11 +2,17 @@ import { Check, Heart, LayoutGrid, List, LoaderCircle, Monitor, Search, X } from
 import { memo, useEffect, useLayoutEffect, useMemo, useRef, useState, type PointerEvent as ReactPointerEvent } from 'react'
 import { availableLangs, countByGroup, detectLang, sampleLine, searchFonts } from '../lib/fontSearch'
 import { FONT_GROUPS, FONT_LANGS, FONTS, fontInfo, isSystemFont, systemFont, type FontGroup, type FontId, type FontInfo, type FontLang } from '../lib/text'
+import { desktop } from '../lib/desktop'
 import { useStore } from '../store'
 import { cx } from './ui'
 
+/** Bản web tải font qua mạng: font Nhật / Hàn nặng 0,5–2 MB mỗi file nên chỉ tải khi người dùng thật sự chọn. */
+const heavy = (font: FontInfo) => desktop.platform === 'web' && !isSystemFont(font.id) && !font.langs.includes('vi')
+
 // Tải sẵn file font khi rê chuột tới, để lúc bấm chọn chữ trên ảnh đổi ngay.
-const warm = (font: FontInfo) => void document.fonts.load(`500 16px ${font.family}`).catch(() => {})
+const warm = (font: FontInfo) => {
+  if (!heavy(font)) void document.fonts.load(`500 16px ${font.family}`).catch(() => {})
+}
 
 declare global {
   interface Window {
@@ -125,7 +131,7 @@ const FontCard = memo(function FontCard({ font, selected, fav, onSelect, onToggl
             <Check className="size-3" strokeWidth={3} />
           </span>
         )}
-        <span className="absolute inset-x-0 bottom-0 truncate bg-card/90 px-2 py-1 text-[11px] font-semibold leading-4 text-ink opacity-0 transition-opacity duration-100 group-focus-within:opacity-100 group-hover:opacity-100">
+        <span className="absolute inset-x-0 bottom-0 truncate bg-card/60 backdrop-blur-[2px] px-2 py-1 text-[11px] font-semibold leading-4 text-ink opacity-0 transition-opacity duration-100 group-focus-within:opacity-100 group-hover:opacity-100">
           {font.label}
         </span>
       </button>
@@ -238,7 +244,8 @@ export function FontPicker({
     if (id === previewing.current) return
     previewing.current = id
     clearTimeout(previewTimer.current)
-    if (id === null) return onPreview?.(null)
+    // Font nặng (bản web) không xem thử khi rê chuột: xem thử là phải tải cả file.
+    if (id === null || heavy(fontInfo(id))) return onPreview?.(null)
     previewTimer.current = window.setTimeout(() => onPreview?.(id), CANVAS_PREVIEW_DELAY)
   }
   useEffect(

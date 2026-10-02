@@ -3,6 +3,7 @@ import {
   ChevronLeft,
   ChevronRight,
   Crop,
+  DatabaseBackup,
   Download,
   FolderCog,
   FolderHeart,
@@ -20,6 +21,7 @@ import {
 import { useEffect, useLayoutEffect, useRef, useState, useSyncExternalStore } from 'react'
 import { createPortal } from 'react-dom'
 import type { UpdateState } from '../shared/types'
+import { DataDialog } from './components/DataDialog'
 import { DesignsPanel } from './components/Designs'
 import { Library } from './components/Library'
 import { designTitle } from './lib/designs'
@@ -42,7 +44,7 @@ const TABS: { id: Tab; label: string; icon: LucideIcon }[] = [
 ]
 
 /** Bề rộng dải biểu tượng của sidebar trái (px). */
-const RAIL_WIDTH = 72
+const RAIL_WIDTH = 64
 
 const desktopQuery = window.matchMedia('(min-width: 1024px)')
 const useIsDesktop = () =>
@@ -92,8 +94,8 @@ function DropOverlay() {
       e.preventDefault()
       depth = 0
       setOver(false)
-      const files = [...(e.dataTransfer?.files ?? [])]
-      if (files.length) void useStore.getState().importFiles(files)
+      // Đưa nguyên DataTransfer: bản web lấy file handle từ đó để dùng file tại chỗ, và phải lấy ngay trong sự kiện này.
+      if (e.dataTransfer?.files.length) void useStore.getState().importFiles(e.dataTransfer)
     }
     window.addEventListener('dragenter', enter)
     window.addEventListener('dragleave', leave)
@@ -243,7 +245,7 @@ function Editor() {
 /** Dải biểu tượng luôn hiện ở mép trái: chọn mục nào thì bảng bên cạnh mở ra mục đó. */
 function Rail({ active, onSelect }: { active: Tab | null; onSelect: (tab: Tab) => void }) {
   return (
-    <nav aria-label="Công cụ" className="scroll-soft flex min-h-0 flex-col gap-1 overflow-y-auto border-r border-line bg-card px-1.5 py-2.5">
+    <nav aria-label="Công cụ" className="scroll-soft flex min-h-0 flex-col gap-1 overflow-y-auto border-r border-line bg-card px-1 py-2.5">
       {TABS.map(({ id, label, icon: Icon }) => {
         const current = active === id
         return (
@@ -444,7 +446,8 @@ function UpdateDialog({ version, current, onConfirm, onCancel }: { version: stri
         </h2>
         <p className="mt-2 text-sm leading-relaxed text-soft">
           {current && <>Bạn đang dùng bản {current}. </>}
-          Tiệm Ghép Ảnh sẽ tải bản mới về, tự cài rồi mở lại. Ảnh ghép đang làm dở và thư viện ảnh được giữ nguyên.
+          {desktop.features.installer ? 'Tiệm Ghép Ảnh sẽ tải bản mới về, tự cài rồi mở lại.' : 'Trang sẽ tải lại để dùng bản mới.'} Ảnh ghép đang làm
+          dở và thư viện ảnh được giữ nguyên.
         </p>
         <div className="mt-5 flex gap-2">
           <Button className="flex-1" onClick={onCancel}>
@@ -470,6 +473,7 @@ function TitleBar() {
   const design = useStore((s) => (s.tree && s.currentDesignId ? designTitle(s.designs.find((d) => d.id === s.currentDesignId)?.name ?? null, s.texts) : ''))
   const progress = useExportProgress((s) => s.progress)
   const [menu, setMenu] = useState(false)
+  const [dataOpen, setDataOpen] = useState(false)
   const [version, setVersion] = useState('')
   const { state: update, check, asking, confirm, dismiss } = useUpdates()
 
@@ -526,7 +530,7 @@ function TitleBar() {
         {update.status === 'ready' && (
           <span className="flex h-8 animate-pop items-center gap-1.5 rounded-full bg-blush px-3 text-[12.5px] font-semibold text-coral-dark">
             <LoaderCircle className="size-3.5 animate-spin" />
-            {progress === null ? `Đang cài bản ${update.version}…` : `Sẽ cài bản ${update.version} khi xuất ảnh xong`}
+            {progress === null ? `Đang chuyển sang bản ${update.version}…` : `Sẽ chuyển sang bản ${update.version} khi xuất ảnh xong`}
           </span>
         )}
         <ThemeToggle className="size-8" />
@@ -560,10 +564,26 @@ function TitleBar() {
                         ? `Đang tải bản ${update.version}…`
                         : 'Kiểm tra cập nhật'}
                 </button>
-                <button type="button" className={item} onClick={() => void desktop.app.openDataDir()}>
-                  <FolderCog className="size-4" />
-                  Mở thư mục dữ liệu
-                </button>
+                {desktop.features.dataDir ? (
+                  <button type="button" className={item} onClick={() => void desktop.app.openDataDir()}>
+                    <FolderCog className="size-4" />
+                    Mở thư mục dữ liệu
+                  </button>
+                ) : (
+                  desktop.data && (
+                    <button
+                      type="button"
+                      className={item}
+                      onClick={() => {
+                        setMenu(false)
+                        setDataOpen(true)
+                      }}
+                    >
+                      <DatabaseBackup className="size-4" />
+                      Dữ liệu & sao lưu
+                    </button>
+                  )
+                )}
               </div>
             </>
           )}
@@ -573,6 +593,7 @@ function TitleBar() {
           <span className="tabular-nums">{progress !== null ? `${Math.round(progress * 100)}%` : 'Xuất ảnh'}</span>
         </Button>
       </div>
+      {dataOpen && <DataDialog onClose={() => setDataOpen(false)} />}
       {asking && update.status === 'available' && (
         <UpdateDialog version={update.version} current={version} onConfirm={confirm} onCancel={dismiss} />
       )}

@@ -66,10 +66,12 @@ export async function exportToFile() {
     canvas.width = canvas.height = 0
     useExportProgress.setState({ progress: 0.97 })
     await desktop.exportFile.write(target, bytes.buffer as ArrayBuffer)
-    s.toast(`Đã xuất ảnh ${spec.width} × ${spec.height}px (${(bytes.length / 1024 / 1024).toFixed(1)} MB)`, 'success', {
-      label: 'Mở thư mục',
-      run: () => void desktop.exportFile.reveal(target),
-    })
+    s.toast(
+      `Đã xuất ảnh ${spec.width} × ${spec.height}px (${(bytes.length / 1024 / 1024).toFixed(1)} MB)`,
+      'success',
+      // Trình duyệt không mở được trình quản lý file.
+      desktop.features.reveal ? { label: 'Mở thư mục', run: () => void desktop.exportFile.reveal(target) } : undefined,
+    )
   } catch (err) {
     s.toast((err as Error).message || 'Xuất ảnh thất bại, thử lại nhé.', 'error')
   } finally {

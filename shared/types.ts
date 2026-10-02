@@ -14,8 +14,12 @@ export interface Photo {
   createdAt: number
   /** Đường dẫn file gốc trên máy. */
   path: string
-  /** File gốc đã bị di chuyển hoặc xoá → xuất ảnh sẽ dùng bản xem trước. */
+  /** Không đọc được file gốc (đã bị di chuyển / xoá, hoặc chưa có quyền đọc) → xuất ảnh sẽ dùng bản xem trước. */
   missing: boolean
+  /** Bản web: file gốc vẫn còn nhưng trình duyệt chưa được cấp lại quyền đọc trong phiên này. Luôn đi kèm `missing`. */
+  locked?: boolean
+  /** Bản web: file gốc đã đổi từ lần nhập (hoặc ảnh vừa được nối lại) → bản xem trước cần dựng lại. */
+  stale?: boolean
 }
 
 /** Một file đã được main process chấp nhận, chờ giao diện tạo bản xem trước rồi đưa vào thư viện. */
@@ -28,6 +32,8 @@ export interface StageResult {
   candidates: ImportCandidate[]
   /** Số file bị bỏ qua vì đã có trong thư viện. */
   duplicates: number
+  /** Bản web: số ảnh đang mất file gốc vừa được nối lại với file tìm thấy. */
+  relinked?: number
 }
 
 export interface NewPhoto {

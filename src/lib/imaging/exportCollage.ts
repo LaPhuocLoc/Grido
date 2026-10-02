@@ -1,5 +1,5 @@
 import type { Photo } from '../../../shared/types'
-import { fileUrl, originalUrl } from '../desktop'
+import { desktop } from '../desktop'
 import type { CellAdjust } from '../geometry'
 import { computeLayout } from '../layout/compute'
 import type { LayoutNode } from '../layout/types'
@@ -45,8 +45,8 @@ export async function renderCollage(spec: CollageSpec, sharpen: number, onProgre
       if (rect.w < 1 || rect.h < 1) return
       const { photo, adjust } = spec.cells[i]
       const raster = await renderCell({
-        // File gốc đã bị dời đi thì dùng thẳng bản xem trước.
-        urls: photo.missing ? [fileUrl(photo.id)] : [originalUrl(photo.id), fileUrl(photo.id)],
+        // File gốc trước; đã bị dời đi (hoặc chưa có quyền đọc) thì dùng thẳng bản xem trước.
+        sources: await desktop.images.cellSources(photo),
         adjust,
         width: rect.w,
         height: rect.h,

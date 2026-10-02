@@ -1,5 +1,5 @@
 import type { CellAdjust } from '../geometry'
-import type { ImagingRequest, ImagingResponse, ImagingResult, PreparedImport } from './imaging.worker'
+import type { ImageSource, ImagingRequest, ImagingResponse, ImagingResult, PreparedImport } from './imaging.worker'
 import type { Raster } from './resample'
 
 // Pool Web Worker nhỏ: việc nặng về ảnh không chặn giao diện và tận dụng nhiều nhân CPU.
@@ -49,11 +49,11 @@ function submit<T extends ImagingResult>(request: ImagingRequest, transfer: Tran
 }
 
 /** Tạo bản xem trước (cạnh dài tối đa 2560px) và thumbnail cho thư viện. Không đụng tới file gốc. */
-export const prepareImport = (url: string) => submit<PreparedImport>({ kind: 'prepare', url })
+export const prepareImport = (source: ImageSource) => submit<PreparedImport>({ kind: 'prepare', source })
 
 export interface CellJob {
   /** Nguồn ảnh theo thứ tự ưu tiên (file gốc, rồi bản xem trước). */
-  urls: string[]
+  sources: ImageSource[]
   adjust: CellAdjust
   width: number
   height: number

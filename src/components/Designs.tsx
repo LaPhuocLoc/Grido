@@ -1,7 +1,7 @@
 import { Check, Copy, Pencil, Plus, Search, Trash2 } from 'lucide-react'
 import { memo, useMemo, useRef, useState } from 'react'
 import type { Photo } from '../../shared/types'
-import { thumbUrl } from '../lib/desktop'
+import { thumbUrl, useUrlVersion } from '../lib/desktop'
 import { designTitle, frameLabel } from '../lib/designs'
 import { placeImage } from '../lib/geometry'
 import { collageLayout } from '../lib/imaging/exportCollage'
@@ -25,6 +25,7 @@ const plain = (s: string) =>
 
 /** Ảnh thu nhỏ của một thiết kế, dựng từ thumbnail trong thư viện theo đúng bố cục, viền và chữ đã lưu. */
 const DesignThumb = memo(function DesignThumb({ snapshot, photos }: { snapshot: Snapshot; photos: Photo[] }) {
+  useUrlVersion()
   const spec = useMemo(() => buildSpec({ ...snapshot, photos }), [snapshot, photos])
   const layout = useMemo(() => (spec ? collageLayout(spec) : null), [spec])
   if (!spec || !layout) return null
@@ -51,7 +52,7 @@ const DesignThumb = memo(function DesignThumb({ snapshot, photos }: { snapshot: 
             }}
           >
             <img
-              src={thumbUrl(cell.photo.id)}
+              src={thumbUrl(cell.photo.id) || undefined}
               alt=""
               loading="lazy"
               decoding="async"

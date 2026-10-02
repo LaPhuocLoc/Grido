@@ -17,17 +17,38 @@ import './fonts.generated.css'
 
 const root = createRoot(document.getElementById('root')!)
 
-if (!window.grido) {
-  // Mở nhầm địa chỉ dev server bằng trình duyệt thường: không có cầu nối sang Electron.
-  root.render(<p style={{ padding: 32 }}>Tiệm Ghép Ảnh là ứng dụng desktop. Chạy `npm run dev` để mở cửa sổ ứng dụng.</p>)
-} else {
-  // Nạp sau khi chắc chắn có cầu nối, vì store và theme gọi sang main process ngay lúc khởi tạo.
-  const [{ default: App }, { watchTheme }] = await Promise.all([import('./App'), import('./lib/theme')])
-  document.documentElement.dataset.platform = window.grido.platform
+/** Nạp giao diện sau khi nền tảng đã sẵn sàng, vì store và theme gọi sang nền tảng ngay lúc khởi tạo. */
+async function start() {
+  const [{ default: App }, { watchTheme }, { desktop }] = await Promise.all([import('./App'), import('./lib/theme'), import('./lib/desktop')])
+  document.documentElement.dataset.platform = desktop.platform
   watchTheme()
   root.render(
     <StrictMode>
       <App />
     </StrictMode>,
   )
+}
+
+if (window.grido) {
+  // Bản desktop: preload của Electron đã gắn sẵn cầu nối sang main process.
+  await start()
+} else {
+  // Bản web: trang chạy thẳng trong trình duyệt, tự lo file bằng File System Access API.
+  const [{ createWebPlatform, guardPage, isSupported }, { claimTab, takeOverTab }, { OtherTab, Unsupported }, { setPlatform }] = await Promise.all([
+    import('./platform/web'),
+    import('./platform/web/lock'),
+    import('./platform/web/Notice'),
+    import('./lib/desktop'),
+  ])
+  const startWeb = async () => {
+    setPlatform(await createWebPlatform())
+    await start()
+    const [{ useStore }, { useExportProgress }] = await Promise.all([import('./store'), import('./lib/useCollage')])
+    guardPage(() => useExportProgress.getState().progress !== null || useStore.getState().imports.some((u) => u.status === 'processing'))
+  }
+  // Cho phép mở app khi không có mạng và cài thành ứng dụng. Chỉ ở bản đã dựng: lúc phát triển service worker chỉ gây vướng.
+  if (import.meta.env.PROD && 'serviceWorker' in navigator) void navigator.serviceWorker.register('/sw.js').catch(() => {})
+  if (!isSupported()) root.render(<Unsupported />)
+  else if (await claimTab()) await startWeb()
+  else root.render(<OtherTab onTakeOver={() => void takeOverTab().then(startWeb)} />)
 }
