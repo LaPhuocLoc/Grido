@@ -52,7 +52,7 @@ const LIST_COLUMNS = 'repeat(auto-fill, minmax(250px, 1fr))'
 /** Con trỏ phải dừng trên một font bấy lâu (ms) thì dòng chữ trên ảnh mới đổi tạm sang font đó. */
 const CANVAS_PREVIEW_DELAY = 90
 
-const chip = (on: boolean) =>
+export const chip = (on: boolean) =>
   cx(
     'flex h-7 min-w-fit flex-1 items-center justify-center whitespace-nowrap rounded-full px-2.5 text-xs font-semibold transition-colors',
     on ? 'bg-ink text-paper' : 'bg-sand text-soft hover:text-ink',
@@ -143,35 +143,49 @@ const FontCard = memo(function FontCard({ font, selected, fav, onSelect, onToggl
   )
 })
 
-/**
- * Một dòng của danh sách phông chữ: tên phông viết bằng chính phông đó, kế bên là câu chữ đang chọn (màu nhạt) cũng bằng
- * phông đó, để vừa đọc được tên vừa thấy ngay chữ của mình trông ra sao.
- */
+/** Một dòng của danh sách phông chữ: câu chữ đang chọn viết bằng phông đó, tên phông ghi nhỏ bên dưới. */
 const FontRow = memo(function FontRow({ font, selected, fav, onSelect, onToggleFav, sample }: ItemProps & { sample: string }) {
   return (
     // content-visibility: dòng ngoài vùng nhìn không được dàn chữ, nên file phông của nó cũng chưa bị tải về.
-    <div className="group relative [contain-intrinsic-size:auto_44px] [content-visibility:auto]" data-font={font.id} data-current={selected || undefined}>
+    <div className="group relative [contain-intrinsic-size:auto_58px] [content-visibility:auto]" data-font={font.id} data-current={selected || undefined}>
       <button
         type="button"
         aria-pressed={selected}
         aria-label={font.label}
-        // Phông trang trí / ký hiệu viết tên mình khó đọc; rê chuột để xem tên thật.
-        data-tip={font.label}
         onClick={() => onSelect(font.id)}
         className={cx(
-          'flex h-11 w-full items-center gap-2.5 overflow-hidden whitespace-nowrap rounded-xl pl-3 pr-9 text-left transition-colors',
+          'flex h-[58px] w-full flex-col justify-center overflow-hidden rounded-xl pl-3 pr-9 text-left transition-colors',
           selected ? 'bg-blush text-coral-dark' : 'text-ink hover:bg-sand',
         )}
-        style={{ fontFamily: font.family }}
       >
-        <span className="min-w-0 shrink truncate text-[20px] leading-[44px]">{font.label}</span>
-        <span className={cx('min-w-0 flex-1 truncate text-[17px] leading-[44px]', selected ? 'opacity-60' : 'text-muted')}>{sample}</span>
+        <span className="w-full truncate text-[20px] leading-[30px]" style={{ fontFamily: font.family }}>
+          {sample}
+        </span>
+        <span className={cx('w-full truncate text-[11px] leading-4', selected ? 'opacity-70' : 'text-muted')}>{font.label}</span>
       </button>
       {selected && !fav && <Check className="pointer-events-none absolute right-3 top-1/2 size-4 -translate-y-1/2 text-coral-dark group-hover:hidden" strokeWidth={3} />}
       <FavButton font={font} fav={fav} onToggle={onToggleFav} className="right-2 top-1/2 -translate-y-1/2" />
     </div>
   )
 })
+
+/** Nút chọn ngôn ngữ gọn (một chữ + mũi tên), dùng chung cho bảng phông chữ và bảng mẫu chữ. */
+export function LangSelect({ value, langs, onChange, tip }: { value: FontLang; langs: FontLang[]; onChange: (lang: FontLang) => void; tip: string }) {
+  const options = FONT_LANGS.filter((l) => langs.includes(l.id))
+  return (
+    <label className="relative flex h-9 shrink-0 items-center rounded-full bg-sand pl-3 pr-7 text-xs font-semibold text-ink transition-colors hover:bg-line" data-tip={tip}>
+      {(options.find((l) => l.id === value)?.label ?? '').replace('Tiếng ', '')}
+      <ChevronDown className="pointer-events-none absolute right-2 size-3.5 text-soft" />
+      <select aria-label="Ngôn ngữ" value={value} onChange={(e) => onChange(e.target.value as FontLang)} className="absolute inset-0 size-full cursor-pointer opacity-0">
+        {options.map((l) => (
+          <option key={l.id} value={l.id}>
+            {l.label}
+          </option>
+        ))}
+      </select>
+    </label>
+  )
+}
 
 export function FontPicker({
   value,
@@ -341,7 +355,6 @@ export function FontPicker({
   ]
 
   const total = source === 'system' && !Array.isArray(system) ? null : fonts.length
-  const langLabel = FONT_LANGS.find((l) => l.id === lang)?.label ?? ''
 
   return (
     <div className="space-y-2">
@@ -374,19 +387,7 @@ export function FontPicker({
             </button>
           )}
         </label>
-        {source !== 'system' && byLang && (
-          <label className="relative flex h-9 shrink-0 items-center rounded-full bg-sand pl-3 pr-7 text-xs font-semibold text-ink transition-colors hover:bg-line" data-tip="Phông chữ cho thứ tiếng nào">
-            {langLabel.replace('Tiếng ', '')}
-            <ChevronDown className="pointer-events-none absolute right-2 size-3.5 text-soft" />
-            <select aria-label="Ngôn ngữ" value={lang} onChange={(e) => setLang(e.target.value as FontLang)} className="absolute inset-0 size-full cursor-pointer opacity-0">
-              {FONT_LANGS.filter((l) => LANGS.includes(l.id)).map((l) => (
-                <option key={l.id} value={l.id}>
-                  {l.label}
-                </option>
-              ))}
-            </select>
-          </label>
-        )}
+        {source !== 'system' && byLang && <LangSelect value={lang} langs={LANGS} onChange={setLang} tip="Phông chữ cho thứ tiếng nào" />}
         {source !== 'system' && !thumbsOnly && (
           <button
             type="button"

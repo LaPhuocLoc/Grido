@@ -1,8 +1,11 @@
-import { memo, useEffect, useState } from 'react'
+import { Search, X } from 'lucide-react'
+import { memo, useEffect, useMemo, useState } from 'react'
 import { useShallow } from 'zustand/react/shallow'
 import { captureTemplate, type Box, type TextTemplate } from '../lib/templates'
-import { fontInfo, FONTS, isSystemFont, type TextItem } from '../lib/text'
+import { countByGroup, searchFonts } from '../lib/fontSearch'
+import { FONT_GROUPS, FONT_LANGS, fontInfo, FONTS, isSystemFont, type FontGroup, type FontLang, type TextItem } from '../lib/text'
 import { canvasSize, useStore } from '../store'
+import { chip, LangSelect } from './FontPicker'
 import { Button, cx } from './ui'
 
 /** Bảng ở bề rộng mặc định xếp 2 cột; kéo rộng dần thì thêm cột, như lưới font. */
@@ -37,7 +40,10 @@ const TemplateCard = memo(function TemplateCard({ template, onPick }: { template
   )
 })
 
-/** Lưới các mẫu chữ dựng sẵn: bấm một mẫu là chèn cả nhóm chữ của nó vào giữa ảnh. */
+/**
+ * Lưới các mẫu chữ dựng sẵn: bấm một mẫu là chèn cả nhóm chữ của nó vào giữa ảnh.
+ * Lọc như bảng phông chữ: tìm theo tên, theo ngôn ngữ và theo kiểu chữ của phông chính trong mẫu.
+ */
 export function TemplatePicker() {
   const [templates, setTemplates] = useState<TextTemplate[] | null>(null)
   useEffect(() => {
@@ -48,15 +54,95 @@ export function TemplatePicker() {
     }
   }, [])
   const { insertTemplate } = useStore.getState()
+  const [query, setQuery] = useState('')
+  const [style, setStyle] = useState<FontGroup | 'all'>('all')
+  const [lang, setLang] = useState<FontLang>('vi')
+
+  /** Phông chính của từng mẫu: mẫu được xếp loại theo ngôn ngữ và kiểu chữ của phông này. */
+  const fonts = useMemo(() => (templates ?? []).map((t) => fontInfo(t.font)), [templates])
+  // Ngôn ngữ nào có mẫu thì mới hiện; chỉ một ngôn ngữ thì nút chọn ngôn ngữ ẩn đi.
+  const langs = useMemo(() => FONT_LANGS.map((l) => l.id).filter((id) => fonts.some((f) => f.langs.includes(id))), [fonts])
+  const byLang = langs.length > 1
+  const matched = useMemo(() => searchFonts(byLang ? fonts.filter((f) => f.langs.includes(lang)) : fonts, query), [fonts, byLang, lang, query])
+  const counts = useMemo(() => countByGroup(matched), [matched])
+  const shown = useMemo(() => {
+    const ids = new Set((style === 'all' ? matched : matched.filter((f) => f.group === style)).map((f) => f.id))
+    return (templates ?? []).filter((t) => ids.has(t.font))
+  }, [templates, matched, style])
 
   return (
-    <div className="space-y-2.5">
-      <p className="text-xs leading-relaxed text-muted">Bấm một mẫu để chèn vào ảnh, rồi bấm vào từng dòng chữ để thay nội dung của bạn.</p>
+    <div className="space-y-2">
+      <div className="flex items-center gap-1.5">
+        <label className="relative block min-w-0 flex-1">
+          <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted" />
+          <input
+            type="text"
+            value={query}
+            onChange={(e) => {
+              // Bắt đầu gõ thì tìm trên mọi kiểu chữ, như bảng phông chữ.
+              if (!query.trim() && e.target.value.trim()) setStyle('all')
+              setQuery(e.target.value)
+            }}
+            onKeyDown={(e) => {
+              if (e.key !== 'Escape' || !query) return
+              e.stopPropagation()
+              setQuery('')
+            }}
+            placeholder={templates ? `Tìm trong ${shown.length} mẫu chữ` : 'Tìm mẫu chữ'}
+            aria-label="Tìm mẫu chữ"
+            className="h-9 w-full rounded-full border border-line bg-surface pl-9 pr-8 text-[13px] focus:border-coral focus:outline-none focus:ring-4 focus:ring-coral/15"
+          />
+          {query && (
+            <button
+              type="button"
+              aria-label="Xoá từ khoá"
+              data-tip="Xoá từ khoá (Esc)"
+              onClick={() => setQuery('')}
+              className="absolute right-1.5 top-1/2 grid size-6 -translate-y-1/2 place-items-center rounded-full text-muted transition-colors hover:bg-sand hover:text-ink"
+            >
+              <X className="size-3.5" />
+            </button>
+          )}
+        </label>
+        {byLang && <LangSelect value={lang} langs={langs} onChange={setLang} tip="Mẫu chữ cho thứ tiếng nào" />}
+      </div>
+
+      {/* Kiểu chữ: bốn nút chia đều bề rộng; bấm lại nút đang bật để về mọi kiểu. */}
+      <div className="flex gap-1" role="group" aria-label="Kiểu chữ">
+        {FONT_GROUPS.map((g) => (
+          <button
+            key={g.id}
+            type="button"
+            aria-pressed={style === g.id}
+            data-tip={style === g.id ? 'Bấm lần nữa để xem mọi kiểu chữ' : `${counts[g.id]} mẫu chữ`}
+            onClick={() => setStyle(style === g.id ? 'all' : g.id)}
+            className={cx(chip(style === g.id), !counts[g.id] && style !== g.id && 'opacity-50')}
+          >
+            {g.label}
+          </button>
+        ))}
+      </div>
+
       {import.meta.env.DEV && <SaveTemplate templates={templates ?? []} />}
       <div className="-mx-3 grid content-start gap-2 px-3 pb-3 pt-1" style={{ gridTemplateColumns: GRID_COLUMNS }}>
-        {templates?.map((t) => <TemplateCard key={t.font} template={t} onPick={insertTemplate} />)}
+        {shown.map((t) => (
+          <TemplateCard key={t.font} template={t} onPick={insertTemplate} />
+        ))}
       </div>
-      {templates && !templates.length && <p className="px-3 py-6 text-center text-[13px] text-muted">Chưa có mẫu chữ nào.</p>}
+      {templates && !shown.length && (
+        <p className="px-3 py-6 text-center text-[13px] leading-relaxed text-muted">
+          {query.trim() ? (
+            <>
+              Không có mẫu chữ nào khớp.{' '}
+              <button type="button" className="font-semibold text-coral-dark hover:underline" onClick={() => setQuery('')}>
+                Xoá từ khoá
+              </button>
+            </>
+          ) : (
+            'Chưa có mẫu chữ nào trong nhóm này.'
+          )}
+        </p>
+      )}
     </div>
   )
 }
