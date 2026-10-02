@@ -1,0 +1,8 @@
+{
+  "font": "vn-svn-brunette",
+  "aspect": 1.0654,
+  "bg": "#79b4c5",
+  "items": [
+    {"text":"đưa sen đi dạo","x":0.5,"y":0.42,"size":27,"color":"#f5d020","font":"vn-svn-brunette","bold":false,"shadow":false}
+  ]
+}

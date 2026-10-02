@@ -1,0 +1,10 @@
+{
+  "font": "vn-paris-2024",
+  "aspect": 1.5,
+  "bg": "#0a3a9a",
+  "items": [
+    {"text":"THỂ THAO","x":0.5132,"y":0.3325,"size":23.08,"font":"vn-paris-2024","bold":true,"shadow":false},
+    {"text":"VIỆT NAM","x":0.5205,"y":0.5356,"size":23.38,"font":"vn-paris-2024","bold":true,"shadow":false},
+    {"text":"CỐ LÊN","x":0.5,"y":0.82,"size":9,"color":"#0a2a6b","font":"vn-paris-2024","bold":true,"shadow":false,"rotation":-3,"plate":{"color":"#ffc21a","pad":25,"radius":10}}
+  ]
+}

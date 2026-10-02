@@ -1,0 +1,8 @@
+{
+  "font": "vn-hy-allipt",
+  "aspect": 1.0654,
+  "bg": "#841816",
+  "items": [
+    {"text":"Việt Nam","x":0.5205,"y":0.4733,"size":29.22,"color":"#edba82","font":"vn-hy-allipt","bold":false,"shadow":false}
+  ]
+}

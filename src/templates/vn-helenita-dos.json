@@ -1,0 +1,12 @@
+{
+  "font": "vn-helenita-dos",
+  "aspect": 1,
+  "bg": "#f4ede5",
+  "items": [
+    {"text":"Thời gian đã làm cho","x":0.5073,"y":0.2791,"size":8.59,"color":"#984f36","font":"vn-helenita-dos","bold":false,"shadow":false,"lineHeight":1.32},
+    {"text":"người này, không còn","x":0.5,"y":0.68,"size":4.8,"color":"#984f36","font":"vn-helenita-dos","bold":false,"shadow":false,"lineHeight":1.32},
+    {"text":"giống như trong nỗi","x":0.5073,"y":0.4822,"size":8.54,"color":"#985037","font":"vn-helenita-dos","bold":false,"shadow":false,"lineHeight":1.32},
+    {"text":"nhớ của người kia","x":0.5073,"y":0.5858,"size":8.59,"color":"#985037","font":"vn-helenita-dos","bold":false,"shadow":false,"lineHeight":1.32},
+    {"text":"(sưu tầm)","x":0.5194,"y":0.6883,"size":3.08,"color":"#96523b","font":"vn-helenita-dos","bold":false,"shadow":false}
+  ]
+}

@@ -1,0 +1,9 @@
+{
+  "font": "vn-axel",
+  "aspect": 1,
+  "bg": "#f4ede5",
+  "items": [
+    {"text":"Cuộc đời này, chúng ta trần\nnhư nhộng khóc chào đời, sau\nđó lại tay trắng khóc từ biệt.\nCậu không thể bởi vì đằng nào\ncũng chết mà không muốn\nsống nữa có phải không?","x":0.5184,"y":0.446,"size":5.57,"color":"#984f36","font":"vn-axel","shadow":false,"lineHeight":1.39},
+    {"text":"(Lời thoại phim Đi đến nơi có gió)","x":0.5,"y":0.73,"size":4.2,"color":"#8f3f2c","font":"vn-axel","shadow":false,"bold":false}
+  ]
+}

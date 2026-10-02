@@ -1,0 +1,9 @@
+{
+  "font": "vn-svn-rocker",
+  "aspect": 1.0654,
+  "bg": "#17151c",
+  "items": [
+    {"text":"Thợ Săn","x":0.5014,"y":0.3896,"size":21.73,"color":"#fff0f1","font":"vn-svn-rocker","bold":false,"shadow":false},
+    {"text":"Ma Cà Rồng","x":0.4993,"y":0.6104,"size":14.61,"color":"#fff0f1","font":"vn-svn-rocker","bold":false,"shadow":false}
+  ]
+}

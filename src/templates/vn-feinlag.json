@@ -1,0 +1,11 @@
+{
+  "font": "vn-feinlag",
+  "aspect": 1,
+  "bg": "#f4ede5",
+  "items": [
+    {"text":"Cứ","x":0.3603,"y":0.2783,"size":14.53,"color":"#994e35","font":"vn-feinlag","bold":false,"shadow":false},
+    {"text":"thong thả,","x":0.491,"y":0.3931,"size":13.83,"color":"#994e34","font":"vn-feinlag","bold":false,"shadow":false},
+    {"text":"Dọc đường nhất định có","x":0.5,"y":0.52,"size":7,"color":"#8f3f2c","font":"vn-allura","bold":false,"shadow":false},
+    {"text":"Hoa","x":0.6169,"y":0.6281,"size":14.13,"color":"#994e34","font":"vn-feinlag","bold":false,"shadow":false}
+  ]
+}

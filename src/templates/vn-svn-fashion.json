@@ -1,0 +1,9 @@
+{
+  "font": "vn-svn-fashion",
+  "aspect": 1.0654,
+  "bg": "#f0efed",
+  "items": [
+    {"text":"MỘC HẠ SƠ DƯƠNG","x":0.501,"y":0.457,"size":13.49,"color":"#00522a","font":"vn-svn-fashion","bold":false,"shadow":false},
+    {"text":"Đây là font khi không viết in hoa","x":0.5316,"y":0.5893,"size":7.09,"color":"#01522a","font":"vn-svn-fashion","bold":false,"shadow":false}
+  ]
+}

@@ -1,0 +1,12 @@
+{
+  "font": "vn-minecraft-ten",
+  "aspect": 1,
+  "bg": "#f4ede5",
+  "items": [
+    {"text":"CÒN ĐÂY LÀ FONT","x":0.5118,"y":0.2504,"size":6.66,"color":"#9a4e34","font":"vn-minecraft-ten","bold":false,"shadow":false,"lineHeight":1.5},
+    {"text":"ĐƯỢC SỬ DỤNG TẠI","x":0.5108,"y":0.3801,"size":6.66,"color":"#9a4e34","font":"vn-minecraft-ten","bold":false,"shadow":false,"lineHeight":1.5},
+    {"text":"GAME MINECRAFT","x":0.5118,"y":0.5133,"size":6.66,"color":"#9a4e34","font":"vn-minecraft-ten","bold":false,"shadow":false,"lineHeight":1.5},
+    {"text":"HUYỀN SẮC HỎI","x":0.5118,"y":0.6465,"size":6.66,"color":"#9a4e34","font":"vn-minecraft-ten","bold":false,"shadow":false,"lineHeight":1.5},
+    {"text":"NGÃ NẶNG","x":0.5118,"y":0.7797,"size":6.66,"color":"#9a4e34","font":"vn-minecraft-ten","bold":false,"shadow":false,"lineHeight":1.5}
+  ]
+}

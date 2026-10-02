@@ -26,4 +26,6 @@ Dựng mẫu mới từ ảnh mẫu của font (agent làm): viết file nháp v
 `"crop": true` nếu ước lượng trên thumbnail 16:9), rồi `node scripts/template-lab.mjs --fit out.png <id font>`. Bước `--fit`
 (`src/dev/fit.ts`) tự canh vị trí, cỡ, khoảng cách dòng, màu cho khớp ảnh gốc và ghi đè file; nhìn ảnh chụp để sửa tay những
 chỗ nó canh sai. Gợi ý cho từng dòng chữ của file nháp: `fit: false` (giữ nguyên), `fit: "bg"`, `tol`, `then` (canh xong thì
-thay chữ). Ảnh gốc lấy theo `fontvn/thumb-map.json` (dựng lại bằng `python scripts/thumb-map.py` khi kho font đổi).
+thay chữ). Ảnh gốc tô mỗi cụm từ một màu thì
+ghi mỗi cụm thành một dòng riêng với màu của nó (bước `--fit` cũng tự tách khi thấy các từ khác màu rõ; `--recolour` chỉ
+chạy riêng bước tách màu cho mẫu đã canh). Mẫu nào cũng phải giữ đúng số màu của ảnh gốc. Ảnh gốc lấy theo `fontvn/thumb-map.json` (dựng lại bằng `python scripts/thumb-map.py` khi kho font đổi).

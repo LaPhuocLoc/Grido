@@ -1,0 +1,9 @@
+{
+  "font": "vn-svn-gidry",
+  "aspect": 1.0654,
+  "bg": "#fff9ed",
+  "items": [
+    {"text":"Shay Nắng","x":0.4983,"y":0.4126,"size":18.77,"color":"#5872b9","font":"vn-svn-gidry","bold":false,"shadow":false},
+    {"text":"cô bạn cùng trường","x":0.4993,"y":0.5806,"size":14.65,"color":"#5973b9","font":"vn-svn-gidry","bold":false,"shadow":false}
+  ]
+}

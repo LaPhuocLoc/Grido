@@ -1,0 +1,9 @@
+{
+  "font": "vn-the-nautigal",
+  "aspect": 1.5,
+  "bg": "#fdfefd",
+  "items": [
+    {"text":"Thương nhớ","x":0.5,"y":0.4552,"size":26.32,"color":"#a67c51","font":"vn-the-nautigal","shadow":false},
+    {"text":"ngày xưa","x":0.5,"y":0.63,"size":9,"color":"#8a5a2a","font":"vn-allura","bold":false,"shadow":false,"spacing":200}
+  ]
+}

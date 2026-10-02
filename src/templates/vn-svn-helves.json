@@ -1,0 +1,9 @@
+{
+  "font": "vn-svn-helves",
+  "aspect": 1.0654,
+  "bg": "#e7dbd4",
+  "items": [
+    {"text":"Pinocchio","x":0.2641,"y":0.2019,"size":9.5,"color":"#010101","font":"vn-svn-helves","shadow":false},
+    {"text":"Pinocchio là nhân vật chính, một chú rối\ngỗ hư cấu nổi tiếng trong cuốn tiểu\nthuyết thiếu nhi Những cuộc phiêu lưu\ncủa Pinocchio (năm 1883)","x":0.45,"y":0.4,"size":5,"color":"#111111","font":"vn-svn-helves","bold":false,"shadow":false,"align":"left","lineHeight":1.3}
+  ]
+}

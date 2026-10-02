@@ -1,0 +1,9 @@
+{
+  "font": "vn-pacifico",
+  "aspect": 1.5,
+  "bg": "#070008",
+  "items": [
+    {"text":"Biển gọi","x":0.4972,"y":0.3992,"size":25.35,"color":"#fefdfe","font":"vn-pacifico","bold":false,"shadow":false},
+    {"text":"hè về rồi","x":0.5014,"y":0.6592,"size":15.99,"color":"#fdfcfc","font":"vn-pacifico","bold":false,"shadow":false}
+  ]
+}

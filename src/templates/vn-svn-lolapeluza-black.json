@@ -1,0 +1,9 @@
+{
+  "font": "vn-svn-lolapeluza-black",
+  "aspect": 1.0622,
+  "bg": "#fff4e6",
+  "items": [
+    {"text":"Chuẩn Vị","x":0.5014,"y":0.2876,"size":16.31,"color":"#fe8f19","font":"vn-svn-lolapeluza-black","bold":false,"shadow":false,"rotation":-3},
+    {"text":"Local","x":0.5083,"y":0.43,"size":36.09,"color":"#b0000d","font":"vn-svn-lolapeluza-black","bold":false,"shadow":false}
+  ]
+}

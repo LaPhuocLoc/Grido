@@ -1,0 +1,10 @@
+{
+  "font": "vn-cheese-milky",
+  "aspect": 1,
+  "bg": "#f4ede5",
+  "items": [
+    {"text":"Bà nội từng nói: \"Nếu ngày nào đó bà","x":0.5104,"y":0.234,"size":5.07,"color":"#975138","font":"vn-cheese-milky","bold":false,"shadow":false,"lineHeight":1.49},
+    {"text":"nội không còn trên đời, khi ấy con cũng","x":0.5114,"y":0.3125,"size":5.13,"color":"#97523a","font":"vn-cheese-milky","bold":false,"shadow":false,"lineHeight":1.49},
+    {"text":"đừng buồn nhiều nhé.","x":0.485,"y":0.3921,"size":5.04,"color":"#975138","font":"vn-cheese-milky","bold":false,"shadow":false,"lineHeight":1.49}
+  ]
+}

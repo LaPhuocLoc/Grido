@@ -1,0 +1,9 @@
+{
+  "font": "vn-finura",
+  "aspect": 1,
+  "bg": "#f4ede5",
+  "items": [
+    {"text":"Ở đời luôn có những\ncâu hỏi không thể\ntrả lời dù không phải\nquá khó.","x":0.5,"y":0.44,"size":9,"color":"#8f3f2c","font":"vn-finura","bold":false,"shadow":false,"lineHeight":1.2},
+    {"text":"(Nguyễn Ngọc Tư)","x":0.5,"y":0.7,"size":6,"color":"#8f3f2c","font":"vn-finura","bold":false,"shadow":false}
+  ]
+}

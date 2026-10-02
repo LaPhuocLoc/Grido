@@ -1,0 +1,8 @@
+{
+  "font": "vn-ps-bigger",
+  "aspect": 1.7778,
+  "bg": "#070c0a",
+  "items": [
+    {"text":"ÁNH SÁNG\nMÀN ĐÊM","x":0.5104,"y":0.5577,"size":39.5,"color":"#fdffff","font":"vn-ps-bigger","bold":false,"shadow":false,"lineHeight":0.97}
+  ]
+}

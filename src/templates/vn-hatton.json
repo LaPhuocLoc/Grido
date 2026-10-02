@@ -1,0 +1,10 @@
+{
+  "font": "vn-hatton",
+  "aspect": 1,
+  "bg": "#f4ede5",
+  "items": [
+    {"text":"Người ta có thể gặp\nlại người họ thương","x":0.5083,"y":0.3844,"size":7.9,"color":"#975039","font":"vn-hatton","bold":false,"shadow":false,"lineHeight":1.37},
+    {"text":"ở trong nỗi nhớ","x":0.5083,"y":0.5492,"size":8.45,"color":"#9a4f34","font":"vn-hatton","bold":false,"shadow":false,"plate":{"color":"#fbe59a","pad":18,"radius":20}},
+    {"text":"(Thưa ngoại con mới về – Lam)","x":0.5,"y":0.64,"size":4.6,"color":"#8f3f2c","font":"vn-hatton","bold":false,"shadow":false}
+  ]
+}

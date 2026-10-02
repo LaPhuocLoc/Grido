@@ -1,0 +1,12 @@
+{
+  "font": "vn-french-kiss",
+  "aspect": 1,
+  "bg": "#f3ebe3",
+  "items": [
+    {"text":"Một","x":0.5417,"y":0.3426,"size":21.22,"color":"#994e34","font":"vn-french-kiss","bold":false,"shadow":false,"rotation":-1},
+    {"text":"Bóng Trăng","x":0.5806,"y":0.5141,"size":21.62,"color":"#994e34","font":"vn-french-kiss","bold":false,"shadow":false,"rotation":-8},
+    {"text":"Sân","x":0.574,"y":0.7146,"size":21.08,"color":"#994e34","font":"vn-french-kiss","bold":false,"shadow":false,"rotation":-5},
+    {"text":"Người đi,\nhương cũ\ncòn vương áo","x":0.26,"y":0.31,"size":4,"color":"#8f3f2c","font":"serif","bold":false,"shadow":false,"align":"right","lineHeight":1.4},
+    {"text":"trải nửa sân","x":0.64,"y":0.82,"size":4,"color":"#8f3f2c","font":"serif","bold":false,"shadow":false}
+  ]
+}

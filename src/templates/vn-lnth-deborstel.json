@@ -1,0 +1,12 @@
+{
+  "font": "vn-lnth-deborstel",
+  "aspect": 1.5,
+  "bg": "#fbfbf8",
+  "items": [
+    {"text":"Đời","x":0.5052,"y":0.3063,"size":18.1,"color":"#0b0605","font":"vn-lnth-deborstel","bold":false,"shadow":false},
+    {"text":"là","x":0.4983,"y":0.4325,"size":18.34,"color":"#0b0605","font":"vn-lnth-deborstel","bold":false,"shadow":false},
+    {"text":"bể","x":0.5003,"y":0.5625,"size":18.36,"color":"#0b0706","font":"vn-lnth-deborstel","bold":false,"shadow":false},
+    {"text":"khổ","x":0.4972,"y":0.689,"size":18.47,"color":"#0a0605","font":"vn-lnth-deborstel","bold":false,"shadow":false},
+    {"text":"Tình là dây oan","x":0.4942,"y":0.789,"size":7.17,"color":"#171714","font":"vn-lnth-deborstel","bold":false,"shadow":false}
+  ]
+}

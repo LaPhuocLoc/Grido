@@ -1,0 +1,11 @@
+{
+  "font": "vn-lnth-sugiono",
+  "aspect": 1.5,
+  "bg": "#bbcdd7",
+  "items": [
+    {"text":"Hẹn","x":0.4763,"y":0.1927,"size":27.51,"color":"#383838","font":"vn-lnth-sugiono","bold":false,"shadow":false},
+    {"text":"Em","x":0.4763,"y":0.399,"size":27.03,"color":"#383838","font":"vn-lnth-sugiono","bold":false,"shadow":false},
+    {"text":"Ngày","x":0.4752,"y":0.6158,"size":27.51,"color":"#383838","font":"vn-lnth-sugiono","bold":false,"shadow":false},
+    {"text":"Đó","x":0.4763,"y":0.8425,"size":27.7,"color":"#393939","font":"vn-lnth-sugiono","bold":false,"shadow":false}
+  ]
+}

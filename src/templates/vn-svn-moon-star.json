@@ -1,0 +1,9 @@
+{
+  "font": "vn-svn-moon-star",
+  "aspect": 1.0612,
+  "bg": "#040a1b",
+  "items": [
+    {"text":"Ngôi Sao","x":0.501,"y":0.3635,"size":14.19,"color":"#fefefd","font":"vn-svn-moon-star","bold":false,"shadow":false,"lineHeight":0.79},
+    {"text":"May Mắn","x":0.508,"y":0.4933,"size":17.93,"color":"#fefefe","font":"vn-svn-moon-star","bold":false,"shadow":false,"lineHeight":0.79}
+  ]
+}

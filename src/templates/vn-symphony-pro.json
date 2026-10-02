@@ -1,0 +1,11 @@
+{
+  "font": "vn-symphony-pro",
+  "aspect": 1,
+  "bg": "#f4ede5",
+  "items": [
+    {"text":"Xuân già, nguyệt úa,","x":0.5114,"y":0.2808,"size":13.23,"color":"#96543c","font":"vn-symphony-pro","bold":false,"shadow":false},
+    {"text":"tình còn mãi","x":0.6603,"y":0.4267,"size":13.4,"color":"#97543c","font":"vn-symphony-pro","bold":false,"shadow":false},
+    {"text":"Chỉ nguyện đời đời","x":0.5535,"y":0.5729,"size":13.4,"color":"#97563e","font":"vn-symphony-pro","bold":false,"shadow":false},
+    {"text":"giữ lấy tay","x":0.6893,"y":0.7167,"size":12.74,"color":"#96563e","font":"vn-symphony-pro","bold":false,"shadow":false}
+  ]
+}

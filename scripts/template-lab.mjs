@@ -16,6 +16,8 @@ const args = process.argv.slice(2)
 const fit = args.includes('--fit')
 // --compact: chỉ ảnh gốc và mẫu, xếp nhiều cột, để soát nhanh nhiều mẫu.
 const compact = args.includes('--compact')
+// --recolour: chỉ tách màu các mẫu đã canh (ảnh gốc tô mỗi cụm từ một màu), không canh lại vị trí.
+const recolour = args.includes('--recolour')
 const [out, ...ids] = args.filter((a) => !a.startsWith('--'))
 if (!out || !ids.length) throw new Error('Cách dùng: node scripts/template-lab.mjs [--fit] <ảnh ra.png> <id font>…')
 const PORT = 5188
@@ -63,7 +65,7 @@ try {
       ws.send(JSON.stringify({ id: me, method, params }))
     })
   await send('Page.enable')
-  await send('Page.navigate', { url: `http://localhost:${PORT}/?lab=${ids.join(',')}${fit ? '&fit=1' : ''}${compact ? '&compact=1' : ''}` })
+  await send('Page.navigate', { url: `http://localhost:${PORT}/?lab=${ids.join(',')}${fit ? '&fit=1' : ''}${recolour ? '&recolour=1' : ''}${compact ? '&compact=1' : ''}` })
   // Chờ mọi mẫu vẽ xong (font tải qua mạng nội bộ) và ảnh gốc hiện đủ.
   for (let i = 0; i < 2400; i++) {
     const { result } = await send('Runtime.evaluate', {
@@ -82,9 +84,9 @@ try {
   })
   writeFileSync(out, Buffer.from(shot.data, 'base64'))
   console.log(`${out}: ${ids.length} mẫu`)
-  if (fit) {
+  if (fit || recolour) {
     const { result } = await send('Runtime.evaluate', { expression: 'JSON.stringify(window.__labReport ?? [])', returnByValue: true })
-    for (const r of JSON.parse(result.value)) console.log(`  ${r.font}: ${r.scores.join(' ')}`)
+    for (const r of JSON.parse(result.value)) if (fit || r.split.length) console.log(`  ${r.font}: ${r.scores.join(' ')}${r.split.length ? `  · tách màu: ${r.split.join(' | ')}` : ''}`)
   }
   ws.close()
 } finally {

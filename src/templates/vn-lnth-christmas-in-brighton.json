@@ -1,0 +1,12 @@
+{
+  "font": "vn-lnth-christmas-in-brighton",
+  "aspect": 1.5029,
+  "bg": "#2d3a8c",
+  "items": [
+    {"text":"Ánh","x":0.5,"y":0.2,"size":17,"font":"vn-lnth-christmas-in-brighton","bold":false,"shadow":false},
+    {"text":"Sao","x":0.5,"y":0.36,"size":17,"font":"vn-lnth-christmas-in-brighton","bold":false,"shadow":false},
+    {"text":"và","x":0.5,"y":0.5,"size":10,"font":"vn-lnth-christmas-in-brighton","bold":false,"shadow":false},
+    {"text":"Bầu","x":0.5,"y":0.64,"size":17,"color":"#d9dad4","font":"vn-lnth-christmas-in-brighton","bold":false,"shadow":false},
+    {"text":"Trời","x":0.5,"y":0.82,"size":17,"font":"vn-lnth-christmas-in-brighton","bold":false,"shadow":false}
+  ]
+}

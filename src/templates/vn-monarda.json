@@ -1,0 +1,9 @@
+{
+  "font": "vn-monarda",
+  "aspect": 1,
+  "bg": "#f4ede5",
+  "items": [
+    {"text":"Xin cho gió mỏng mưa mềm\nCỏ hoa hôn bước chân em trên đường\nChéo chồng dĩ vãng thôi buông\nBao la năm tháng, xin nhường nhịn em","x":0.5,"y":0.497,"size":5.5,"color":"#8f3f2c","font":"vn-monarda","bold":false,"shadow":false,"lineHeight":1.67},
+    {"text":"(Nguyễn Thiên Ngân)","x":0.5,"y":0.71,"size":3.34,"color":"#9f5d45","font":"vn-monarda","bold":false,"shadow":false}
+  ]
+}

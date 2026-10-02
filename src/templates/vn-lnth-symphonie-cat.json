@@ -1,0 +1,8 @@
+{
+  "font": "vn-lnth-symphonie-cat",
+  "aspect": 1.5029,
+  "bg": "#f1ece2",
+  "items": [
+    {"text":"Về quê anh đi, em ạ","x":0.5,"y":0.5,"size":26,"color":"#333333","font":"vn-lnth-symphonie-cat","bold":false,"shadow":false,"rotation":-10}
+  ]
+}

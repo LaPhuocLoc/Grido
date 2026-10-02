@@ -1,0 +1,9 @@
+{
+  "font": "vn-svn-monday",
+  "aspect": 1.0633,
+  "bg": "#f1f5f6",
+  "items": [
+    {"text":"Yên bình","x":0.4931,"y":0.4221,"size":25.18,"color":"#000000","font":"vn-svn-monday","bold":false,"shadow":false},
+    {"text":"đáng giá bao nhiêu","x":0.52,"y":0.585,"size":10,"color":"#111111","font":"vn-svn-monday","bold":false,"shadow":false}
+  ]
+}

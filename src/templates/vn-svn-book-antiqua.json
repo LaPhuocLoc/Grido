@@ -1,0 +1,9 @@
+{
+  "font": "vn-svn-book-antiqua",
+  "aspect": 1.0654,
+  "bg": "#556a77",
+  "items": [
+    {"text":"TẶNG NÀNG\nĐÓA HỒNG","x":0.4993,"y":0.3615,"size":9.33,"color":"#fec200","font":"vn-svn-book-antiqua","shadow":false,"lineHeight":1.43},
+    {"text":"làm người yêu anh nhé?!","x":0.5097,"y":0.532,"size":3.37,"color":"#f3bf9e","font":"vn-svn-book-antiqua","shadow":false}
+  ]
+}

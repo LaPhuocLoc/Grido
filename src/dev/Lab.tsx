@@ -3,7 +3,7 @@ import { renderCollage } from '../lib/imaging/exportCollage'
 import type { TextTemplate } from '../lib/templates'
 import { fontInfo, normalizeText } from '../lib/text'
 import { TEMPLATES } from '../templates'
-import { fitTemplate, type Draft, type FitReport } from './fit'
+import { fitTemplate, recolourTemplate, type Draft, type FitReport } from './fit'
 
 declare global {
   interface Window {
@@ -28,6 +28,8 @@ export function Lab() {
   const query = new URLSearchParams(location.search)
   const wanted = query.get('lab') ?? ''
   const fit = query.has('fit')
+  // &recolour=1: chỉ tách màu các mẫu đã canh (ảnh gốc tô mỗi cụm từ một màu), không canh lại vị trí.
+  const recolour = query.has('recolour')
   // &compact=1: chỉ ảnh gốc và mẫu, xếp nhiều cột, để soát nhanh cả trăm mẫu.
   const compact = query.has('compact')
   const ids = wanted === 'all' ? TEMPLATES.map((t) => t.font) : wanted.split(',').filter(Boolean)
@@ -37,7 +39,7 @@ export function Lab() {
   return (
     <div style={{ padding: 8, background: '#777', font: '12px sans-serif', color: '#fff', display: compact ? 'flex' : 'block', flexWrap: 'wrap', gap: 8 }}>
       {ids.map((id) => (
-        <Row key={id} id={id} draft={TEMPLATES.find((t) => t.font === id)} fit={fit} cell={compact ? 220 : CELL} overlay={!compact} />
+        <Row key={id} id={id} draft={TEMPLATES.find((t) => t.font === id)} fit={fit} recolour={recolour} cell={compact ? 220 : CELL} overlay={!compact} />
       ))}
     </div>
   )
@@ -51,7 +53,7 @@ const loadImage = (src: string) =>
     image.src = src
   })
 
-function Row({ id, draft, fit, cell: CELL, overlay }: { id: string; draft?: TextTemplate; fit: boolean; cell: number; overlay: boolean }) {
+function Row({ id, draft, fit, recolour, cell: CELL, overlay }: { id: string; draft?: TextTemplate; fit: boolean; recolour: boolean; cell: number; overlay: boolean }) {
   const [template, setTemplate] = useState(fit ? undefined : draft)
   const [url, setUrl] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
@@ -79,6 +81,15 @@ function Row({ id, draft, fit, cell: CELL, overlay }: { id: string; draft?: Text
           setScores(report.scores.join(' · '))
         }
       }
+      if (recolour && !fit) {
+        const { template: coloured, report } = await recolourTemplate(draft, await loadImage(`/__dev/thumb/${id}`))
+        ;(window.__labReport ??= []).push(report)
+        if (report.split.length) {
+          await fetch('/__dev/template', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(coloured) })
+          current = coloured
+          if (alive) setTemplate(coloured)
+        }
+      }
       const width = RENDER_WIDTH
       const canvas = await renderCollage(
         {
@@ -101,7 +112,7 @@ function Row({ id, draft, fit, cell: CELL, overlay }: { id: string; draft?: Text
     return () => {
       alive = false
     }
-  }, [draft, fit, id])
+  }, [draft, fit, recolour, id])
 
   const cell = { width: CELL, height, display: 'block', objectFit: 'cover' as const }
   return (

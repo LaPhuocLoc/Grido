@@ -1,0 +1,10 @@
+{
+  "font": "vn-svn-rounded",
+  "aspect": 1.0654,
+  "bg": "#545455",
+  "items": [
+    {"text":"LYNK&CO","x":0.4993,"y":0.3496,"size":19.18,"color":"#fefefe","font":"vn-svn-rounded","bold":false,"shadow":false},
+    {"text":"KHAI TRƯƠNG","x":0.5142,"y":0.5354,"size":14.25,"color":"#fdfdfd","font":"vn-svn-rounded","bold":false,"shadow":false,"lineHeight":1.17},
+    {"text":"SHOWROOM","x":0.5021,"y":0.6727,"size":14.95,"color":"#fefefe","font":"vn-svn-rounded","bold":false,"shadow":false,"lineHeight":1.17}
+  ]
+}

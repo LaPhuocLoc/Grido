@@ -1,0 +1,8 @@
+{
+  "font": "vn-piklab-montra",
+  "aspect": 1.2861,
+  "bg": "#6aa8f0",
+  "items": [
+    {"text":"TIÊU ĐỀ CHO VLOG\nMÙA HÈ NÀY","x":0.5,"y":0.5,"size":13,"font":"vn-piklab-montra","bold":false,"shadow":false,"lineHeight":1.3}
+  ]
+}

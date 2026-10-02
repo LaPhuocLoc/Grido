@@ -1,0 +1,9 @@
+{
+  "font": "vn-svn-indie",
+  "aspect": 1.0654,
+  "bg": "#0c1221",
+  "items": [
+    {"text":"Trung Thu","x":0.5094,"y":0.4179,"size":22.62,"font":"vn-svn-indie","bold":false,"shadow":false},
+    {"text":"rước đèn","x":0.5014,"y":0.6058,"size":15.54,"color":"#fefefe","font":"vn-svn-indie","bold":false,"shadow":false}
+  ]
+}

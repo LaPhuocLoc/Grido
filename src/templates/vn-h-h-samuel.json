@@ -1,0 +1,9 @@
+{
+  "font": "vn-h-h-samuel",
+  "aspect": 1,
+  "bg": "#fef9f3",
+  "items": [
+    {"text":"Ngày bỏ rơi thành phố, em đi\nchậm đến nỗi khoảng cách\ncũng biết mỏi chân. Em im\nlặng đến nỗi thời gian cũng\nhọc cách rón rén.","x":0.4983,"y":0.5285,"size":9,"color":"#994e34","font":"vn-h-h-samuel","bold":false,"shadow":false,"align":"left","lineHeight":1.23},
+    {"text":"(Biên độ chữ)","x":0.5173,"y":0.8325,"size":4.59,"color":"#975036","font":"vn-h-h-samuel","bold":false,"shadow":false}
+  ]
+}

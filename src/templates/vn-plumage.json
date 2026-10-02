@@ -1,0 +1,9 @@
+{
+  "font": "vn-plumage",
+  "aspect": 1,
+  "bg": "#f4ede5",
+  "items": [
+    {"text":"Thiệp Mời","x":0.5073,"y":0.3625,"size":15.5,"color":"#9a4f35","font":"vn-plumage","bold":false,"shadow":false},
+    {"text":"Lễ Vu Quy","x":0.5073,"y":0.5804,"size":15.5,"color":"#9a4f35","font":"vn-plumage","bold":false,"shadow":false}
+  ]
+}

@@ -1,0 +1,9 @@
+{
+  "font": "vn-svn-elle-novac-extra-light",
+  "aspect": 1.0654,
+  "bg": "#373805",
+  "items": [
+    {"text":"Bên khung","x":0.5,"y":0.3903,"size":16.89,"color":"#ede9da","font":"vn-svn-elle-novac-extra-light","bold":false,"shadow":false,"lineHeight":1.26},
+    {"text":"cửa sổ nhỏ","x":0.5,"y":0.6054,"size":16.89,"color":"#e9e6d8","font":"vn-svn-elle-novac-extra-light","bold":false,"shadow":false,"lineHeight":1.26}
+  ]
+}

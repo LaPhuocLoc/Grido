@@ -1,0 +1,9 @@
+{
+  "font": "vn-svn-revolution",
+  "aspect": 1.0654,
+  "bg": "#f6e2bc",
+  "items": [
+    {"text":"SỐNG NAY","x":0.508,"y":0.4077,"size":14.35,"color":"#dc5341","font":"vn-svn-revolution","bold":false,"shadow":false,"lineHeight":1.08},
+    {"text":"STRESS MAI","x":0.4909,"y":0.5719,"size":11.7,"color":"#dc5341","font":"vn-svn-revolution","bold":false,"shadow":false,"lineHeight":1.08}
+  ]
+}

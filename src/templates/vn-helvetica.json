@@ -1,0 +1,10 @@
+{
+  "font": "vn-helvetica",
+  "aspect": 1.5,
+  "bg": "#4a8af4",
+  "items": [
+    {"text":"Tối giản","x":0.5,"y":0.27,"size":25,"color":"#cfe0ff","font":"vn-helvetica","shadow":false},
+    {"text":"Tối giản","x":0.5,"y":0.5,"size":25,"font":"vn-helvetica","shadow":false},
+    {"text":"Tối giản","x":0.5,"y":0.73,"size":25,"color":"#cfe0ff","font":"vn-helvetica","bold":false,"shadow":false,"italic":true}
+  ]
+}

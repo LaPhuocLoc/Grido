@@ -1,0 +1,8 @@
+{
+  "font": "vn-svn-helga",
+  "aspect": 1.0654,
+  "bg": "#fff9ed",
+  "items": [
+    {"text":"lời thương nhớ\nviết lên cây","x":0.5,"y":0.535,"size":15.5,"color":"#6a9a6a","font":"vn-svn-helga","bold":false,"shadow":false,"lineHeight":1.05}
+  ]
+}

@@ -1,0 +1,9 @@
+{
+  "font": "vn-svn-bio-sans",
+  "aspect": 1.0654,
+  "bg": "#172818",
+  "items": [
+    {"text":"CỪU DOLLY","x":0.5,"y":0.31,"size":7,"font":"vn-svn-bio-sans","bold":false,"shadow":false},
+    {"text":"Là một con cừu Dorset Phần Lan cái và là động vật\ncó vú đầu tiên được nhân bản vô tính trên thế giới.\nNó được tạo ra bởi Ian Wilmut, Keith Campbell và\ncác cộng sự tại Viện Roslin ở Edinburgh, Scotland.","x":0.5,"y":0.49,"size":4,"font":"vn-svn-bio-sans","bold":false,"shadow":false,"lineHeight":1.3}
+  ]
+}

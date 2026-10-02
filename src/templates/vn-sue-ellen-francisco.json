@@ -1,0 +1,11 @@
+{
+  "font": "vn-sue-ellen-francisco",
+  "aspect": 1,
+  "bg": "#f4ede5",
+  "items": [
+    {"text":"Đời người như một cánh đồng, có mùa gặt hái,","x":0.5076,"y":0.3513,"size":6.15,"color":"#a16149","font":"vn-sue-ellen-francisco","bold":false,"shadow":false,"lineHeight":1.3},
+    {"text":"có mùa trống trơn. Quan trọng là bạn đủ sức","x":0.508,"y":0.4508,"size":6.15,"color":"#a05f48","font":"vn-sue-ellen-francisco","bold":false,"shadow":false,"lineHeight":1.3},
+    {"text":"vượt qua những mùa không thu hoạch gì.","x":0.508,"y":0.5483,"size":6.15,"color":"#a05f47","font":"vn-sue-ellen-francisco","bold":false,"shadow":false,"lineHeight":1.3},
+    {"text":"- Nguyễn Ngọc Tư","x":0.5073,"y":0.6472,"size":6.15,"color":"#a16049","font":"vn-sue-ellen-francisco","bold":false,"shadow":false}
+  ]
+}

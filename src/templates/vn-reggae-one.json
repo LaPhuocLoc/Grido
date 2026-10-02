@@ -1,0 +1,9 @@
+{
+  "font": "vn-reggae-one",
+  "aspect": 1,
+  "bg": "#f4ede5",
+  "items": [
+    {"text":"Chẳng ai có khả\nnăng quên đi nỗi\nbuồn, chỉ là họ\nđã làm quen với\nnó mà thôi.","x":0.5003,"y":0.4805,"size":8.36,"color":"#994e34","font":"vn-reggae-one","bold":false,"shadow":false,"lineHeight":1.4},
+    {"text":"(Sưu tầm)","x":0.4983,"y":0.7936,"size":3.81,"color":"#965b46","font":"sans","shadow":false}
+  ]
+}

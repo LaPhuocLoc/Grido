@@ -1,0 +1,9 @@
+{
+  "font": "vn-svn-good-dog",
+  "aspect": 1.0654,
+  "bg": "#010101",
+  "items": [
+    {"text":"Bí ẩn","x":0.3213,"y":0.3867,"size":28.23,"color":"#fd0000","font":"vn-svn-good-dog","bold":false,"shadow":false},
+    {"text":"Căn phòng số 7","x":0.4934,"y":0.5934,"size":18.35,"color":"#fc0000","font":"vn-svn-good-dog","bold":false,"shadow":false}
+  ]
+}

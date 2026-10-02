@@ -1,0 +1,9 @@
+{
+  "font": "vn-svn-effra",
+  "aspect": 1.0654,
+  "bg": "#ffffff",
+  "items": [
+    {"text":"THIẾT KẾ LÀ GÌ?","x":0.416,"y":0.2976,"size":8.72,"color":"#000000","font":"vn-svn-effra","bold":false,"shadow":false},
+    {"text":"Thiết kế là quá trình nghiên cứu,\nlên ý tưởng và tạo ra các bản vẽ,\nmô hình hoặc quy ước nhằm hiện\nthực hóa một đối tượng, hệ thống\nhay không gian.","x":0.5,"y":0.575,"size":5.9,"color":"#111111","font":"vn-svn-effra","bold":false,"shadow":false,"align":"left","lineHeight":1.24}
+  ]
+}

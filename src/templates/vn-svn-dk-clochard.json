@@ -1,0 +1,9 @@
+{
+  "font": "vn-svn-dk-clochard",
+  "aspect": 1.0654,
+  "bg": "#3461d4",
+  "items": [
+    {"text":"Con Mèo","x":0.5,"y":0.4276,"size":23.32,"color":"#fdfdfd","font":"vn-svn-dk-clochard","bold":false,"shadow":false,"lineHeight":0.91},
+    {"text":"kêu sao?","x":0.4878,"y":0.6494,"size":22.2,"color":"#fdfdfd","font":"vn-svn-dk-clochard","bold":false,"shadow":false,"lineHeight":0.91}
+  ]
+}

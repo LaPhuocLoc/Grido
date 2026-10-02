@@ -1,0 +1,11 @@
+{
+  "font": "vn-dfvn-ghelisyah",
+  "aspect": 1.4993,
+  "bg": "#032a44",
+  "items": [
+    {"text":"Mưu","x":0.4192,"y":0.3258,"size":25.3,"color":"#d6c09d","font":"vn-dfvn-ghelisyah","bold":false,"shadow":false},
+    {"text":"cung","x":0.6014,"y":0.4585,"size":15.94,"color":"#d6bf9b","font":"vn-dfvn-ghelisyah","bold":false,"shadow":false},
+    {"text":"Kế","x":0.3616,"y":0.6092,"size":23.31,"color":"#d6bf9d","font":"vn-dfvn-ghelisyah","bold":false,"shadow":false},
+    {"text":"Phi","x":0.6315,"y":0.7021,"size":23.72,"color":"#d6c1a0","font":"vn-dfvn-ghelisyah","bold":false,"shadow":false}
+  ]
+}

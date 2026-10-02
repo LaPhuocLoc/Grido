@@ -1,0 +1,9 @@
+{
+  "font": "vn-dt-phudu",
+  "aspect": 1.4958,
+  "bg": "#c9c9c9",
+  "items": [
+    {"text":"HÀ NỘI","x":0.5,"y":0.38,"size":34,"color":"#111111","font":"vn-dt-phudu","bold":false,"shadow":false},
+    {"text":"ĐÀ NẴNG · HUẾ · SAPA","x":0.5,"y":0.66,"size":13,"color":"#111111","font":"vn-dt-phudu","bold":false,"shadow":false}
+  ]
+}

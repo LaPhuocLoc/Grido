@@ -1,0 +1,10 @@
+{
+  "font": "vn-hy-alelic-3",
+  "aspect": 1.0654,
+  "bg": "#f7f7f7",
+  "items": [
+    {"text":"Bánh","x":0.3493,"y":0.2693,"size":15.44,"color":"#526051","font":"vn-hy-alelic-3","bold":false,"shadow":false},
+    {"text":"Đa","x":0.6331,"y":0.3189,"size":15.05,"color":"#546253","font":"vn-hy-alelic-3","bold":false,"shadow":false},
+    {"text":"Cua","x":0.6921,"y":0.4615,"size":15.47,"color":"#536152","font":"vn-hy-alelic-3","bold":false,"shadow":false}
+  ]
+}

@@ -1,0 +1,8 @@
+{
+  "font": "vn-jnr-sb-font",
+  "aspect": 1,
+  "bg": "#fef9f3",
+  "items": [
+    {"text":"Mùa xuân sắp đến rồi. Mùa\nxuân mà tớ đã gặp cậu,\nsắp đến rồi. Một mùa xuân\nkhông có cậu...","x":0.5003,"y":0.6562,"size":5.54,"color":"#95533d","font":"vn-jnr-sb-font","bold":false,"shadow":false,"lineHeight":1.49}
+  ]
+}

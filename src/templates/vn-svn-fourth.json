@@ -1,0 +1,8 @@
+{
+  "font": "vn-svn-fourth",
+  "aspect": 1.0654,
+  "bg": "#262a67",
+  "items": [
+    {"text":"bình yên\nthư giãn\nnhẹ nhàng!","x":0.4414,"y":0.4712,"size":14.52,"color":"#fb91ff","font":"vn-svn-fourth","shadow":false,"align":"left","lineHeight":1.22}
+  ]
+}

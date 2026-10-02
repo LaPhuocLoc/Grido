@@ -1,0 +1,9 @@
+{
+  "font": "vn-birthstone-bounce",
+  "aspect": 1.5,
+  "bg": "#ffffff",
+  "items": [
+    {"text":"Sinh nhật","x":0.4962,"y":0.4158,"size":19.32,"color":"#f85f7d","font":"vn-birthstone-bounce","bold":false,"shadow":false},
+    {"text":"vui vẻ","x":0.5,"y":0.63,"size":11,"font":"vn-birthstone-bounce","shadow":false,"plate":{"color":"#e84a7a","pad":22,"radius":60},"bold":false,"color":"#ffffff"}
+  ]
+}

@@ -1,0 +1,10 @@
+{
+  "font": "vn-svn-apple",
+  "aspect": 1.0654,
+  "bg": "#ffffff",
+  "items": [
+    {"text":"chú bé","x":0.2709,"y":0.3508,"size":16.3,"color":"#573b14","font":"vn-svn-apple","bold":false,"shadow":false},
+    {"text":"người gỗ","x":0.4972,"y":0.4608,"size":16.3,"color":"#573b14","font":"vn-svn-apple","bold":false,"shadow":false,"rotation":-4},
+    {"text":"Pinocchio","x":0.5125,"y":0.6067,"size":27.03,"color":"#573b14","font":"vn-svn-apple","bold":false,"shadow":false}
+  ]
+}

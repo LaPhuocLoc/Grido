@@ -1,0 +1,9 @@
+{
+  "font": "vn-svn-haptic-script",
+  "aspect": 1.0654,
+  "bg": "#6a8446",
+  "items": [
+    {"text":"Đợi chờ","x":0.4813,"y":0.3689,"size":30.47,"color":"#fcf6da","font":"vn-svn-haptic-script","bold":false,"shadow":false},
+    {"text":"đến bao giờ?","x":0.4892,"y":0.5528,"size":17.26,"color":"#fbf5d9","font":"vn-svn-haptic-script","bold":false,"shadow":false}
+  ]
+}

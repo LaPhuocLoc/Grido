@@ -1,0 +1,9 @@
+{
+  "font": "vn-svn-bellwethers",
+  "aspect": 1.0654,
+  "bg": "#fffdf1",
+  "items": [
+    {"text":"nấu cơm","x":0.44,"y":0.42,"size":20,"color":"#111111","font":"vn-svn-bellwethers","bold":false,"shadow":false},
+    {"text":"cho em","x":0.62,"y":0.6,"size":20,"color":"#111111","font":"vn-svn-bellwethers","bold":false,"shadow":false}
+  ]
+}

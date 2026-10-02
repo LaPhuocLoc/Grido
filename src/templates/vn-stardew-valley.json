@@ -1,0 +1,8 @@
+{
+  "font": "vn-stardew-valley",
+  "aspect": 1,
+  "bg": "#f4ede5",
+  "items": [
+    {"text":"ĐÂY LÀ FONT\nCỦA GAME\nSTARDEW VALLEY\nHUYỀN SẮC HỎI\nNGÃ NẶNG","x":0.5,"y":0.51,"size":10.6,"color":"#8f3f2c","font":"vn-stardew-valley","bold":false,"shadow":false,"lineHeight":1.47}
+  ]
+}

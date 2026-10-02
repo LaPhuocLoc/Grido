@@ -1,0 +1,9 @@
+{
+  "font": "vn-wind-script",
+  "aspect": 1.5,
+  "bg": "#d989f7",
+  "items": [
+    {"text":"Gió","x":0.4819,"y":0.425,"size":39,"color":"#fefefe","font":"vn-wind-script","bold":false,"shadow":false},
+    {"text":"Mùa thu Hà Nội","x":0.5,"y":0.78,"size":8,"font":"serif","bold":false,"shadow":false}
+  ]
+}

@@ -1,0 +1,8 @@
+{
+  "font": "vn-shantay",
+  "aspect": 1,
+  "bg": "#f4ede5",
+  "items": [
+    {"text":"Cùng cảm ơn hôm qua cho chúng ta như hôm nay\nCùng cảm ơn cơn say cho nói ra lời thật thà\nCùng cảm ơn mưa sa cho nắng lên xanh bao la\nĐể nhắc ta, nhắc ta luôn nhớ...","x":0.5,"y":0.33,"size":4.0,"color":"#8f3f2c","font":"vn-shantay","bold":false,"shadow":false,"lineHeight":1.38}
+  ]
+}

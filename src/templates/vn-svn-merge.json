@@ -1,0 +1,8 @@
+{
+  "font": "vn-svn-merge",
+  "aspect": 1.0667,
+  "bg": "#ece4d7",
+  "items": [
+    {"text":"Cơm Tấm","x":0.4972,"y":0.4829,"size":18.07,"color":"#000000","font":"vn-svn-merge","bold":false,"shadow":false}
+  ]
+}

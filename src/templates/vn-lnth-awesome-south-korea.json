@@ -1,0 +1,9 @@
+{
+  "font": "vn-lnth-awesome-south-korea",
+  "aspect": 1.5,
+  "bg": "#fefcfa",
+  "items": [
+    {"text":"phong cách","x":0.5003,"y":0.3731,"size":18.46,"color":"#020202","font":"vn-lnth-awesome-south-korea","bold":false,"shadow":false},
+    {"text":"hàn quốc","x":0.4993,"y":0.569,"size":21.25,"color":"#232323","font":"vn-lnth-awesome-south-korea","bold":false,"shadow":false}
+  ]
+}

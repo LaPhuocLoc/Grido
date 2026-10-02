@@ -1,0 +1,10 @@
+{
+  "font": "vn-mtd-barakah",
+  "aspect": 1.4971,
+  "bg": "#18443b",
+  "items": [
+    {"text":"HỒNG NHAN","x":0.4931,"y":0.4,"size":30,"color":"#eeda9c","font":"vn-mtd-barakah","bold":false,"shadow":false},
+    {"text":"BẠC PHẬN","x":0.4972,"y":0.66,"size":28,"color":"#e1c890","font":"vn-mtd-barakah","bold":false,"shadow":false},
+    {"text":"Hồ Minh Hoàng","x":0.5083,"y":0.9,"size":7,"color":"#c0bb90","font":"vn-mtd-barakah","bold":false,"shadow":false}
+  ]
+}

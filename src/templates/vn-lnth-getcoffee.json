@@ -1,0 +1,12 @@
+{
+  "font": "vn-lnth-getcoffee",
+  "aspect": 1.5,
+  "bg": "#f3eeea",
+  "items": [
+    {"text":"Em","x":0.4941,"y":0.1792,"size":15.94,"color":"#191609","font":"vn-lnth-getcoffee","bold":false,"shadow":false},
+    {"text":"Đã Yêu","x":0.4941,"y":0.3317,"size":15.94,"color":"#171508","font":"vn-lnth-getcoffee","bold":false,"shadow":false},
+    {"text":"Một Người","x":0.4941,"y":0.4896,"size":16.35,"color":"#191609","font":"vn-lnth-getcoffee","bold":false,"shadow":false},
+    {"text":"Có Ước","x":0.4941,"y":0.6796,"size":15.94,"color":"#181508","font":"vn-lnth-getcoffee","bold":false,"shadow":false},
+    {"text":"Mơ","x":0.4851,"y":0.8192,"size":16.15,"color":"#060102","font":"vn-lnth-getcoffee","bold":false,"shadow":false}
+  ]
+}

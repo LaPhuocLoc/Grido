@@ -1,0 +1,9 @@
+{
+  "font": "vn-dvn-bakbak-one",
+  "aspect": 1.5,
+  "bg": "#3b1fb8",
+  "items": [
+    {"text":"SIÊU SALE","x":0.5,"y":0.36,"size":27,"font":"vn-dvn-bakbak-one","bold":false,"shadow":false,"block":{"color":"#241a7a","x":0,"y":8}},
+    {"text":"11.11","x":0.5,"y":0.72,"size":36,"color":"#ff5fd2","font":"vn-dvn-bakbak-one","bold":false,"shadow":false,"outline":{"color":"#ffffff","width":4},"block":{"color":"#241a7a","x":0,"y":8},"gradient":{"color":"#35c8ff","angle":180}}
+  ]
+}

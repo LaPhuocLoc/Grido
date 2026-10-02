@@ -1,0 +1,12 @@
+{
+  "font": "vn-hy-aguack",
+  "aspect": 1.0654,
+  "bg": "#faf0e6",
+  "items": [
+    {"text":"Chớ thấy","x":0.4972,"y":0.225,"size":15.09,"color":"#014ca9","font":"vn-hy-aguack","bold":false,"shadow":false},
+    {"text":"Sóng","x":0.3987,"y":0.3908,"size":19,"color":"#014ca9","font":"vn-hy-aguack","bold":false,"shadow":false},
+    {"text":"mà","x":0.7371,"y":0.4152,"size":12.36,"color":"#a54f54","font":"vn-hy-aguack","bold":false,"shadow":false},
+    {"text":"Ngã","x":0.3274,"y":0.5746,"size":17,"color":"#014ca9","font":"vn-hy-aguack","bold":false,"shadow":false},
+    {"text":"tay chèo","x":0.6652,"y":0.5876,"size":7.6,"color":"#a45055","font":"vn-hy-aguack","bold":false,"shadow":false}
+  ]
+}

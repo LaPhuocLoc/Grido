@@ -1,0 +1,9 @@
+{
+  "font": "vn-dancing-script",
+  "aspect": 1.5088,
+  "bg": "#fdfdfc",
+  "items": [
+    {"text":"Dịu dàng như","x":0.5247,"y":0.3958,"size":17.22,"color":"#5b5c59","font":"vn-dancing-script","bold":false,"shadow":false},
+    {"text":"nắng mai","x":0.5281,"y":0.5695,"size":17.33,"color":"#5c5c5a","font":"vn-dancing-script","bold":false,"shadow":false}
+  ]
+}

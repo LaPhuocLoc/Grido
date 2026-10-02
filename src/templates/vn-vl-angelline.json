@@ -1,0 +1,9 @@
+{
+  "font": "vn-vl-angelline",
+  "aspect": 1.5,
+  "bg": "#d8d6fb",
+  "items": [
+    {"text":"Dịu dàng","x":0.484,"y":0.419,"size":21.65,"color":"#252225","font":"vn-vl-angelline","bold":false,"shadow":false},
+    {"text":"như mây","x":0.4792,"y":0.7094,"size":11.89,"color":"#312a33","font":"vn-vl-angelline","bold":false,"shadow":false}
+  ]
+}

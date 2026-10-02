@@ -1,0 +1,9 @@
+{
+  "font": "vn-lagona",
+  "aspect": 1,
+  "bg": "#f4ede5",
+  "items": [
+    {"text":"CÔ ẤY CỦA ANH ẤY","x":0.5083,"y":0.2942,"size":9.5,"color":"#9a4f35","font":"vn-lagona","bold":false,"shadow":false},
+    {"text":"Cô ấy giờ là 'cô ấy' của anh\n'Cô ấy' của anh giờ không phải em\nAnh vốn luôn có 'cô ấy' cạnh bên\nChỉ là giờ đây em không còn được là\n'cô ấy'","x":0.5062,"y":0.5422,"size":5.5,"color":"#a05f48","font":"vn-lagona","bold":false,"shadow":false,"lineHeight":1.37}
+  ]
+}

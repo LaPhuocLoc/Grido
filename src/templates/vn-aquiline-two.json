@@ -1,0 +1,12 @@
+{
+  "font": "vn-aquiline-two",
+  "aspect": 1,
+  "bg": "#f4ede5",
+  "items": [
+    {"text":"Tình","x":0.4135,"y":0.2908,"size":11.49,"color":"#9b5137","font":"vn-aquiline-two","bold":false,"shadow":false},
+    {"text":"ca","x":0.4304,"y":0.3639,"size":9.88,"color":"#9a4f36","font":"vn-aquiline-two","bold":false,"shadow":false},
+    {"text":"Anh","x":0.5261,"y":0.4228,"size":11.15,"color":"#9b5239","font":"vn-aquiline-two","bold":false,"shadow":false},
+    {"text":"viết cho","x":0.4861,"y":0.5339,"size":11,"color":"#9c553c","font":"vn-aquiline-two","bold":false,"shadow":false},
+    {"text":"Em","x":0.5052,"y":0.6597,"size":10.72,"color":"#9b5239","font":"vn-aquiline-two","bold":false,"shadow":false}
+  ]
+}

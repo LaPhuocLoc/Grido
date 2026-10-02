@@ -1,0 +1,9 @@
+{
+  "font": "vn-raleway",
+  "aspect": 1.5,
+  "bg": "#7fd0f5",
+  "items": [
+    {"text":"GIẢM GIÁ","x":0.5,"y":0.4,"size":30,"color":"#ffd21f","font":"vn-raleway","bold":false,"shadow":false,"italic":true,"rotation":-8,"outline":{"color":"#ffffff","width":3},"block":{"color":"#b34a00","x":0,"y":6},"gradient":{"color":"#ff8a00","angle":180}},
+    {"text":"CỰC SỐC","x":0.5,"y":0.7,"size":22,"color":"#6fd0ff","font":"vn-raleway","bold":false,"shadow":false,"italic":true,"rotation":-8,"outline":{"color":"#ffffff","width":3},"block":{"color":"#0a4a9a","x":0,"y":6},"gradient":{"color":"#1f7ae0","angle":180}}
+  ]
+}

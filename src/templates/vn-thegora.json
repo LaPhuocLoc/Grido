@@ -1,0 +1,9 @@
+{
+  "font": "vn-thegora",
+  "aspect": 1,
+  "bg": "#f3ece4",
+  "items": [
+    {"text":"HÒ ƠI","x":0.5082,"y":0.2942,"size":15.64,"color":"#9a4e34","font":"vn-thegora","bold":false,"shadow":false},
+    {"text":"Yêu nhau,\nyêu cả đường đi.\nGhét nhau ối à\nGhét nhau,\nlấy nhau cho bõ ghét!","x":0.5073,"y":0.604,"size":6.97,"color":"#994e35","font":"vn-thegora","bold":false,"shadow":false,"lineHeight":1.4}
+  ]
+}

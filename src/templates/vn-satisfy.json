@@ -1,0 +1,8 @@
+{
+  "font": "vn-satisfy",
+  "aspect": 1,
+  "bg": "#f3ece4",
+  "items": [
+    {"text":"Phía sau một cảm xúc\nthể hiện ra bên ngoài\nthật ra có một chuỗi\ncảm xúc khác","x":0.5,"y":0.5,"size":9,"color":"#8f3f2c","font":"vn-satisfy","bold":false,"shadow":false,"lineHeight":1.4}
+  ]
+}

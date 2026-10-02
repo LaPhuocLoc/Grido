@@ -1,0 +1,10 @@
+{
+  "font": "vn-lnth-water-dragon",
+  "aspect": 1.5,
+  "bg": "#2a2928",
+  "items": [
+    {"text":"TRUNG","x":0.4972,"y":0.3229,"size":26.16,"color":"#fdf6f0","font":"vn-lnth-water-dragon","bold":false,"shadow":false},
+    {"text":"THU","x":0.4972,"y":0.5729,"size":26.65,"color":"#fdf7f0","font":"vn-lnth-water-dragon","bold":false,"shadow":false},
+    {"text":"ĐÊM HỘI TRĂNG RẰM","x":0.5,"y":0.78,"size":10,"font":"vn-lnth-water-dragon","bold":false,"shadow":false}
+  ]
+}

@@ -1,0 +1,9 @@
+{
+  "font": "vn-smile-delight",
+  "aspect": 1,
+  "bg": "#f4ede5",
+  "items": [
+    {"text":"Tặng mình một bó hoa\nĐem về trưng trong nhà\nPhải tự yêu mình trước\nMới yêu được người ta.","x":0.5073,"y":0.4439,"size":9.62,"color":"#994e34","font":"vn-smile-delight","bold":false,"shadow":false,"lineHeight":0.99},
+    {"text":"(Dear, darling – Hiên)","x":0.5056,"y":0.6742,"size":5.47,"color":"#9b5239","font":"vn-smile-delight","bold":false,"shadow":false}
+  ]
+}

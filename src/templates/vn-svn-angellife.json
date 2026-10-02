@@ -1,0 +1,10 @@
+{
+  "font": "vn-svn-angellife",
+  "aspect": 1.0654,
+  "bg": "#ffeded",
+  "items": [
+    {"text":"em gì ơi!","x":0.4524,"y":0.3689,"size":21.8,"color":"#b4373a","font":"vn-svn-angellife","bold":false,"shadow":false},
+    {"text":"em","x":0.5872,"y":0.5303,"size":20.98,"color":"#b4373a","font":"vn-svn-angellife","bold":false,"shadow":false},
+    {"text":"đi đâu thế?","x":0.5393,"y":0.7025,"size":15.64,"color":"#b4373a","font":"vn-svn-angellife","bold":false,"shadow":false}
+  ]
+}

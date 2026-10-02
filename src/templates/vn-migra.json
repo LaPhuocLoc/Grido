@@ -1,0 +1,8 @@
+{
+  "font": "vn-migra",
+  "aspect": 1,
+  "bg": "#f3ece4",
+  "items": [
+    {"text":"Tình bạn tốt không cần\nquá dính lấy nhau, gặp lại\nvẫn bền chặt như trước.","x":0.5,"y":0.5,"size":7.5,"color":"#8f3f2c","font":"vn-migra","bold":false,"shadow":false,"lineHeight":1.4}
+  ]
+}

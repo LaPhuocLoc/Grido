@@ -1,0 +1,8 @@
+{
+  "font": "vn-vnm-sans-std",
+  "aspect": 1.3333,
+  "bg": "#0a0ac8",
+  "items": [
+    {"text":"KHUYẾN MÃI\nCỰC LỚN","x":0.5,"y":0.5,"size":22,"font":"vn-vnm-sans-std","bold":false,"shadow":false,"lineHeight":1.2}
+  ]
+}

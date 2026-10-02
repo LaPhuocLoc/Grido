@@ -1,0 +1,9 @@
+{
+  "font": "vn-kd-hidayatullah",
+  "aspect": 1.5,
+  "bg": "#270c26",
+  "items": [
+    {"text":"Đêm hoa đăng","x":0.5146,"y":0.3763,"size":14.92,"color":"#f9fdfa","font":"vn-kd-hidayatullah","bold":false,"shadow":false},
+    {"text":"lung linh","x":0.4951,"y":0.5558,"size":10.1,"color":"#f7fbf8","font":"vn-kd-hidayatullah","bold":false,"shadow":false}
+  ]
+}

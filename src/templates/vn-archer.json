@@ -1,0 +1,9 @@
+{
+  "font": "vn-archer",
+  "aspect": 1,
+  "bg": "#f4ede5",
+  "items": [
+    {"text":"Có người đi cùng là một\nniềm hạnh phúc, nhưng có\nthể tự mình bước đi cũng là\nmột sự tự do","x":0.467,"y":0.4472,"size":5.57,"color":"#9b5238","font":"vn-archer","shadow":false,"align":"left","lineHeight":1.5},
+    {"text":"(Sách “Chúng ta sinh ra là để hạnh phúc”)","x":0.47,"y":0.6,"size":3.6,"color":"#8f3f2c","font":"serif","bold":false,"shadow":false,"align":"left"}
+  ]
+}

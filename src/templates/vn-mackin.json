@@ -1,0 +1,11 @@
+{
+  "font": "vn-mackin",
+  "aspect": 1,
+  "bg": "#f4ede6",
+  "items": [
+    {"text":"Giọt","x":0.5125,"y":0.2525,"size":14.91,"color":"#994f35","font":"vn-mackin","bold":false,"shadow":false},
+    {"text":"Sương","x":0.5326,"y":0.4236,"size":15,"color":"#994f35","font":"vn-mackin","bold":false,"shadow":false},
+    {"text":"Rơi","x":0.4325,"y":0.5453,"size":15,"color":"#984f34","font":"vn-mackin","bold":false,"shadow":false},
+    {"text":"Vai Anh","x":0.5257,"y":0.7057,"size":14.62,"color":"#994e35","font":"vn-mackin","bold":false,"shadow":false}
+  ]
+}

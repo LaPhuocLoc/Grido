@@ -1,0 +1,8 @@
+{
+  "font": "vn-ps-big-shoulders",
+  "aspect": 1.7778,
+  "bg": "#2cdf04",
+  "items": [
+    {"text":"SÀI GÒN\nKHÔNG BAO\nGIỜ NGỦ","x":0.4993,"y":0.5466,"size":21.47,"color":"#000000","font":"vn-ps-big-shoulders","bold":false,"shadow":false,"lineHeight":1.13}
+  ]
+}

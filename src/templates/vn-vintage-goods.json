@@ -1,0 +1,9 @@
+{
+  "font": "vn-vintage-goods",
+  "aspect": 1,
+  "bg": "#f4ede5",
+  "items": [
+    {"text":"Hẹn ước","x":0.48,"y":0.44,"size":14,"color":"#9b5138","font":"vn-vintage-goods","bold":false,"shadow":false},
+    {"text":"xin khuất lời","x":0.5,"y":0.56,"size":14,"color":"#9b533a","font":"vn-vintage-goods","bold":false,"shadow":false}
+  ]
+}

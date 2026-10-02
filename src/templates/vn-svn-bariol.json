@@ -1,0 +1,9 @@
+{
+  "font": "vn-svn-bariol",
+  "aspect": 1.0654,
+  "bg": "#ffffff",
+  "items": [
+    {"text":"MƯA MÙA HẠ","x":0.3,"y":0.27,"size":6.5,"color":"#111111","font":"vn-svn-bariol","bold":false,"shadow":false},
+    {"text":"Mưa ào ào trút xuống như ai cầm\ngáo nước dội, mặt đất bốc hơi\nnghi ngút, tiếng mưa đập bành\nbạch trên mái tôn. Mọi người vội\nvã tìm chỗ trú, dòng xe cộ chạy\nhối hả trong màn mưa trắng xóa.","x":0.47,"y":0.555,"size":5.3,"color":"#111111","font":"vn-svn-bariol","bold":false,"shadow":false,"align":"left","lineHeight":1.45}
+  ]
+}

@@ -1,0 +1,9 @@
+{
+  "font": "vn-philosopher",
+  "aspect": 1.5,
+  "bg": "#29242a",
+  "items": [
+    {"text":"Triết lý sống","x":0.5153,"y":0.3896,"size":20.5,"color":"#f0d180","font":"vn-philosopher","shadow":false},
+    {"text":"tối giản","x":0.4993,"y":0.5792,"size":20.5,"color":"#eecd7c","font":"vn-philosopher","shadow":false}
+  ]
+}

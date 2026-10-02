@@ -1,0 +1,9 @@
+{
+  "font": "vn-svn-guerrilla",
+  "aspect": 1.0654,
+  "bg": "#816c41",
+  "items": [
+    {"text":"NGƯỜI GỖ","x":0.4913,"y":0.4226,"size":16.95,"color":"#ffedc9","font":"vn-svn-guerrilla","bold":false,"shadow":false},
+    {"text":"PINOCCHIO","x":0.5014,"y":0.5996,"size":17.22,"color":"#ffedc9","font":"vn-svn-guerrilla","bold":false,"shadow":false}
+  ]
+}

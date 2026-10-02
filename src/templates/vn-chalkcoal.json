@@ -1,0 +1,9 @@
+{
+  "font": "vn-chalkcoal",
+  "aspect": 1,
+  "bg": "#f4ede5",
+  "items": [
+    {"text":"Rồi sẽ có những ngày em\nthấy nhẹ lòng hơn không vì\nđiều gì tốt đẹp đến, mà chỉ\nvì em đã thôi ôm giữ những\nthứ làm mình đau.","x":0.5,"y":0.5,"size":7.4,"color":"#994e34","font":"vn-chalkcoal","bold":false,"shadow":false,"align":"left","lineHeight":1.53},
+    {"text":"(Nguyễn Ngọc Tư)","x":0.5094,"y":0.7167,"size":6.16,"color":"#984f36","font":"vn-chalkcoal","bold":false,"shadow":false}
+  ]
+}

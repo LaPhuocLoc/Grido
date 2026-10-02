@@ -1,0 +1,9 @@
+{
+  "font": "vn-magic-school-one",
+  "aspect": 1,
+  "bg": "#f4ede5",
+  "items": [
+    {"text":"Harry Potter","x":0.4983,"y":0.2642,"size":16.92,"color":"#9a4e34","font":"vn-magic-school-one","bold":false,"shadow":false},
+    {"text":"Phim kể về cuộc đời của Harry Potter,\nmột cậu bé mồ côi phát hiện mình là phù\nthủy vào sinh nhật năm 11 tuổi.","x":0.5,"y":0.52,"size":6.5,"color":"#8f3f2c","font":"vn-magic-school-one","bold":false,"shadow":false,"align":"left","lineHeight":1.4}
+  ]
+}

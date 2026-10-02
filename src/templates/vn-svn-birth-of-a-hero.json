@@ -1,0 +1,8 @@
+{
+  "font": "vn-svn-birth-of-a-hero",
+  "aspect": 1.0654,
+  "bg": "#070719",
+  "items": [
+    {"text":"Biệt Đội\nBáo Thủ","x":0.5184,"y":0.4815,"size":21.52,"color":"#feead9","font":"vn-svn-birth-of-a-hero","bold":false,"shadow":false,"lineHeight":1.07}
+  ]
+}

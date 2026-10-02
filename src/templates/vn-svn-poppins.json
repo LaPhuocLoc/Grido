@@ -1,0 +1,11 @@
+{
+  "font": "vn-svn-poppins",
+  "aspect": 1.0654,
+  "bg": "#fbfcfc",
+  "items": [
+    {"text":"tự giác","x":0.3472,"y":0.2615,"size":10.89,"color":"#8292b4","font":"vn-svn-poppins","shadow":false},
+    {"text":"bao nhiêu","x":0.4228,"y":0.4138,"size":10.83,"color":"#809bb6","font":"vn-svn-poppins","bold":false,"shadow":false},
+    {"text":"tự do","x":0.2991,"y":0.5689,"size":10.89,"color":"#8292b4","font":"vn-svn-poppins","shadow":false},
+    {"text":"bấy nhiêu","x":0.4186,"y":0.7189,"size":10.89,"color":"#809bb6","font":"vn-svn-poppins","bold":false,"shadow":false}
+  ]
+}

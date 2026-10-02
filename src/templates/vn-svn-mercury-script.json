@@ -1,0 +1,8 @@
+{
+  "font": "vn-svn-mercury-script",
+  "aspect": 1.0691,
+  "bg": "#ba2926",
+  "items": [
+    {"text":"Giáng Sinh","x":0.4983,"y":0.4445,"size":20.7,"color":"#fefdfc","font":"vn-svn-mercury-script","bold":false,"shadow":false}
+  ]
+}

@@ -1,0 +1,9 @@
+{
+  "font": "vn-svn-desire",
+  "aspect": 1.0654,
+  "bg": "#d58200",
+  "items": [
+    {"text":"TRẠNG THÁI MỘNG MƠ","x":0.4993,"y":0.4489,"size":14.61,"color":"#fddf01","font":"vn-svn-desire","bold":false,"shadow":false},
+    {"text":"Tuyển tập nhạc hay bay phòng","x":0.4983,"y":0.5937,"size":9.18,"color":"#fbde03","font":"vn-svn-desire","bold":false,"shadow":false}
+  ]
+}

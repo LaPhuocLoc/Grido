@@ -1,0 +1,9 @@
+{
+  "font": "vn-dfvn-stampa-v1",
+  "aspect": 1.4993,
+  "bg": "#6c1213",
+  "items": [
+    {"text":"HÀ NỘI","x":0.5003,"y":0.3692,"size":36,"color":"#ea9b18","font":"vn-dfvn-stampa-v1","bold":false,"shadow":false},
+    {"text":"XƯA 1975","x":0.5094,"y":0.6521,"size":26.33,"color":"#eb9c18","font":"vn-dfvn-stampa-v1","bold":false,"shadow":false}
+  ]
+}

@@ -1,0 +1,9 @@
+{
+  "font": "vn-cherry-blossom",
+  "aspect": 1,
+  "bg": "#f4ede5",
+  "items": [
+    {"text":"Có hai con mèo\nngồi bên cửa sổ.\nMột con ngồi yên\nmột con đổi chỗ","x":0.5125,"y":0.4672,"size":9.28,"color":"#984f36","font":"vn-cherry-blossom","bold":false,"shadow":false,"lineHeight":1.29},
+    {"text":"(Nguyễn Nhật Ánh)","x":0.5115,"y":0.7522,"size":6.22,"color":"#965139","font":"vn-cherry-blossom","bold":false,"shadow":false}
+  ]
+}

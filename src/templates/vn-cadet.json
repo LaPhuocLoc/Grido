@@ -1,0 +1,8 @@
+{
+  "font": "vn-cadet",
+  "aspect": 1,
+  "bg": "#f4ede5",
+  "items": [
+    {"text":"Trong cuộc đời mỗi người, ai cũng\ngặp những tiếc nuối.","x":0.42,"y":0.32,"size":5,"color":"#8f3f2c","font":"vn-cadet","bold":false,"shadow":false,"align":"left","lineHeight":1.3}
+  ]
+}

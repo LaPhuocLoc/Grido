@@ -3,6 +3,7 @@
   "aspect": 1.0654,
   "bg": "#f7f7f7",
   "items": [
-    {"text":"bánh mỳ xá xíu","x":0.4993,"y":0.445,"size":21.97,"color":"#623127","font":"vn-iciel-alina","bold":false,"shadow":false}
+    {"text":"bánh mỳ","x":0.3188,"y":0.445,"size":21.97,"color":"#623128","font":"vn-iciel-alina","bold":false,"shadow":false},
+    {"text":"xá xíu","x":0.738,"y":0.445,"size":21.97,"color":"#b63a06","font":"vn-iciel-alina","bold":false,"shadow":false}
   ]
 }

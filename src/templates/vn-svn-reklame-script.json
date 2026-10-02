@@ -1,0 +1,9 @@
+{
+  "font": "vn-svn-reklame-script",
+  "aspect": 1.0654,
+  "bg": "#a72728",
+  "items": [
+    {"text":"Tiếng Việt","x":0.4872,"y":0.3626,"size":24.77,"color":"#ecd105","font":"vn-svn-reklame-script","bold":false,"shadow":false,"rotation":-3},
+    {"text":"diệu kỳ!","x":0.4319,"y":0.6193,"size":21.53,"color":"#ecd105","font":"vn-svn-reklame-script","bold":false,"shadow":false,"rotation":-3}
+  ]
+}

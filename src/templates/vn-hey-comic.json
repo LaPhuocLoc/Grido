@@ -1,0 +1,8 @@
+{
+  "font": "vn-hey-comic",
+  "aspect": 1,
+  "bg": "#f4ede5",
+  "items": [
+    {"text":"Hẹn hò nhưng không yêu,\nchắc em là kẻ mất trí.\nHẹn hò nhưng không yêu,\nthế yêu định nghĩa là gì ?","x":0.4993,"y":0.3667,"size":4.09,"color":"#9b5239","font":"vn-hey-comic","bold":false,"shadow":false,"lineHeight":1.68}
+  ]
+}

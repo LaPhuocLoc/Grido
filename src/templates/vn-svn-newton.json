@@ -1,0 +1,11 @@
+{
+  "font": "vn-svn-newton",
+  "aspect": 1.0654,
+  "bg": "#ebfede",
+  "items": [
+    {"text":"Vò tờ giấy...","x":0.3924,"y":0.263,"size":14.6,"color":"#fc96bf","font":"vn-svn-newton","bold":false,"shadow":false},
+    {"text":"đừng","x":0.23,"y":0.45,"size":14.5,"color":"#f8c8d8","font":"vn-svn-newton","bold":false,"shadow":false},
+    {"text":"giày vò","x":0.2772,"y":0.5952,"size":14.51,"color":"#fc96bf","font":"vn-svn-newton","bold":false,"shadow":false},
+    {"text":"tớ!","x":0.8415,"y":0.7296,"size":14.65,"color":"#fc96bf","font":"vn-svn-newton","bold":false,"shadow":false}
+  ]
+}

@@ -1,0 +1,8 @@
+{
+  "font": "vn-svn-neutraface-2",
+  "aspect": 1.0654,
+  "bg": "#0466b1",
+  "items": [
+    {"text":"TÔ ĐẶC BIỆT\n69.000 VNĐ","x":0.4993,"y":0.3676,"size":14.52,"color":"#f7f7f7","font":"vn-svn-neutraface-2","bold":false,"shadow":false,"block":{"color":"#0a2a5a","x":2,"y":3}}
+  ]
+}

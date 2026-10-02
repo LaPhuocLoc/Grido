@@ -1,0 +1,9 @@
+{
+  "font": "vn-queen-of-silence",
+  "aspect": 1,
+  "bg": "#f4ede5",
+  "items": [
+    {"text":"Bình Thuỷ\nTương Phùng","x":0.5184,"y":0.3804,"size":15.94,"color":"#9a4e34","font":"vn-queen-of-silence","bold":false,"shadow":false,"lineHeight":1.08},
+    {"text":"[bèo nước gặp nhau;\ngặp gỡ tình cờ]","x":0.5073,"y":0.6714,"size":7.52,"color":"#9a5239","font":"vn-queen-of-silence","bold":false,"shadow":false,"lineHeight":1.37}
+  ]
+}

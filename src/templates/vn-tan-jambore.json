@@ -1,0 +1,12 @@
+{
+  "font": "vn-tan-jambore",
+  "aspect": 1,
+  "bg": "#f4ede5",
+  "items": [
+    {"text":"GIÔNG TỐ","x":0.2511,"y":0.2808,"size":6.06,"color":"#994e34","font":"vn-tan-jambore","bold":false,"shadow":false},
+    {"text":"Rồi bỗng một ngày giông tố,","x":0.4423,"y":0.381,"size":4.77,"color":"#9a4f36","font":"vn-tan-jambore","bold":false,"shadow":false,"align":"left","lineHeight":1.5},
+    {"text":"khiến tóc em rối bời","x":0.3646,"y":0.4755,"size":4.77,"color":"#9b533a","font":"vn-tan-jambore","bold":false,"shadow":false,"align":"left","lineHeight":1.5},
+    {"text":"Có một người xuất hiện","x":0.3687,"y":0.57,"size":4.77,"color":"#9a4f35","font":"vn-tan-jambore","bold":false,"shadow":false,"align":"left","lineHeight":1.5},
+    {"text":"buộc gọn hết đống muộn phiền tả tơi.","x":0.5344,"y":0.6645,"size":4.77,"color":"#9a5037","font":"vn-tan-jambore","bold":false,"shadow":false,"align":"left","lineHeight":1.5}
+  ]
+}

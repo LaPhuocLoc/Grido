@@ -1,0 +1,9 @@
+{
+  "font": "vn-bi",
+  "aspect": 1,
+  "bg": "#f4ede5",
+  "items": [
+    {"text":"(Nhắn với hoa đào rằng không cần phải\nnở nữa, người tôi đợi đã quay về rồi)","x":0.5,"y":0.65,"size":5.7,"color":"#8f3f2c","font":"vn-bi","bold":false,"shadow":false,"lineHeight":1.4},
+    {"text":"(A Châu dịch)","x":0.5,"y":0.75,"size":3,"color":"#995c46","font":"sans","shadow":false,"italic":true,"bold":false}
+  ]
+}

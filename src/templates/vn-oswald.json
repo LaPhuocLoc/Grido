@@ -1,0 +1,9 @@
+{
+  "font": "vn-oswald",
+  "aspect": 1.5,
+  "bg": "#39c5a2",
+  "items": [
+    {"text":"GIẢM SỐC","x":0.4983,"y":0.3254,"size":30,"font":"vn-oswald","bold":true,"shadow":false},
+    {"text":"CUỐI TUẦN","x":0.5003,"y":0.6696,"size":22,"font":"vn-oswald","bold":true,"shadow":false}
+  ]
+}

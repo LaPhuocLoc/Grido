@@ -1,0 +1,9 @@
+{
+  "font": "vn-svn-maphylla",
+  "aspect": 1.0654,
+  "bg": "#abb6db",
+  "items": [
+    {"text":"Màu Sắc","x":0.5,"y":0.33,"size":21.25,"color":"#2f3a58","font":"vn-svn-maphylla","bold":false,"shadow":false},
+    {"text":"Thanh Xuân","x":0.49,"y":0.57,"size":21.12,"color":"#2f3b58","font":"vn-svn-maphylla","bold":false,"shadow":false}
+  ]
+}

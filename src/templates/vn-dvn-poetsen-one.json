@@ -1,0 +1,9 @@
+{
+  "font": "vn-dvn-poetsen-one",
+  "aspect": 1.5,
+  "bg": "#5a63f0",
+  "items": [
+    {"text":"Mùa hè","x":0.5,"y":0.46,"size":40,"color":"#e6eeff","font":"vn-dvn-poetsen-one","bold":false,"shadow":false,"glow":{"color":"#9ec4ff","size":12}},
+    {"text":"xanh mát","x":0.5,"y":0.76,"size":12,"font":"vn-dvn-poetsen-one","bold":false,"shadow":false}
+  ]
+}

@@ -1,0 +1,9 @@
+{
+  "font": "vn-svn-neusa",
+  "aspect": 1.0654,
+  "bg": "#37dbff",
+  "items": [
+    {"text":"Đứa trẻ vô tư năm ấy\ngiờ vô dụng...","x":0.5014,"y":0.4321,"size":12.55,"color":"#3e536e","font":"vn-svn-neusa","bold":false,"shadow":false,"align":"left","lineHeight":1.3},
+    {"text":"Font này có type bold","x":0.3673,"y":0.6774,"size":8.86,"color":"#007df0","font":"vn-svn-neusa","shadow":false}
+  ]
+}

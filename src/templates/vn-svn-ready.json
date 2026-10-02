@@ -1,0 +1,8 @@
+{
+  "font": "vn-svn-ready",
+  "aspect": 1.0654,
+  "bg": "#470001",
+  "items": [
+    {"text":"Ấn\nChú\nLinh\nThiêng","x":0.5062,"y":0.5019,"size":15.64,"color":"#fd3a20","font":"vn-svn-ready","bold":false,"shadow":false,"lineHeight":1.06}
+  ]
+}

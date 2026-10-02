@@ -1,0 +1,9 @@
+{
+  "font": "vn-svn-blue",
+  "aspect": 1.0654,
+  "bg": "#544426",
+  "items": [
+    {"text":"BOY CÔ ĐƠN","x":0.5052,"y":0.3696,"size":21.12,"color":"#ffdba7","font":"vn-svn-blue","bold":false,"shadow":false},
+    {"text":"TÌM GIRL CŨNG THẾ","x":0.5003,"y":0.5548,"size":13.37,"color":"#ffdba7","font":"vn-svn-blue","bold":false,"shadow":false}
+  ]
+}

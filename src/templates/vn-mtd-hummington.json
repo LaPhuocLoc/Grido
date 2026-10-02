@@ -1,0 +1,12 @@
+{
+  "font": "vn-mtd-hummington",
+  "aspect": 1.5,
+  "bg": "#f9f9f9",
+  "items": [
+    {"text":"Ngọn","x":0.5,"y":0.2,"size":20,"color":"#92b42e","font":"vn-mtd-hummington","bold":false,"shadow":false,"rotation":-9},
+    {"text":"cỏ","x":0.5,"y":0.36,"size":20,"color":"#97ba31","font":"vn-mtd-hummington","bold":false,"shadow":false,"rotation":-1},
+    {"text":"ven","x":0.55,"y":0.5,"size":20,"color":"#a6ba36","font":"vn-mtd-hummington","bold":false,"shadow":false,"rotation":-3},
+    {"text":"đường","x":0.48,"y":0.66,"size":20,"color":"#a8ba33","font":"vn-mtd-hummington","bold":false,"shadow":false,"rotation":-3},
+    {"text":"LÀM SAO SO\nĐƯỢC VỚI MÂY?","x":0.5,"y":0.9,"size":3.5,"color":"#9bbf2f","font":"sans","bold":false,"shadow":false,"spacing":200,"lineHeight":1.4}
+  ]
+}

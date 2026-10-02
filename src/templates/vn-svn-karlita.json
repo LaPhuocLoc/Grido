@@ -1,0 +1,9 @@
+{
+  "font": "vn-svn-karlita",
+  "aspect": 1.0611,
+  "bg": "#78949a",
+  "items": [
+    {"text":"Tuổi Trẻ","x":0.4771,"y":0.4479,"size":20.69,"color":"#471801","font":"vn-svn-karlita","bold":false,"shadow":false},
+    {"text":"là những chuyến đi","x":0.4892,"y":0.5897,"size":6.74,"color":"#833e1d","font":"vn-svn-karlita","bold":false,"shadow":false}
+  ]
+}

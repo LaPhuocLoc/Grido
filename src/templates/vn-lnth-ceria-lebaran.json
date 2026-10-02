@@ -1,0 +1,10 @@
+{
+  "font": "vn-lnth-ceria-lebaran",
+  "aspect": 1.5,
+  "bg": "#e2dad7",
+  "items": [
+    {"text":"THỜI","x":0.4993,"y":0.2182,"size":23.98,"color":"#010100","font":"vn-lnth-ceria-lebaran","bold":false,"shadow":false,"rotation":24},
+    {"text":"GIAN","x":0.4503,"y":0.3611,"size":23.68,"color":"#010101","font":"vn-lnth-ceria-lebaran","bold":false,"shadow":false,"rotation":24},
+    {"text":"HOANG","x":0.418,"y":0.5255,"size":23.98,"color":"#010101","font":"vn-lnth-ceria-lebaran","bold":false,"shadow":false,"rotation":24}
+  ]
+}

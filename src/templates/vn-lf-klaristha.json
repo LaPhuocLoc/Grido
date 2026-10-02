@@ -1,0 +1,9 @@
+{
+  "font": "vn-lf-klaristha",
+  "aspect": 1,
+  "bg": "#f3ede5",
+  "items": [
+    {"text":"Có vẻ khó tin khi một\nngười nghĩ rằng, chỉ\ncần mình hết lòng yêu\nthương, thì ta sẽ được\nđền đáp xứng đáng.","x":0.5,"y":0.44,"size":7.5,"color":"#8f3f2c","font":"vn-lf-klaristha","bold":false,"shadow":false,"lineHeight":1.06},
+    {"text":"(Nguyễn Ngọc Tư)","x":0.5,"y":0.675,"size":5.5,"color":"#8f3f2c","font":"vn-lf-klaristha","bold":false,"shadow":false}
+  ]
+}

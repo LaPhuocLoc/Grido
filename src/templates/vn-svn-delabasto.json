@@ -1,0 +1,9 @@
+{
+  "font": "vn-svn-delabasto",
+  "aspect": 1.0654,
+  "bg": "#a7daed",
+  "items": [
+    {"text":"cơn Gió","x":0.4115,"y":0.23,"size":22.02,"color":"#fed593","font":"vn-svn-delabasto","bold":false,"shadow":false},
+    {"text":"mùa hạ","x":0.6062,"y":0.433,"size":21.76,"color":"#feda9d","font":"vn-svn-delabasto","bold":false,"shadow":false}
+  ]
+}

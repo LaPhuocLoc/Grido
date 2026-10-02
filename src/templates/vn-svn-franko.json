@@ -1,0 +1,9 @@
+{
+  "font": "vn-svn-franko",
+  "aspect": 1.0654,
+  "bg": "#e8fae0",
+  "items": [
+    {"text":"Tuyển tập sách","x":0.5031,"y":0.408,"size":8.72,"color":"#fb5140","font":"vn-svn-franko","bold":false,"shadow":false},
+    {"text":"Văn học Việt Nam","x":0.5035,"y":0.5486,"size":12.44,"color":"#fc5140","font":"vn-svn-franko","bold":false,"shadow":false}
+  ]
+}

@@ -1,0 +1,9 @@
+{
+  "font": "vn-young",
+  "aspect": 1.7778,
+  "bg": "#fa6807",
+  "items": [
+    {"text":"NGHỆ THUẬT","x":0.509,"y":0.4236,"size":27.64,"color":"#fbe9aa","font":"vn-young","bold":false,"shadow":false,"lineHeight":0.96},
+    {"text":"VIỆT NAM","x":0.501,"y":0.6873,"size":27.47,"color":"#fbe9aa","font":"vn-young","bold":false,"shadow":false,"lineHeight":0.96}
+  ]
+}

@@ -1,0 +1,10 @@
+{
+  "font": "vn-svn-endless-sorrow",
+  "aspect": 1.0654,
+  "bg": "#371b57",
+  "items": [
+    {"text":"Lễ Hội","x":0.5012,"y":0.2782,"size":35.97,"color":"#c4fe02","font":"vn-svn-endless-sorrow","bold":false,"shadow":false},
+    {"text":"Ma quái","x":0.5003,"y":0.5197,"size":36.2,"color":"#c3fe03","font":"vn-svn-endless-sorrow","bold":false,"shadow":false},
+    {"text":"Happy Halloween","x":0.4993,"y":0.7508,"size":11.51,"color":"#bdee14","font":"vn-svn-endless-sorrow","bold":false,"shadow":false}
+  ]
+}

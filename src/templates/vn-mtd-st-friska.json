@@ -1,0 +1,10 @@
+{
+  "font": "vn-mtd-st-friska",
+  "aspect": 1.5,
+  "bg": "#fafafa",
+  "items": [
+    {"text":"Người","x":0.5,"y":0.25,"size":20,"color":"#c0392b","font":"vn-mtd-st-friska","bold":false,"shadow":false},
+    {"text":"Trong","x":0.5,"y":0.43,"size":20,"color":"#c0392b","font":"vn-mtd-st-friska","bold":false,"shadow":false},
+    {"text":"Tim","x":0.48,"y":0.6,"size":20,"color":"#c0392b","font":"vn-mtd-st-friska","bold":false,"shadow":false}
+  ]
+}

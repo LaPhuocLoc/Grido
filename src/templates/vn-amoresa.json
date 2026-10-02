@@ -1,0 +1,10 @@
+{
+  "font": "vn-amoresa",
+  "aspect": 1,
+  "bg": "#f4ede5",
+  "items": [
+    {"text":"Gia Hân","x":0.5181,"y":0.3985,"size":9.85,"color":"#9a5137","font":"vn-amoresa","bold":false,"shadow":false},
+    {"text":"&","x":0.22,"y":0.4,"size":12,"color":"#8f3f2c","font":"vn-amoresa","bold":false,"shadow":false},
+    {"text":"Quỳnh Châu","x":0.5153,"y":0.5589,"size":9.97,"color":"#9a5137","font":"vn-amoresa","bold":false,"shadow":false}
+  ]
+}

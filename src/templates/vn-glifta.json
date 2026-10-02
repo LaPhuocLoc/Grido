@@ -1,0 +1,9 @@
+{
+  "font": "vn-glifta",
+  "aspect": 1,
+  "bg": "#f4ede5",
+  "items": [
+    {"text":"Đôi khi bạn mất đi một\nngười, nhưng thật ra là\nđánh mất đi chính mình\nkhi ở bên họ.","x":0.4861,"y":0.4474,"size":5.65,"color":"#9a4e34","font":"vn-glifta","bold":false,"shadow":false,"align":"left","lineHeight":1.37},
+    {"text":"(Sưu tầm)","x":0.2251,"y":0.6293,"size":3.21,"color":"#9d5842","font":"vn-glifta","bold":false,"shadow":false}
+  ]
+}

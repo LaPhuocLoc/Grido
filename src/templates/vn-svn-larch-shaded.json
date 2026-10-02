@@ -1,0 +1,8 @@
+{
+  "font": "vn-svn-larch-shaded",
+  "aspect": 1.0667,
+  "bg": "#e7e7ea",
+  "items": [
+    {"text":"Mừng ngày\nNhà Giáo Việt Nam\n20-11","x":0.5264,"y":0.4778,"size":11.88,"color":"#020102","font":"vn-svn-larch-shaded","bold":false,"shadow":false,"lineHeight":0.99}
+  ]
+}

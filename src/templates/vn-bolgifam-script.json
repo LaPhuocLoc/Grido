@@ -1,0 +1,11 @@
+{
+  "font": "vn-bolgifam-script",
+  "aspect": 1,
+  "bg": "#f4ede5",
+  "items": [
+    {"text":"Lễ Dạm Ngõ","x":0.5639,"y":0.2393,"size":5.37,"color":"#975036","font":"serif","shadow":false},
+    {"text":"Yến Linh","x":0.5636,"y":0.3783,"size":10.94,"color":"#994f35","font":"vn-bolgifam-script","bold":false,"shadow":false},
+    {"text":"&","x":0.4362,"y":0.5306,"size":11.78,"color":"#995139","font":"vn-bolgifam-script","bold":false,"shadow":false},
+    {"text":"Giai Nhân","x":0.4406,"y":0.6939,"size":10.94,"color":"#994f36","font":"vn-bolgifam-script","bold":false,"shadow":false}
+  ]
+}

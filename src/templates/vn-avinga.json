@@ -1,0 +1,9 @@
+{
+  "font": "vn-avinga",
+  "aspect": 1,
+  "bg": "#f4ede5",
+  "items": [
+    {"text":"Em là một câu chuyện\ntôi không dám đọc lại\nvì mỗi lần lật trang, ta\nlại thấy mình đau ở chỗ\nđã từng vui.","x":0.5,"y":0.43,"size":8,"color":"#8f3f2c","font":"vn-avinga","bold":false,"shadow":false,"align":"left","lineHeight":1.35},
+    {"text":"(Nguyễn Nhật Ánh)","x":0.5117,"y":0.7772,"size":3.47,"color":"#96533b","font":"sans","shadow":false,"italic":true}
+  ]
+}

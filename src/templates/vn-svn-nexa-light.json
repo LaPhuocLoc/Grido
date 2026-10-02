@@ -1,0 +1,9 @@
+{
+  "font": "vn-svn-nexa-light",
+  "aspect": 1.0654,
+  "bg": "#393939",
+  "items": [
+    {"text":"London","x":0.2153,"y":0.267,"size":8.1,"color":"#e5e5e5","font":"vn-svn-nexa-light","bold":false,"shadow":false},
+    {"text":"Không chỉ là một thành phố náo nhiệt,\nmà còn mang vẻ đẹp trầm mặc, hoài\ncổ và đôi khi đượm buồn. Sự ảm đạm\nnày thường đến từ những ngày mưa\nmịt mù, bầu trời xám xịt và cả những\ngóc phố mang đậm dấu ấn lịch sử.","x":0.5,"y":0.55,"size":5,"font":"vn-svn-nexa-light","bold":false,"shadow":false,"align":"left","lineHeight":1.4}
+  ]
+}

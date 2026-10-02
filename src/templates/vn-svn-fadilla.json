@@ -1,0 +1,9 @@
+{
+  "font": "vn-svn-fadilla",
+  "aspect": 1.0654,
+  "bg": "#fefef4",
+  "items": [
+    {"text":"sáng hôm qua","x":0.5,"y":0.4324,"size":14.51,"color":"#327336","font":"vn-svn-fadilla","bold":false,"shadow":false,"lineHeight":1.12},
+    {"text":"có cơn mưa rào","x":0.5,"y":0.5723,"size":14.6,"color":"#327336","font":"vn-svn-fadilla","bold":false,"shadow":false,"lineHeight":1.12}
+  ]
+}

@@ -1,0 +1,9 @@
+{
+  "font": "vn-mithella",
+  "aspect": 1,
+  "bg": "#f3ece4",
+  "items": [
+    {"text":"Khi bạn bước ra khỏi cơn bão,\nbạn sẽ không còn là người\nđã bước vào đó nữa.","x":0.5,"y":0.47,"size":6.5,"color":"#8f3f2c","font":"vn-mithella","bold":false,"shadow":false,"lineHeight":1.5},
+    {"text":"(Kafka bên bờ biển - Haruki Murakami)","x":0.5,"y":0.64,"size":4,"color":"#8f3f2c","font":"vn-mithella","bold":false,"shadow":false}
+  ]
+}

@@ -1,0 +1,9 @@
+{
+  "font": "vn-dl-calvera",
+  "aspect": 1.395,
+  "bg": "#fdc82f",
+  "items": [
+    {"text":"PHỐ CỔ","x":0.5,"y":0.17,"size":15,"color":"#111111","font":"vn-montserrat","shadow":false},
+    {"text":"Hội An","x":0.55,"y":0.47,"size":30,"color":"#000000","font":"vn-dl-calvera","bold":false,"shadow":false,"rotation":-5}
+  ]
+}

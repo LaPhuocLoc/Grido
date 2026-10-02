@@ -1,0 +1,11 @@
+{
+  "font": "vn-lnth-kids-chinese-font",
+  "aspect": 1.5,
+  "bg": "#c2e7ef",
+  "items": [
+    {"text":"Hôm nay trời nắng đẹp","x":0.5285,"y":0.4179,"size":10.25,"color":"#5c534d","font":"vn-lnth-kids-chinese-font","bold":false,"shadow":false,"lineHeight":1.35},
+    {"text":"Mang muộn phiền ra phơi","x":0.4983,"y":0.5354,"size":10.25,"color":"#5c534c","font":"vn-lnth-kids-chinese-font","bold":false,"shadow":false,"lineHeight":1.35},
+    {"text":"Nỗi buồn bốc hơi mất","x":0.4385,"y":0.6655,"size":7.33,"color":"#5c534c","font":"vn-lnth-kids-chinese-font","bold":false,"shadow":false,"lineHeight":1.35},
+    {"text":"Hoá thành mây trên trời","x":0.4639,"y":0.783,"size":10.25,"color":"#5c534c","font":"vn-lnth-kids-chinese-font","bold":false,"shadow":false,"lineHeight":1.35}
+  ]
+}

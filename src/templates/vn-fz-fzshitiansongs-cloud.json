@@ -1,0 +1,10 @@
+{
+  "font": "vn-fz-fzshitiansongs-cloud",
+  "aspect": 1.5,
+  "bg": "#e5e5a9",
+  "items": [
+    {"text":"ĐÊM","x":0.4803,"y":0.4221,"size":17.94,"color":"#0e4e4c","font":"vn-fz-fzshitiansongs-cloud","bold":false,"shadow":false},
+    {"text":"HỘI","x":0.4814,"y":0.6358,"size":17.71,"color":"#07494a","font":"vn-fz-fzshitiansongs-cloud","bold":false,"shadow":false},
+    {"text":"Trăng\nRằm","x":0.67,"y":0.53,"size":6,"font":"vn-fz-fzshitiansongs-cloud","bold":false,"shadow":false,"lineHeight":1.2,"plate":{"color":"#e8452c","pad":35,"radius":60}}
+  ]
+}

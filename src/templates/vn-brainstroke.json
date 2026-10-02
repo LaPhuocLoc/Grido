@@ -1,0 +1,9 @@
+{
+  "font": "vn-brainstroke",
+  "aspect": 1,
+  "bg": "#f3ece4",
+  "items": [
+    {"text":"Một đời rất dài, chọn sai người thì một\nđời đau khổ. Một đời rất ngắn, chọn\nđúng người thì cả đời này vẫn không đủ","x":0.5,"y":0.665,"size":6.5,"color":"#8f3f2c","font":"vn-brainstroke","bold":false,"shadow":false,"lineHeight":1.45},
+    {"text":"(Mee dịch)","x":0.5,"y":0.81,"size":5.5,"color":"#965945","font":"vn-brainstroke","bold":false,"shadow":false}
+  ]
+}

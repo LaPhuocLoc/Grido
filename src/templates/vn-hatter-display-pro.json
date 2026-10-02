@@ -1,0 +1,9 @@
+{
+  "font": "vn-hatter-display-pro",
+  "aspect": 1,
+  "bg": "#f4ede5",
+  "items": [
+    {"text":"Truyện cổ tích Việt Nam","x":0.4993,"y":0.2417,"size":4.44,"color":"#a05d45","font":"vn-hatter-display-pro","bold":false,"shadow":false},
+    {"text":"CÔ BÉ BÁN DIÊM","x":0.5003,"y":0.3096,"size":5.57,"color":"#9c553c","font":"vn-hatter-display-pro","bold":false,"shadow":false}
+  ]
+}

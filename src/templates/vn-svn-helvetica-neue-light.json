@@ -1,0 +1,9 @@
+{
+  "font": "vn-svn-helvetica-neue-light",
+  "aspect": 1.0654,
+  "bg": "#3a4f24",
+  "items": [
+    {"text":"một đời người","x":0.5,"y":0.4137,"size":14.53,"color":"#abd683","font":"vn-svn-helvetica-neue-light","bold":false,"shadow":false},
+    {"text":"một rừng cây","x":0.5,"y":0.5864,"size":14.62,"color":"#a8d481","font":"vn-svn-helvetica-neue-light","bold":false,"shadow":false}
+  ]
+}

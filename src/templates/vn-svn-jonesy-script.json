@@ -1,0 +1,9 @@
+{
+  "font": "vn-svn-jonesy-script",
+  "aspect": 1.0678,
+  "bg": "#fde9ba",
+  "items": [
+    {"text":"Hoàng Tử Bé","x":0.5021,"y":0.3115,"size":12.74,"color":"#000001","font":"vn-svn-jonesy-script","bold":false,"shadow":false},
+    {"text":"Le Petit Prince","x":0.7319,"y":0.402,"size":4.55,"color":"#15120d","font":"vn-svn-jonesy-script","bold":false,"shadow":false}
+  ]
+}

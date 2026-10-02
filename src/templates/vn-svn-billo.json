@@ -1,0 +1,8 @@
+{
+  "font": "vn-svn-billo",
+  "aspect": 1.0654,
+  "bg": "#396194",
+  "items": [
+    {"text":"mèo học\nthiết kế","x":0.4931,"y":0.3667,"size":16.63,"font":"vn-svn-billo","bold":false,"shadow":false,"lineHeight":1.1}
+  ]
+}

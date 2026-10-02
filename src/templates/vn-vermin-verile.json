@@ -1,0 +1,9 @@
+{
+  "font": "vn-vermin-verile",
+  "aspect": 1,
+  "bg": "#f4ede5",
+  "items": [
+    {"text":"PHỐ ĐÃ LÊN ĐÈN\n(REMIX)","x":0.5062,"y":0.3507,"size":6.73,"color":"#994e34","font":"vn-vermin-verile","bold":false,"shadow":false,"lineHeight":1.47},
+    {"text":"CÓ NHẠC BÊN CẠNH AI KHÔNG FEEL\nCÓ EM BÊN CẠNH YÊU KHÔNG PHAI\nTÌNH YÊU NẰM NGANG CỦA ANH\nLUÔN NGÀN NĂM","x":0.5062,"y":0.5836,"size":3.95,"color":"#994f36","font":"vn-vermin-verile","bold":false,"shadow":false,"lineHeight":1.53}
+  ]
+}

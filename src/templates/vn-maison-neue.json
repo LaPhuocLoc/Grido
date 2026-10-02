@@ -1,0 +1,13 @@
+{
+  "font": "vn-maison-neue",
+  "aspect": 1,
+  "bg": "#f4ede5",
+  "items": [
+    {"text":"Chúng ta đặt dịu dàng vào\nlòng nhau như những hạt\ngiống, một vài hạt nở thành","x":0.5104,"y":0.3544,"size":5.78,"color":"#96543c","font":"vn-maison-neue","bold":false,"shadow":false,"lineHeight":1.41},
+    {"text":"\"chào buổi sáng\"","x":0.3735,"y":0.515,"size":5.77,"color":"#975233","font":"vn-maison-neue","bold":false,"shadow":false,"plate":{"color":"#fbe59a","pad":14,"radius":20}},
+    {"text":", có hạt nở","x":0.7384,"y":0.515,"size":5.81,"color":"#94513a","font":"vn-maison-neue","bold":false,"shadow":false},
+    {"text":"thành","x":0.2504,"y":0.595,"size":5.81,"color":"#96533c","font":"vn-maison-neue","bold":false,"shadow":false},
+    {"text":"\"về nhà cẩn thận\".","x":0.5909,"y":0.595,"size":5.78,"color":"#985435","font":"vn-maison-neue","bold":false,"shadow":false,"plate":{"color":"#fbe59a","pad":14,"radius":20}},
+    {"text":"(Sách Where the world is still)","x":0.5215,"y":0.665,"size":4.46,"color":"#945741","font":"vn-maison-neue","bold":false,"shadow":false}
+  ]
+}

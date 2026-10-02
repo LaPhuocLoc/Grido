@@ -1,0 +1,9 @@
+{
+  "font": "vn-svn-riesling",
+  "aspect": 1.0654,
+  "bg": "#e7fffc",
+  "items": [
+    {"text":"mặt trời","x":0.5007,"y":0.3715,"size":38.79,"color":"#5659fd","font":"vn-svn-riesling","bold":false,"shadow":false,"lineHeight":0.77},
+    {"text":"của anh","x":0.4996,"y":0.6322,"size":34.72,"color":"#5659fd","font":"vn-svn-riesling","bold":false,"shadow":false,"lineHeight":0.77}
+  ]
+}

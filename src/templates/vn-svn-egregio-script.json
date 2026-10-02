@@ -1,0 +1,9 @@
+{
+  "font": "vn-svn-egregio-script",
+  "aspect": 1.0654,
+  "bg": "#a42425",
+  "items": [
+    {"text":"Thăng Long","x":0.4979,"y":0.411,"size":14.63,"color":"#fec43f","font":"vn-svn-egregio-script","bold":false,"shadow":false,"lineHeight":1.18},
+    {"text":"Hà Nội","x":0.4403,"y":0.5889,"size":14.63,"color":"#fec43f","font":"vn-svn-egregio-script","bold":false,"shadow":false,"lineHeight":1.18}
+  ]
+}

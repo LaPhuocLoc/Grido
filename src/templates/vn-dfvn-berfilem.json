@@ -1,0 +1,12 @@
+{
+  "font": "vn-dfvn-berfilem",
+  "aspect": 1.4993,
+  "bg": "#faa884",
+  "items": [
+    {"text":"RƠI","x":0.4993,"y":0.3625,"size":33.93,"color":"#fefefd","font":"vn-dfvn-berfilem","bold":false,"shadow":false},
+    {"text":"TRONG","x":0.4903,"y":0.5583,"size":25.41,"color":"#fefdfb","font":"vn-dfvn-berfilem","bold":false,"shadow":false},
+    {"text":"màn đêm","x":0.4892,"y":0.6954,"size":16.73,"color":"#fdf8f4","font":"vn-dfvn-berfilem","bold":false,"shadow":false},
+    {"text":"băng giá","x":0.5,"y":0.75,"size":8,"font":"vn-allura","bold":false,"shadow":false},
+    {"text":"TỪNG GIỌT CÀ PHÊ","x":0.5,"y":0.125,"size":2.2,"font":"sans","bold":false,"shadow":false,"spacing":300}
+  ]
+}

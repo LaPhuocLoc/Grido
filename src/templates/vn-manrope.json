@@ -3,7 +3,7 @@
   "aspect": 1.5,
   "bg": "#090a25",
   "items": [
-    {"text":"KHỞI ĐẦU","x":0.5,"y":0.4,"size":24,"color":"#f9f9f8","font":"vn-manrope","shadow":false},
-    {"text":"MỚI","x":0.5,"y":0.645,"size":13,"color":"#eaeaea","font":"vn-manrope","bold":true,"shadow":false}
+    {"text":"KHỞI ĐẦU","x":0.5,"y":0.4,"size":24,"color":"#f9f9f8","font":"vn-manrope","shadow":false,"bold":true},
+    {"text":"MỚI","x":0.5,"y":0.645,"size":13,"color":"#eaeaea","font":"vn-manrope","bold":false,"shadow":false}
   ]
 }

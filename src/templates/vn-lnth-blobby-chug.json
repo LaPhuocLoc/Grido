@@ -1,0 +1,11 @@
+{
+  "font": "vn-lnth-blobby-chug",
+  "aspect": 1.5,
+  "bg": "#91d5d8",
+  "items": [
+    {"text":"Mong","x":0.5,"y":0.34,"size":19,"font":"vn-lnth-blobby-chug","bold":false,"shadow":false},
+    {"text":"mỗi ngày","x":0.5,"y":0.52,"size":19,"font":"vn-lnth-blobby-chug","bold":false,"shadow":false},
+    {"text":"đều là","x":0.5,"y":0.69,"size":19,"font":"vn-lnth-blobby-chug","bold":false,"shadow":false},
+    {"text":"BÌNH YÊN","x":0.5,"y":0.85,"size":19,"color":"#f9b5cf","font":"vn-lnth-blobby-chug","bold":false,"shadow":false,"outline":{"color":"#ffffff","width":4}}
+  ]
+}

@@ -1,0 +1,8 @@
+{
+  "font": "vn-brotherhood-script",
+  "aspect": 1,
+  "bg": "#f4ede5",
+  "items": [
+    {"text":"Bỗng một ngày gặp được\nánh mắt em, mọi phải tàn của\nthế gian đều trở nên vô nghĩa.\n(Sách Where the world is still)","x":0.5,"y":0.5,"size":10.8,"color":"#8f3f2c","font":"vn-brotherhood-script","bold":false,"shadow":false,"lineHeight":1.5}
+  ]
+}

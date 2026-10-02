@@ -1,0 +1,8 @@
+{
+  "font": "vn-questrial",
+  "aspect": 1.5,
+  "bg": "#1a2238",
+  "items": [
+    {"text":"Nhẹ nhàng\nvà tinh tế","x":0.5003,"y":0.4554,"size":18.81,"color":"#f9fbfb","font":"vn-questrial","bold":false,"shadow":false,"lineHeight":1.2}
+  ]
+}

@@ -1,0 +1,9 @@
+{
+  "font": "vn-hy-allist",
+  "aspect": 1.0654,
+  "bg": "#eae9ea",
+  "items": [
+    {"text":"Da khoẻ","x":0.3649,"y":0.3499,"size":19.79,"color":"#714748","font":"vn-hy-allist","bold":false,"shadow":false,"align":"left","lineHeight":0.94},
+    {"text":"rạng ngời","x":0.3649,"y":0.5014,"size":16.25,"color":"#714748","font":"vn-hy-allist","bold":false,"shadow":false,"align":"left","lineHeight":0.94}
+  ]
+}

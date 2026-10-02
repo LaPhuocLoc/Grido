@@ -1,0 +1,9 @@
+{
+  "font": "vn-1k-reey",
+  "aspect": 1.5,
+  "bg": "#e7c3c6",
+  "items": [
+    {"text":"Lãng","x":0.42,"y":0.42,"size":34,"color":"#111111","font":"vn-1k-reey","shadow":false,"rotation":-8,"bold":false},
+    {"text":"khách","x":0.62,"y":0.62,"size":22,"color":"#111111","font":"vn-1k-reey","shadow":false,"rotation":-8,"bold":false}
+  ]
+}

@@ -1,0 +1,11 @@
+{
+  "font": "vn-ahsing",
+  "aspect": 1,
+  "bg": "#f4ede5",
+  "items": [
+    {"text":"Xin Lỗi","x":0.4762,"y":0.3583,"size":12.76,"color":"#9a4e34","font":"vn-ahsing","bold":false,"shadow":false},
+    {"text":"vì đã chẳng thể","x":0.48,"y":0.45,"size":8,"color":"#8f3f2c","font":"vn-allura","bold":false,"shadow":false},
+    {"text":"Trưởng Thành","x":0.5042,"y":0.5604,"size":8.81,"color":"#9a4e34","font":"vn-ahsing","bold":false,"shadow":false},
+    {"text":"sớm hơn","x":0.5,"y":0.65,"size":8,"color":"#8f3f2c","font":"vn-allura","bold":false,"shadow":false}
+  ]
+}

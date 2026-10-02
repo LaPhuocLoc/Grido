@@ -1,0 +1,12 @@
+{
+  "font": "vn-cinnamon",
+  "aspect": 1,
+  "bg": "#f4ede5",
+  "items": [
+    {"text":"Ông giờ là chiếc lá","x":0.4997,"y":0.3188,"size":6.9,"color":"#994f35","font":"vn-cinnamon","bold":false,"shadow":false,"lineHeight":1.45},
+    {"text":"Theo gió về trời xa","x":0.4997,"y":0.4348,"size":6.9,"color":"#994f35","font":"vn-cinnamon","bold":false,"shadow":false,"lineHeight":1.45},
+    {"text":"Bà là làn khói mỏng","x":0.4997,"y":0.5508,"size":6.86,"color":"#994f35","font":"vn-cinnamon","bold":false,"shadow":false,"lineHeight":1.45},
+    {"text":"Tan về phía chiều tà","x":0.4997,"y":0.6668,"size":6.9,"color":"#994f35","font":"vn-cinnamon","bold":false,"shadow":false,"lineHeight":1.45},
+    {"text":"(Sưu tầm)","x":0.5014,"y":0.7754,"size":6.67,"color":"#994f35","font":"vn-cinnamon","bold":false,"shadow":false}
+  ]
+}

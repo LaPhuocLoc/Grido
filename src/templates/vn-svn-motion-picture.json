@@ -1,0 +1,11 @@
+{
+  "font": "vn-svn-motion-picture",
+  "aspect": 1.0654,
+  "bg": "#1700e7",
+  "items": [
+    {"text":"Chịu được","x":0.4,"y":0.32,"size":18,"color":"#fef1d5","font":"vn-svn-motion-picture","bold":false,"shadow":false,"rotation":-8},
+    {"text":"tính mình","x":0.56,"y":0.46,"size":18,"color":"#fed6f9","font":"vn-svn-motion-picture","bold":false,"shadow":false,"rotation":-8},
+    {"text":"thì được","x":0.36,"y":0.6,"size":18,"color":"#fed6f9","font":"vn-svn-motion-picture","bold":false,"shadow":false,"rotation":-8},
+    {"text":"triệu miếng tình","x":0.48,"y":0.75,"size":18,"color":"#e89af8","font":"vn-svn-motion-picture","bold":false,"shadow":false,"rotation":-3}
+  ]
+}

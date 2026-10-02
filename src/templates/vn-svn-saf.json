@@ -1,0 +1,10 @@
+{
+  "font": "vn-svn-saf",
+  "aspect": 1.0654,
+  "bg": "#ab2321",
+  "items": [
+    {"text":"TIẾNG VIỆT","x":0.5003,"y":0.3408,"size":14.63,"color":"#f5c126","font":"vn-svn-saf","bold":false,"shadow":false},
+    {"text":"CÓ DẤU","x":0.5003,"y":0.543,"size":14.63,"color":"#f5c126","font":"vn-svn-saf","bold":false,"shadow":false},
+    {"text":"KHÔNG XẤU NHƯ BẠN NGHĨ","x":0.5003,"y":0.7176,"size":5.6,"color":"#f3dbdb","font":"vn-svn-saf","bold":false,"shadow":false}
+  ]
+}

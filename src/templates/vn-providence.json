@@ -1,0 +1,9 @@
+{
+  "font": "vn-providence",
+  "aspect": 1,
+  "bg": "#fef9f3",
+  "items": [
+    {"text":"Tệ thật, mình ở lại vì\nhọ, nhưng mình cứ\nnghĩ, có khi họ sẽ ổn\nhơn nếu không có sự\nhiện diện của mình","x":0.4931,"y":0.476,"size":7.8,"color":"#975541","font":"vn-providence","bold":false,"shadow":false,"align":"left","lineHeight":1.39},
+    {"text":"(Đám trẻ ở đại dương)","x":0.4972,"y":0.7792,"size":5.57,"color":"#945843","font":"vn-providence","bold":false,"shadow":false}
+  ]
+}

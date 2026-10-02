@@ -1,0 +1,8 @@
+{
+  "font": "vn-svn-gretoon",
+  "aspect": 1.0654,
+  "bg": "#ffffff",
+  "items": [
+    {"text":"bóng bay","x":0.5014,"y":0.4595,"size":14.61,"color":"#9ac9ff","font":"vn-svn-gretoon","bold":false,"shadow":false}
+  ]
+}

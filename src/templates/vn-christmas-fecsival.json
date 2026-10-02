@@ -1,0 +1,11 @@
+{
+  "font": "vn-christmas-fecsival",
+  "aspect": 1,
+  "bg": "#f4ede5",
+  "items": [
+    {"text":"Ly","x":0.4975,"y":0.3147,"size":8.5,"color":"#9a4e34","font":"vn-christmas-fecsival","bold":false,"shadow":false},
+    {"text":"Biệt","x":0.4958,"y":0.4426,"size":8.62,"color":"#9a4e34","font":"vn-christmas-fecsival","bold":false,"shadow":false},
+    {"text":"trùng","x":0.4928,"y":0.5514,"size":7.72,"color":"#9a4e34","font":"vn-christmas-fecsival","bold":false,"shadow":false},
+    {"text":"phùng","x":0.5181,"y":0.6772,"size":8.62,"color":"#9a4e34","font":"vn-christmas-fecsival","bold":false,"shadow":false}
+  ]
+}

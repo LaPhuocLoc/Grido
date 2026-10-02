@@ -1,0 +1,9 @@
+{
+  "font": "vn-svn-georgia",
+  "aspect": 1.0654,
+  "bg": "#f5f5f5",
+  "items": [
+    {"text":"TIN TỨC TRONG NGÀY","x":0.5003,"y":0.472,"size":7.5,"color":"#040404","font":"vn-svn-georgia","bold":false,"shadow":false},
+    {"text":"Tin tức Việt Nam và thế giới","x":0.4993,"y":0.5826,"size":7.5,"color":"#020202","font":"vn-svn-georgia","bold":false,"shadow":false}
+  ]
+}

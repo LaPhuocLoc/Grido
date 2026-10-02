@@ -1,0 +1,11 @@
+{
+  "font": "vn-svn-d-sari",
+  "aspect": 1.0654,
+  "bg": "#f0feff",
+  "items": [
+    {"text":"GIẢI CHẠY MARATHON","x":0.5014,"y":0.237,"size":7,"color":"#011fe5","font":"vn-svn-d-sari","bold":false,"shadow":false},
+    {"text":"RUN TO LIVE","x":0.4972,"y":0.3548,"size":9.38,"color":"#001fe7","font":"vn-svn-d-sari","bold":false,"shadow":false},
+    {"text":"2026","x":0.4993,"y":0.527,"size":23.98,"color":"#001fe8","font":"vn-svn-d-sari","bold":false,"shadow":false},
+    {"text":"Mùa đầu tiên có sự tham gia của The Flash","x":0.4993,"y":0.6965,"size":4.6,"color":"#112de3","font":"vn-svn-d-sari","bold":false,"shadow":false}
+  ]
+}

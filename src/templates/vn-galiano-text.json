@@ -1,0 +1,9 @@
+{
+  "font": "vn-galiano-text",
+  "aspect": 1,
+  "bg": "#f4ede5",
+  "items": [
+    {"text":"Trưởng thành rồi bạn sẽ nhận ra\ncái gọi là cuộc sống yên bình chẳng\nqua cũng chỉ là một bữa cơm ấm\ncúng trong nhà và một ngọn đèn\nluôn sáng lên vì bạn.","x":0.5,"y":0.44,"size":9,"color":"#8f3f2c","font":"vn-galiano-text","bold":false,"shadow":false,"lineHeight":0.95},
+    {"text":"(Phim Sắc màu pháo hoa nhân gian)","x":0.5,"y":0.695,"size":7.2,"color":"#8f3f2c","font":"vn-galiano-text","bold":false,"shadow":false}
+  ]
+}

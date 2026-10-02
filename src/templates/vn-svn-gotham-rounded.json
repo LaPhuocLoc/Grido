@@ -1,0 +1,9 @@
+{
+  "font": "vn-svn-gotham-rounded",
+  "aspect": 1.0654,
+  "bg": "#fffde4",
+  "items": [
+    {"text":"MÙA TỰU TRƯỜNG","x":0.4989,"y":0.4412,"size":9.32,"color":"#30934e","font":"vn-svn-gotham-rounded","bold":false,"shadow":false,"lineHeight":1.4},
+    {"text":"BACK TO SCHOOL","x":0.4979,"y":0.5742,"size":9.5,"color":"#30934e","font":"vn-svn-gotham-rounded","bold":false,"shadow":false,"lineHeight":1.4}
+  ]
+}

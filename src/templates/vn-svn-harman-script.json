@@ -1,0 +1,8 @@
+{
+  "font": "vn-svn-harman-script",
+  "aspect": 1.0654,
+  "bg": "#090301",
+  "items": [
+    {"text":"Nốt nhạc","x":0.4538,"y":0.4852,"size":16.83,"color":"#fdfefe","font":"vn-svn-harman-script","bold":false,"shadow":false}
+  ]
+}

@@ -1,0 +1,8 @@
+{
+  "font": "vn-svn-calling-code",
+  "aspect": 1.0654,
+  "bg": "#770042",
+  "items": [
+    {"text":"cái font này\ncứ như là dành cho\ncoder hay sao ấy","x":0.4955,"y":0.4896,"size":8.92,"color":"#fffbdf","font":"vn-svn-calling-code","shadow":false,"italic":true,"align":"left","lineHeight":1.41}
+  ]
+}

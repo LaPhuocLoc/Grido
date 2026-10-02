@@ -1,0 +1,11 @@
+{
+  "font": "vn-gosha-sans",
+  "aspect": 1,
+  "bg": "#f4ede5",
+  "items": [
+    {"text":"Tôi có một nỗi nhớ\nNhưng mang xẻ làm hai\nNửa vờ không vướng bận","x":0.5083,"y":0.3817,"size":6.34,"color":"#975038","font":"vn-gosha-sans","shadow":false,"lineHeight":1.45},
+    {"text":"Nửa","x":0.26,"y":0.5646,"size":6.3,"color":"#994e34","font":"vn-gosha-sans","shadow":false},
+    {"text":"cứ mơ em hoài.","x":0.5792,"y":0.5646,"size":6.66,"color":"#994e33","font":"vn-gosha-sans","shadow":false,"plate":{"color":"#fbe59a","pad":18,"radius":20}},
+    {"text":"(sưu tầm)","x":0.5083,"y":0.6446,"size":5,"color":"#935a46","font":"vn-gosha-sans","shadow":false}
+  ]
+}

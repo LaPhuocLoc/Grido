@@ -1,0 +1,9 @@
+{
+  "font": "vn-playfair-display",
+  "aspect": 1.5,
+  "bg": "#090b26",
+  "items": [
+    {"text":"Thanh lịch và","x":0.5247,"y":0.4054,"size":18.11,"color":"#fefffe","font":"vn-playfair-display","shadow":false},
+    {"text":"cổ điển","x":0.5226,"y":0.6223,"size":17.77,"color":"#fffffe","font":"vn-playfair-display","shadow":false}
+  ]
+}

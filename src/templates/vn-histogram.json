@@ -1,0 +1,12 @@
+{
+  "font": "vn-histogram",
+  "aspect": 1,
+  "bg": "#f4ede5",
+  "items": [
+    {"text":"Ai mua trăng","x":0.6,"y":0.22,"size":4.5,"color":"#8f3f2c","font":"serif","bold":false,"shadow":false,"spacing":300},
+    {"text":"tôi","x":0.69,"y":0.285,"size":4.5,"color":"#8f3f2c","font":"serif","bold":false,"shadow":false,"spacing":300},
+    {"text":"Bán","x":0.4874,"y":0.3819,"size":20,"color":"#994e34","font":"vn-histogram","bold":false,"shadow":false},
+    {"text":"Trăng","x":0.5028,"y":0.5931,"size":20.5,"color":"#994e34","font":"vn-histogram","bold":false,"shadow":false},
+    {"text":"cho","x":0.56,"y":0.705,"size":4.5,"color":"#8f3f2c","font":"serif","bold":false,"shadow":false,"spacing":300}
+  ]
+}

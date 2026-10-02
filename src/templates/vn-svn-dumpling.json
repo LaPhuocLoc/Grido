@@ -1,0 +1,9 @@
+{
+  "font": "vn-svn-dumpling",
+  "aspect": 1.0654,
+  "bg": "#aa1416",
+  "items": [
+    {"text":"ẨM THỰC","x":0.5163,"y":0.3785,"size":14.53,"color":"#f9ecdc","font":"vn-svn-dumpling","bold":false,"shadow":false,"rotation":-1},
+    {"text":"NƯỚC Ý","x":0.5042,"y":0.5604,"size":21.8,"color":"#f9ecdc","font":"vn-svn-dumpling","bold":false,"shadow":false}
+  ]
+}

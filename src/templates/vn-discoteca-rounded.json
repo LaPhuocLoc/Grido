@@ -1,0 +1,11 @@
+{
+  "font": "vn-discoteca-rounded",
+  "aspect": 1,
+  "bg": "#fef9f3",
+  "items": [
+    {"text":"Mái tranh ôm khói mỏng","x":0.4993,"y":0.3006,"size":8.8,"color":"#994f35","font":"vn-discoteca-rounded","bold":false,"shadow":false,"lineHeight":1.76},
+    {"text":"Khói ôm lấy tầng mây","x":0.4993,"y":0.4388,"size":8.8,"color":"#984f35","font":"vn-discoteca-rounded","bold":false,"shadow":false,"lineHeight":1.76},
+    {"text":"Sao giờ con chẳng thấy","x":0.4993,"y":0.5811,"size":8.8,"color":"#994f35","font":"vn-discoteca-rounded","bold":false,"shadow":false,"lineHeight":1.76},
+    {"text":"Bếp xưa đỏ mỗi ngày","x":0.5004,"y":0.7193,"size":8.74,"color":"#994f35","font":"vn-discoteca-rounded","bold":false,"shadow":false,"lineHeight":1.76}
+  ]
+}

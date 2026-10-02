@@ -1,0 +1,8 @@
+{
+  "font": "vn-young-display",
+  "aspect": 1.5,
+  "bg": "#022ae3",
+  "items": [
+    {"text":"TUỔI TRẺ\nRỰC RỠ","x":0.5003,"y":0.5444,"size":32.44,"color":"#ecf9ff","font":"vn-young-display","bold":false,"shadow":false,"lineHeight":0.85}
+  ]
+}

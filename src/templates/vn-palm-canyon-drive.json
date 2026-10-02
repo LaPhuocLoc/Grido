@@ -1,0 +1,12 @@
+{
+  "font": "vn-palm-canyon-drive",
+  "aspect": 1,
+  "bg": "#f4ede5",
+  "items": [
+    {"text":"Anh qua đôi phố, nhớ đôi môi","x":0.4997,"y":0.2433,"size":8.21,"color":"#96553d","font":"vn-palm-canyon-drive","bold":false,"shadow":false,"lineHeight":1.18},
+    {"text":"Em soi đôi mắt, đợi đôi hồi","x":0.4997,"y":0.3571,"size":8.21,"color":"#96553d","font":"vn-palm-canyon-drive","bold":false,"shadow":false,"lineHeight":1.18},
+    {"text":"Tình như sợi gió không thành nút","x":0.4997,"y":0.4751,"size":8.21,"color":"#96543c","font":"vn-palm-canyon-drive","bold":false,"shadow":false,"lineHeight":1.18},
+    {"text":"Chỉ khẽ buông tay đã lạc rồi.","x":0.5059,"y":0.5889,"size":8.42,"color":"#96533c","font":"vn-palm-canyon-drive","bold":false,"shadow":false,"lineHeight":1.18},
+    {"text":"(sưu tầm)","x":0.4924,"y":0.7017,"size":7.42,"color":"#965a44","font":"vn-palm-canyon-drive","bold":false,"shadow":false}
+  ]
+}

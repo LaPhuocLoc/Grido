@@ -1,0 +1,9 @@
+{
+  "font": "vn-agu-display",
+  "aspect": 1.5,
+  "bg": "#16151c",
+  "items": [
+    {"text":"HÀNH TRÌNH MỚI","x":0.5,"y":0.41,"size":15,"font":"vn-agu-display","shadow":false,"bold":false},
+    {"text":"bắt đầu","x":0.5,"y":0.64,"size":15,"font":"vn-agu-display","shadow":false,"bold":false}
+  ]
+}

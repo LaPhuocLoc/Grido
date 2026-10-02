@@ -1,0 +1,10 @@
+{
+  "font": "vn-dfvn-rubra-costa",
+  "aspect": 1.5,
+  "bg": "#dcdcdc",
+  "items": [
+    {"text":"Ngọt","x":0.38,"y":0.36,"size":36,"color":"#fbf3e4","font":"vn-dfvn-rubra-costa","bold":false,"shadow":false,"rotation":-8,"outline":{"color":"#1d2b5c","width":5},"block":{"color":"#e2725b","x":3,"y":4}},
+    {"text":"Ngào","x":0.64,"y":0.68,"size":36,"color":"#fbf3e4","font":"vn-dfvn-rubra-costa","bold":false,"shadow":false,"rotation":-8,"outline":{"color":"#1d2b5c","width":5},"block":{"color":"#e2725b","x":3,"y":4}},
+    {"text":"đậm đà","x":0.3,"y":0.84,"size":12,"color":"#1d2b5c","font":"vn-dfvn-rubra-costa","bold":false,"shadow":false,"rotation":-8}
+  ]
+}

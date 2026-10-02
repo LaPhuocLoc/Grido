@@ -1,0 +1,8 @@
+{
+  "font": "vn-alkatra",
+  "aspect": 1,
+  "bg": "#f3ece4",
+  "items": [
+    {"text":"Đường đời muôn ngả,\ngặp gỡ là đã\nnhân duyên","x":0.5,"y":0.5,"size":9,"color":"#8f3f2c","font":"vn-alkatra","shadow":false,"lineHeight":1.4,"bold":false}
+  ]
+}

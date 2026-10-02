@@ -1,0 +1,9 @@
+{
+  "font": "vn-loyola-pro",
+  "aspect": 1,
+  "bg": "#f4ede5",
+  "items": [
+    {"text":"Từ đó trở đi tôi hiểu ra một điều, bạn\nbè không phải những người thường\nngày thân cận nhất với mình, mà là\nngười tôn trọng mình từ tận đáy lòng.","x":0.5184,"y":0.4482,"size":5.63,"color":"#9c563d","font":"vn-loyola-pro","bold":false,"shadow":false,"lineHeight":1.37},
+    {"text":"(Đường đời muôn ngả, gặp gỡ là đã nhân duyên)","x":0.5184,"y":0.6218,"size":3.73,"color":"#a1604a","font":"vn-loyola-pro","bold":false,"shadow":false}
+  ]
+}

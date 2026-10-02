@@ -1,0 +1,10 @@
+{
+  "font": "vn-verlag",
+  "aspect": 1,
+  "bg": "#f4ede5",
+  "items": [
+    {"text":"Không phải tôi không mở lòng,","x":0.4983,"y":0.3422,"size":5.67,"color":"#9b5239","font":"vn-verlag","shadow":false},
+    {"text":"chỉ là tôi không còn quá trẻ để ai\ncũng muốn mời vào nhà chơi","x":0.4964,"y":0.4572,"size":5.7,"color":"#9f5d45","font":"vn-verlag","bold":false,"shadow":false,"align":"left","lineHeight":1.31},
+    {"text":"(Dear, darling - Hiên)","x":0.31,"y":0.57,"size":4,"color":"#8f3f2c","font":"vn-verlag","bold":false,"shadow":false}
+  ]
+}

@@ -1,0 +1,10 @@
+{
+  "font": "vn-svn-prima",
+  "aspect": 1.0654,
+  "bg": "#eb7777",
+  "items": [
+    {"text":"SILENT","x":0.5024,"y":0.3434,"size":19.01,"color":"#fff9ed","font":"vn-svn-prima","bold":false,"shadow":false},
+    {"text":"TREATMENT","x":0.5003,"y":0.5172,"size":13.89,"color":"#fef8ed","font":"vn-svn-prima","bold":false,"shadow":false},
+    {"text":"LÀ SAI LẦM CHẾT MÌNH","x":0.5003,"y":0.6519,"size":7.67,"color":"#fdccb1","font":"vn-svn-prima","bold":false,"shadow":false}
+  ]
+}

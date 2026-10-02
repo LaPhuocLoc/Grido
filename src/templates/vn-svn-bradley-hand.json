@@ -1,0 +1,9 @@
+{
+  "font": "vn-svn-bradley-hand",
+  "aspect": 1.0654,
+  "bg": "#faf5eb",
+  "items": [
+    {"text":"nét vẽ","x":0.5042,"y":0.3918,"size":28.49,"color":"#fa607e","font":"vn-svn-bradley-hand","bold":false,"shadow":false,"lineHeight":0.85},
+    {"text":"trẻ thơ","x":0.5091,"y":0.6243,"size":28.49,"color":"#fa617e","font":"vn-svn-bradley-hand","bold":false,"shadow":false,"lineHeight":0.85}
+  ]
+}

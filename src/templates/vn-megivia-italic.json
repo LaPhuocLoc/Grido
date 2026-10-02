@@ -1,0 +1,11 @@
+{
+  "font": "vn-megivia-italic",
+  "aspect": 1,
+  "bg": "#f4ede5",
+  "items": [
+    {"text":"Giấy","x":0.5,"y":0.25,"size":14,"color":"#8f3f2c","font":"vn-megivia-italic","bold":false,"shadow":false},
+    {"text":"Ngắn","x":0.5,"y":0.42,"size":14,"color":"#984f36","font":"vn-megivia-italic","bold":false,"shadow":false},
+    {"text":"Tình","x":0.52,"y":0.58,"size":14,"color":"#994f35","font":"vn-megivia-italic","bold":false,"shadow":false},
+    {"text":"Dài","x":0.45,"y":0.72,"size":14,"color":"#984f36","font":"vn-megivia-italic","bold":false,"shadow":false}
+  ]
+}

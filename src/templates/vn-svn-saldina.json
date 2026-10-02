@@ -1,0 +1,9 @@
+{
+  "font": "vn-svn-saldina",
+  "aspect": 1.0654,
+  "bg": "#1f4f8a",
+  "items": [
+    {"text":"tôi muốn mình","x":0.484,"y":0.3778,"size":12.53,"color":"#ffc81a","font":"vn-svn-saldina","bold":false,"shadow":false,"rotation":-7},
+    {"text":"được tự do như cơn gió","x":0.5035,"y":0.497,"size":12.43,"color":"#ffc81a","font":"vn-svn-saldina","bold":false,"shadow":false,"rotation":-5}
+  ]
+}

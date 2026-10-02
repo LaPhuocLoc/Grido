@@ -1,0 +1,9 @@
+{
+  "font": "vn-svn-balladeer-light",
+  "aspect": 1.0654,
+  "bg": "#ffffff",
+  "items": [
+    {"text":"Nguyễn Trần","x":0.396,"y":0.4486,"size":14.53,"color":"#000000","font":"vn-svn-balladeer-light","bold":false,"shadow":false},
+    {"text":"Hoàng Hà","x":0.5781,"y":0.5867,"size":14.53,"color":"#000000","font":"vn-svn-balladeer-light","bold":false,"shadow":false}
+  ]
+}

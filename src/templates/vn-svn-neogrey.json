@@ -1,0 +1,12 @@
+{
+  "font": "vn-svn-neogrey",
+  "aspect": 1.0654,
+  "bg": "#f8ffc7",
+  "items": [
+    {"text":"tôi đây","x":0.3458,"y":0.2315,"size":13.64,"color":"#57751a","font":"vn-svn-neogrey","bold":false,"shadow":false},
+    {"text":"đẳng cấp","x":0.5695,"y":0.3896,"size":13.64,"color":"#56741a","font":"vn-svn-neogrey","bold":false,"shadow":false},
+    {"text":"nhưng","x":0.4083,"y":0.5348,"size":10.69,"color":"#567419","font":"vn-svn-neogrey","bold":false,"shadow":false},
+    {"text":"vẫn sợ","x":0.399,"y":0.6526,"size":9.6,"color":"#658025","font":"vn-svn-neogrey","bold":false,"shadow":false},
+    {"text":"\"ủa em\"","x":0.4882,"y":0.763,"size":13.65,"color":"#4b68fb","font":"vn-svn-neogrey","bold":false,"shadow":false}
+  ]
+}

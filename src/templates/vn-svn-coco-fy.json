@@ -1,0 +1,8 @@
+{
+  "font": "vn-svn-coco-fy",
+  "aspect": 1.0654,
+  "bg": "#011668",
+  "items": [
+    {"text":"Hè về deal to\nvoucher đầy kho!","x":0.5073,"y":0.4712,"size":15.26,"color":"#eaf1fa","font":"vn-svn-coco-fy","bold":false,"shadow":false,"rotation":-4,"lineHeight":1.08,"outline":{"color":"#1a4ae0","width":3}}
+  ]
+}

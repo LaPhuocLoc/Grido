@@ -1,0 +1,10 @@
+{
+  "font": "vn-svn-hemi-head",
+  "aspect": 1.0654,
+  "bg": "#040509",
+  "items": [
+    {"text":"KHAI MẠC","x":0.6131,"y":0.3469,"size":9.32,"color":"#fffffe","font":"vn-svn-hemi-head","bold":false,"shadow":false},
+    {"text":"GIẢI BOXING","x":0.4892,"y":0.4728,"size":16.35,"font":"vn-svn-hemi-head","bold":false,"shadow":false},
+    {"text":"MỞ RỘNG","x":0.2931,"y":0.6196,"size":9,"color":"#fefefe","font":"vn-svn-hemi-head","bold":false,"shadow":false}
+  ]
+}

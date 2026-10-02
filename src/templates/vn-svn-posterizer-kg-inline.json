@@ -1,0 +1,11 @@
+{
+  "font": "vn-svn-posterizer-kg-inline",
+  "aspect": 1.0654,
+  "bg": "#696969",
+  "items": [
+    {"text":"iphone","x":0.4993,"y":0.2497,"size":15.36,"font":"vn-svn-posterizer-kg-inline","bold":false,"shadow":false},
+    {"text":"thì có","x":0.5583,"y":0.4101,"size":15.64,"font":"vn-svn-posterizer-kg-inline","bold":false,"shadow":false},
+    {"text":"iđó","x":0.3731,"y":0.5653,"size":15.55,"font":"vn-svn-posterizer-kg-inline","bold":false,"shadow":false},
+    {"text":"thì không","x":0.4993,"y":0.7219,"size":11.77,"color":"#fefefe","font":"vn-svn-posterizer-kg-inline","bold":false,"shadow":false}
+  ]
+}

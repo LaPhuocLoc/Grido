@@ -1,0 +1,9 @@
+{
+  "font": "vn-hy-aleold-2",
+  "aspect": 1.0654,
+  "bg": "#ebe3d2",
+  "items": [
+    {"text":"Phố Xưa","x":0.5,"y":0.2241,"size":19.82,"color":"#af4b29","font":"vn-hy-aleold-2","bold":false,"shadow":false,"lineHeight":0.97},
+    {"text":"Đường Cũ","x":0.5,"y":0.3985,"size":17.11,"color":"#af4b29","font":"vn-hy-aleold-2","bold":false,"shadow":false,"lineHeight":0.97}
+  ]
+}

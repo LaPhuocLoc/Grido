@@ -1,0 +1,8 @@
+{
+  "font": "vn-svn-heroe-pro",
+  "aspect": 1.0654,
+  "bg": "#130e24",
+  "items": [
+    {"text":"Diệu dà","x":0.4972,"y":0.5133,"size":19.55,"color":"#fe56f3","font":"vn-svn-heroe-pro","bold":false,"shadow":false}
+  ]
+}

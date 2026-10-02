@@ -1,0 +1,8 @@
+{
+  "font": "vn-nova-square",
+  "aspect": 1,
+  "bg": "#f4ede5",
+  "items": [
+    {"text":"Tôi gửi tình yêu cho mùa hè,\nnhưng mùa hè không giữ nổi.","x":0.5,"y":0.31,"size":5.4,"color":"#8f3f2c","font":"vn-nova-square","bold":false,"shadow":false,"align":"left","lineHeight":1.3}
+  ]
+}

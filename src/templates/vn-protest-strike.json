@@ -1,0 +1,10 @@
+{
+  "font": "vn-protest-strike",
+  "aspect": 1.5,
+  "bg": "#020989",
+  "items": [
+    {"text":"BÙNG NỔ","x":0.5003,"y":0.3558,"size":22.07,"color":"#fefffe","font":"vn-protest-strike","bold":false,"shadow":false},
+    {"text":"HẾT CỠ","x":0.5014,"y":0.5621,"size":21.8,"color":"#fefffe","font":"vn-protest-strike","bold":false,"shadow":false},
+    {"text":"ĐÊM NAY","x":0.5306,"y":0.7394,"size":7.34,"color":"#f7fbfd","font":"vn-protest-strike","bold":false,"shadow":false}
+  ]
+}

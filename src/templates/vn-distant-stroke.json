@@ -1,0 +1,9 @@
+{
+  "font": "vn-distant-stroke",
+  "aspect": 1,
+  "bg": "#f3ece4",
+  "items": [
+    {"text":"Trà phải vừa ấm, hoa\nphải còn hương. Và em thì\nluôn cần được thương bằng\nnhững điều nhỏ nhất.","x":0.5,"y":0.43,"size":14.5,"color":"#8f3f2c","font":"vn-distant-stroke","bold":false,"shadow":false,"lineHeight":0.97},
+    {"text":"(Biên độ chữ)","x":0.5,"y":0.81,"size":14.5,"color":"#8f3f2c","font":"vn-distant-stroke","bold":false,"shadow":false}
+  ]
+}

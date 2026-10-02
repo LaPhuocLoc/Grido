@@ -1,0 +1,8 @@
+{
+  "font": "vn-svn-russell",
+  "aspect": 1.0654,
+  "bg": "#e2e2e2",
+  "items": [
+    {"text":"Thời gian\ntrôi ngược","x":0.5003,"y":0.3519,"size":16.96,"color":"#010101","font":"vn-svn-russell","bold":false,"shadow":false,"lineHeight":0.94}
+  ]
+}

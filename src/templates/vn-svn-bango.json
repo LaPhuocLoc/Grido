@@ -1,0 +1,10 @@
+{
+  "font": "vn-svn-bango",
+  "aspect": 1.0654,
+  "bg": "#ffffff",
+  "items": [
+    {"text":"BÙNG NỔ","x":0.4983,"y":0.3633,"size":14.52,"color":"#c20003","font":"vn-svn-bango","bold":false,"shadow":false,"rotation":-2},
+    {"text":"FLASH DEAL","x":0.4993,"y":0.5215,"size":14.52,"color":"#c20003","font":"vn-svn-bango","bold":false,"shadow":false,"rotation":-2},
+    {"text":"SALE CHẠM ĐÁY!","x":0.4993,"y":0.6682,"size":8.39,"color":"#c20003","font":"vn-svn-bango","bold":false,"shadow":false,"rotation":-2}
+  ]
+}

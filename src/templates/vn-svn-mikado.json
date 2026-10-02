@@ -1,0 +1,9 @@
+{
+  "font": "vn-svn-mikado",
+  "aspect": 1.0654,
+  "bg": "#f7f6fe",
+  "items": [
+    {"text":"Hỡi các quý ngài HR","x":0.4393,"y":0.2893,"size":9.5,"color":"#020204","font":"vn-svn-mikado","bold":false,"shadow":false},
+    {"text":"Nếu test design xong mà không thấy hợp\nhãy nói thẳng một lời... xin đừng “ghost”\ndesigner là ứng viên,\nchứ không phải người yêu cũ...","x":0.5021,"y":0.5233,"size":5.33,"color":"#1b1a1d","font":"vn-svn-mikado","bold":false,"shadow":false,"align":"left","lineHeight":1.38}
+  ]
+}

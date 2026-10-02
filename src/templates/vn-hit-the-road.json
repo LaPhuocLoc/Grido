@@ -1,0 +1,8 @@
+{
+  "font": "vn-hit-the-road",
+  "aspect": 1,
+  "bg": "#f3ece4",
+  "items": [
+    {"text":"“Người có giấc mộng anh hùng thì đầy,\nnhưng người có thể trở thành anh hùng\nthì được mấy ai.”","x":0.5,"y":0.5,"size":5,"color":"#8f3f2c","font":"vn-hit-the-road","bold":false,"shadow":false,"lineHeight":1.6}
+  ]
+}

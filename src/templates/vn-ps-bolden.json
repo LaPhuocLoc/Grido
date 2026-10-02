@@ -1,0 +1,8 @@
+{
+  "font": "vn-ps-bolden",
+  "aspect": 1.7778,
+  "bg": "#030303",
+  "items": [
+    {"text":"THÀNH PHỐ\nMỘNG MƠ","x":0.4951,"y":0.5098,"size":41.68,"color":"#fafafa","font":"vn-ps-bolden","bold":false,"shadow":false,"lineHeight":0.93}
+  ]
+}

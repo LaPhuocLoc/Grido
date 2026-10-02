@@ -1,0 +1,9 @@
+{
+  "font": "vn-dongle",
+  "aspect": 1.5,
+  "bg": "#fbf9e9",
+  "items": [
+    {"text":"Ngày hè","x":0.4972,"y":0.2725,"size":39.09,"color":"#fceb81","font":"vn-dongle","shadow":false,"outline":{"color":"#fff6d0","width":4}},
+    {"text":"rực rỡ","x":0.5,"y":0.52,"size":31,"color":"#fcd772","font":"vn-dongle","shadow":false,"outline":{"color":"#fff6d0","width":4}}
+  ]
+}

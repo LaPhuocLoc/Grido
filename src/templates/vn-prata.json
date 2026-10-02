@@ -1,0 +1,10 @@
+{
+  "font": "vn-prata",
+  "aspect": 1.4913,
+  "bg": "#f5f5f5",
+  "items": [
+    {"text":"TINH TẾ","x":0.4983,"y":0.3897,"size":26.16,"color":"#010101","font":"vn-prata","bold":false,"shadow":false},
+    {"text":"THANH LỊCH","x":0.5014,"y":0.6187,"size":14.63,"color":"#030303","font":"vn-prata","bold":false,"shadow":false},
+    {"text":"SERIF DIDONE LỊCH LÃM VÀ CAO CẤP","x":0.5,"y":0.75,"size":4,"color":"#111111","font":"vn-prata","bold":false,"shadow":false}
+  ]
+}

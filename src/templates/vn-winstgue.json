@@ -1,0 +1,10 @@
+{
+  "font": "vn-winstgue",
+  "aspect": 1,
+  "bg": "#f4ede5",
+  "items": [
+    {"text":"Giang","x":0.5236,"y":0.319,"size":18.58,"color":"#742a11","font":"vn-winstgue","bold":false,"shadow":false},
+    {"text":"Sơn","x":0.5174,"y":0.486,"size":18.7,"color":"#742a11","font":"vn-winstgue","bold":false,"shadow":false},
+    {"text":"Vương","x":0.5194,"y":0.6387,"size":18.7,"color":"#742a11","font":"vn-winstgue","bold":false,"shadow":false}
+  ]
+}

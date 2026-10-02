@@ -1,0 +1,8 @@
+{
+  "font": "vn-fagibestin",
+  "aspect": 1,
+  "bg": "#f3ece4",
+  "items": [
+    {"text":"Em à,\nThỉnh thoảng trời vẫn đẹp, cây vẫn xanh,\nhoa vẫn nở, chim vẫn hót...","x":0.5,"y":0.45,"size":6.2,"color":"#8f3f2c","font":"vn-fagibestin","bold":false,"shadow":false,"align":"left","lineHeight":1.6}
+  ]
+}

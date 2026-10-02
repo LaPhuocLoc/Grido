@@ -1,0 +1,9 @@
+{
+  "font": "vn-svn-miller-banner",
+  "aspect": 1.0623,
+  "bg": "#e7dcca",
+  "items": [
+    {"text":"TIN TỨC","x":0.5062,"y":0.4648,"size":18.07,"color":"#010001","font":"vn-svn-miller-banner","bold":false,"shadow":false},
+    {"text":"24","x":0.7683,"y":0.6015,"size":10.76,"color":"#070605","font":"vn-svn-miller-banner","bold":false,"shadow":false}
+  ]
+}

@@ -1,0 +1,9 @@
+{
+  "font": "vn-svn-fff-tusj",
+  "aspect": 1.0654,
+  "bg": "#31582b",
+  "items": [
+    {"text":"TRỐN","x":0.4972,"y":0.4344,"size":25.81,"color":"#b7c0ab","font":"vn-svn-fff-tusj","bold":false,"shadow":false},
+    {"text":"cho kĩ vào!","x":0.5024,"y":0.6426,"size":15.64,"color":"#b1baa4","font":"vn-svn-fff-tusj","bold":false,"shadow":false}
+  ]
+}

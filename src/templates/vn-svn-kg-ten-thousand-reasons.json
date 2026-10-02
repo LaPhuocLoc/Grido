@@ -1,0 +1,9 @@
+{
+  "font": "vn-svn-kg-ten-thousand-reasons",
+  "aspect": 1.0656,
+  "bg": "#5aa5e5",
+  "items": [
+    {"text":"Mùa hạ","x":0.5083,"y":0.303,"size":18.76,"color":"#fbfdfc","font":"vn-svn-kg-ten-thousand-reasons","bold":false,"shadow":false},
+    {"text":"và chúng ta","x":0.5014,"y":0.4526,"size":12.45,"color":"#f7fcfc","font":"vn-svn-kg-ten-thousand-reasons","bold":false,"shadow":false}
+  ]
+}

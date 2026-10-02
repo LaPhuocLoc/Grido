@@ -1,0 +1,9 @@
+{
+  "font": "vn-tnh-xuong",
+  "aspect": 1.5,
+  "bg": "#3a352c",
+  "items": [
+    {"text":"XƯƠNG","x":0.4941,"y":0.3558,"size":24.15,"font":"vn-tnh-xuong","bold":false,"shadow":false},
+    {"text":"RỒNG","x":0.4903,"y":0.6258,"size":24.15,"font":"vn-tnh-xuong","bold":false,"shadow":false}
+  ]
+}

@@ -1,0 +1,9 @@
+{
+  "font": "vn-svn-helvetica-neue-heavy",
+  "aspect": 1.0654,
+  "bg": "#010020",
+  "items": [
+    {"text":"SALE quá trời","x":0.5014,"y":0.3474,"size":10.31,"color":"#fee001","font":"vn-svn-helvetica-neue-heavy","bold":false,"shadow":false},
+    {"text":"SALE","x":0.5024,"y":0.5439,"size":27.3,"color":"#fee101","font":"vn-svn-helvetica-neue-heavy","bold":false,"shadow":false}
+  ]
+}

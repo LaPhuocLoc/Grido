@@ -1,0 +1,9 @@
+{
+  "font": "vn-svn-comic-sans-ms",
+  "aspect": 1.0654,
+  "bg": "#3582c5",
+  "items": [
+    {"text":"CỪU DOLLY","x":0.3873,"y":0.2482,"size":14.61,"color":"#fcfdfc","font":"vn-svn-comic-sans-ms","bold":false,"shadow":false},
+    {"text":"Là một con cừu Dorset Phần Lan cái và là\nđộng vật có vú đầu tiên được nhân bản vô\ntính trên thế giới. Nó được tạo ra bởi Ian\nWilmut, Keith Campbell và các cộng sự tại\nViện Roslin ở Edinburgh, Scotland.","x":0.5,"y":0.52,"size":5.9,"font":"vn-svn-comic-sans-ms","bold":false,"shadow":false,"align":"left","lineHeight":1.17}
+  ]
+}

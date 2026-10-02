@@ -1,0 +1,11 @@
+{
+  "font": "vn-svn-cookies",
+  "aspect": 1.0654,
+  "bg": "#b6e5fe",
+  "items": [
+    {"text":"SIÊU SALE","x":0.5024,"y":0.2074,"size":11.58,"color":"#0236e2","font":"vn-svn-cookies","bold":false,"shadow":false,"outline":{"color":"#ffffff","width":4}},
+    {"text":"BACK TO","x":0.4913,"y":0.3819,"size":17.85,"color":"#0235df","font":"vn-svn-cookies","bold":false,"shadow":false,"rotation":-5,"outline":{"color":"#ffffff","width":4}},
+    {"text":"SCHOOL","x":0.5083,"y":0.5579,"size":19.22,"color":"#0231d3","font":"vn-svn-cookies","bold":false,"shadow":false,"rotation":-6,"outline":{"color":"#ffffff","width":4}},
+    {"text":"bạn đã biết chưa?","x":0.5014,"y":0.7379,"size":6.26,"color":"#0333ce","font":"vn-svn-cookies","bold":false,"shadow":false,"outline":{"color":"#ffffff","width":4}}
+  ]
+}

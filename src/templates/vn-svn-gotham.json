@@ -1,0 +1,11 @@
+{
+  "font": "vn-svn-gotham",
+  "aspect": 1.0654,
+  "bg": "#fff9ed",
+  "items": [
+    {"text":"MUA HÀNG","x":0.5042,"y":0.3352,"size":12.29,"color":"#1a43d2","font":"vn-svn-gotham","shadow":false},
+    {"text":"GIÁ SỐC","x":0.5024,"y":0.5258,"size":16.22,"color":"#fd6e07","font":"vn-svn-gotham","shadow":false},
+    {"text":"cơn lốc","x":0.3058,"y":0.6724,"size":8.38,"color":"#486eed","font":"vn-svn-gotham","shadow":false},
+    {"text":"quà xinh!","x":0.6574,"y":0.6724,"size":8.38,"color":"#2248cc","font":"vn-svn-gotham","shadow":false}
+  ]
+}

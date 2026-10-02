@@ -1,0 +1,9 @@
+{
+  "font": "vn-svn-avo",
+  "aspect": 1.0654,
+  "bg": "#ffffff",
+  "items": [
+    {"text":"Designer (nhà thiết kế)","x":0.4993,"y":0.3476,"size":6.54,"color":"#000000","font":"vn-svn-avo","shadow":false},
+    {"text":"Là người chuyên thực hiện các công\nviệc thiết kế, phát triển các cấu trúc,\nhình dáng và công năng của một sản\nphẩm trước khi chúng được sản xuất.","x":0.4993,"y":0.5576,"size":4.67,"color":"#181818","font":"vn-svn-avo","bold":false,"shadow":false,"lineHeight":1.51}
+  ]
+}

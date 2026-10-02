@@ -1,0 +1,8 @@
+{
+  "font": "vn-louise",
+  "aspect": 1,
+  "bg": "#fef9f3",
+  "items": [
+    {"text":"Em không còn đủ sức\nđể níu ai lại trong\nđời, nhưng em sẽ biết\nơn những người đã\nchọn ở lại.","x":0.5,"y":0.54,"size":9.2,"color":"#8f3f2c","font":"vn-louise","bold":false,"shadow":false,"align":"left","lineHeight":1.42}
+  ]
+}

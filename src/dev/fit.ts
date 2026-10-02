@@ -1,5 +1,5 @@
 import type { TemplateItem, TextTemplate } from '../lib/templates'
-import { drawTextNow, fontInfo, loadTextFont, normalizeText, type TextItem } from '../lib/text'
+import { drawTextNow, fontInfo, lineStart, loadTextFont, measureTextBox, normalizeText, type TextItem } from '../lib/text'
 
 /**
  * Tự canh một mẫu chữ nháp cho khớp ảnh mẫu gốc của font (chỉ dùng ở bản dev, qua trang `/?lab=…&fit=1`).
@@ -33,6 +33,8 @@ export interface FitReport {
   font: string
   /** Độ chồng khít (0..1) của từng dòng chữ; null = dòng không canh. */
   scores: (number | null)[]
+  /** Những dòng chữ đã được tách ra theo màu (ảnh gốc tô mỗi cụm từ một màu). */
+  split: string[]
 }
 
 const W = 360
@@ -98,27 +100,7 @@ export async function fitTemplate(
     return mask
   }
   /** Nét chữ của dòng này khi vẽ với thông số `p`: chỉ phần chữ, không hiệu ứng. */
-  const render = (item: TextItem, p: Params) => {
-    ctx.fillStyle = '#fff'
-    ctx.fillRect(0, 0, W, H)
-    const plain: TextItem = {
-      ...item,
-      ...p,
-      color: '#000',
-      shadow: false,
-      opacity: 100,
-      outline: null,
-      block: null,
-      glow: null,
-      gradient: null,
-      plate: null,
-    }
-    drawTextNow(ctx, plain, p.x * W, p.y * H, (p.size * short) / 100, item.width === null ? null : item.width * W)
-    const data = ctx.getImageData(0, 0, W, H).data
-    const mask = new Uint8Array(W * H)
-    for (let i = 0; i < W * H; i++) mask[i] = data[i * 4] < 128 ? 1 : 0
-    return mask
-  }
+  const render = (item: TextItem, p: Params) => ink(ctx, W, H, { ...item, ...p })
   /** Toạ độ các điểm của nét vẽ `r` kèm hộp bao, để trượt thử nhiều vị trí mà không phải quét lại cả ảnh. */
   const points = (r: Uint8Array) => {
     const xs: number[] = []
@@ -170,14 +152,15 @@ export async function fitTemplate(
   }
 
   /** Canh một dòng chữ (hoặc một khối nhiều dòng) quanh vị trí áng chừng của nó; `span`: tầm dò vị trí theo tỉ lệ bề rộng ảnh. */
-  const fitOne = async (raw: DraftItem, item: TextItem, span: number) => {
+  const fitOne = async (raw: DraftItem, item: TextItem, span: number, steps = 8) => {
     const { fit, tol = 70 } = raw
     const multiline = item.text.includes('\n')
     const tracked = raw.spacing !== undefined
     const turned = raw.rotation !== undefined
     // Font có mặt đậm riêng thì thử cả hai độ đậm; font một mặt chữ mà bật đậm là trình duyệt tự làm đậm giả, không dùng.
     const family = fontInfo(item.font).family.split(',')[0].replace(/["']/g, '')
-    const hasBold = [...document.fonts].some((f) => f.family.replace(/["']/g, '') === family && /^(700|bold)$/.test(f.weight))
+    // Mặt đậm riêng (700 / bold) hoặc font biến thiên có dải độ đậm phủ tới 700.
+    const hasBold = [...document.fonts].some((f) => f.family.replace(/["']/g, '') === family && (/^(700|bold)$/.test(f.weight) || Number(f.weight.split(' ')[1]) >= 700))
     const weights = hasBold && raw.bold === undefined ? [false, true] : [raw.bold ?? false]
     let best: {
       score: number
@@ -204,13 +187,16 @@ export async function fitTemplate(
       }
       let p = start
       let top = -1
-      for (let step = -9; step <= 9; step++) {
+      // Chữ thu thật nhỏ lọt thỏm vào một nét của ảnh gốc cũng "khớp" rất cao,
+      // nên càng xa cỡ áng chừng càng bị trừ điểm.
+      for (let step = -steps; step <= steps; step++) {
         const size = item.size * 1.09 ** step
         const r = points(render(face, { ...start, size }))
         const reach = Math.round(W * span)
+        const prior = Math.exp(-((step * Math.log(1.09)) ** 2) / (2 * 0.7 ** 2))
         for (let dy = -reach; dy <= reach; dy += 4)
           for (let dx = -reach; dx <= reach; dx += 4) {
-            const s = overlap(r, t, sum, dx, dy)
+            const s = overlap(r, t, sum, dx, dy) * prior
             if (s > top) {
               top = s
               p = { ...start, size, x: item.x + dx / W, y: item.y + dy / H }
@@ -218,6 +204,8 @@ export async function fitTemplate(
           }
       }
       // Chữ nhiều dòng: dò khoảng cách dòng trước, vì đổi nó là mọi dòng cùng dời nên bước tinh khó tự tìm ra.
+      top = score(p)
+      const coarse = p.size
       if (multiline) {
         const base = p
         for (let lineHeight = 0.7; lineHeight <= 1.8; lineHeight += 0.05) {
@@ -251,6 +239,7 @@ export async function fitTemplate(
                 for (;;) {
                   const next = { ...now, [key]: now[key] + dir * steps[key] }
                   if (next.lineHeight < 0.6 || next.lineHeight > 2.5 || next.spacing < -100 || next.spacing > 500) break
+                  if (next.size < coarse * 0.75 || next.size > coarse * 1.33) break
                   const s = score(next)
                   if (s <= value + 1e-4) break
                   now = next
@@ -301,11 +290,13 @@ export async function fitTemplate(
   }
 
   const scores: (number | null)[] = draft.items.map(() => null)
+  const split: string[] = []
   const items: TemplateItem[][] = []
   // Bản giữ nguyên chữ của ảnh gốc (trước khi thay bằng `then`), để nhìn bằng mắt xem canh có khớp không.
   const originals: TemplateItem[][] = []
   // Dòng to canh trước: nó chiếm phần lớn vùng màu, canh xong thì nhường phần còn lại cho các dòng nhỏ.
   const order = draft.items.map((_, i) => i).sort((a, b) => draft.items[b].size - draft.items[a].size)
+  const largest = Math.max(...draft.items.map((item) => item.size))
   for (const index of order) {
     const raw = draft.items[index]
     const { fit, tol: _tol, then, ...rest } = raw
@@ -316,7 +307,11 @@ export async function fitTemplate(
       originals[index] = [clean(item)]
       continue
     }
-    const whole = await fitOne(raw, item, 0.28)
+    // Dòng phụ nhỏ dễ bị hút về phía chữ khác: chỉ dò sát quanh vị trí và cỡ áng chừng.
+    const minor = item.size < largest * 0.45
+    let whole = await fitOne(raw, item, minor ? 0.07 : 0.28, minor ? 3 : 8)
+    // Không tìm thấy dòng này trong ảnh gốc (font khác ảnh gốc, chữ quá mảnh): giữ vị trí và cỡ áng chừng của bản nháp.
+    if (whole.score < 0.2) whole = { ...whole, fitted: { ...item, bold: raw.bold ?? false } }
     let parts = [whole]
     const lines = item.text.split('\n')
     // Khối nhiều dòng không khớp: trong ảnh gốc mỗi dòng thường được đặt riêng (so le, lệch lề). Thử tách từng dòng ra canh riêng.
@@ -334,20 +329,173 @@ export async function fitTemplate(
         claim(one.mask)
         split.push(one)
       }
-      if (split.reduce((sum, r) => sum + r.score, 0) / split.length > whole.score + 0.08) parts = split
+      const mean = split.reduce((sum, r) => sum + r.score, 0) / split.length
+      if (mean > 0.3 && mean > whole.score + 0.08) parts = split
       else claimed.set(saved)
     }
     if (parts.length === 1) claim(whole.mask)
     scores[index] = round(parts.reduce((sum, r) => sum + r.score, 0) / parts.length, 2)
-    items[index] = parts.map((r) => clean({ ...r.fitted, text: then ?? r.fitted.text }))
-    originals[index] = parts.map((r) => clean(r.fitted))
+    if (then !== undefined) {
+      items[index] = parts.map((r) => clean({ ...r.fitted, text: then }))
+      originals[index] = parts.map((r) => clean(r.fitted))
+      continue
+    }
+    // Ảnh gốc tô mỗi cụm từ một màu: tách dòng chữ ra theo màu.
+    const coloured: TextItem[] = []
+    for (const r of parts) {
+      const pieces = await splitColours(ctx, thumb, W, H, r.fitted, bg)
+      if (pieces.length > 1) split.push(r.fitted.text.replace(/\n/g, ' / '))
+      coloured.push(...pieces)
+    }
+    items[index] = originals[index] = coloured.map(clean)
   }
   const head = { font: draft.font, aspect: round(aspect, 4), bg }
   return {
     template: { ...head, items: items.flat() },
     matched: { ...head, items: originals.flat() },
-    report: { font: draft.font, scores },
+    report: { font: draft.font, scores, split },
   }
+}
+
+/** Chỉ tách màu cho một mẫu đã canh xong (không dời, không đổi cỡ chữ): dùng để soát lại các mẫu cũ. */
+export async function recolourTemplate(template: TextTemplate, image: HTMLImageElement): Promise<{ template: TextTemplate; report: FitReport }> {
+  const H = Math.round(W / (image.naturalWidth / image.naturalHeight))
+  const canvas = document.createElement('canvas')
+  canvas.width = W
+  canvas.height = H
+  const ctx = canvas.getContext('2d', { willReadFrequently: true })!
+  ctx.drawImage(image, 0, 0, W, H)
+  const thumb = ctx.getImageData(0, 0, W, H).data
+  const split: string[] = []
+  const items: TemplateItem[] = []
+  for (const [i, raw] of template.items.entries()) {
+    const item = normalizeText({ id: `c${i}`, ...raw })
+    const pieces = await splitColours(ctx, thumb, W, H, item, template.bg)
+    if (pieces.length > 1) split.push(item.text.replace(/\n/g, ' / '))
+    items.push(...(pieces.length > 1 ? pieces.map(clean) : [raw]))
+  }
+  return { template: { ...template, items }, report: { font: template.font, scores: [], split } }
+}
+
+/** Nét chữ của `item` trên khung W × H: chỉ phần chữ, không hiệu ứng. */
+function ink(ctx: CanvasRenderingContext2D, W: number, H: number, item: TextItem) {
+  ctx.fillStyle = '#fff'
+  ctx.fillRect(0, 0, W, H)
+  const plain: TextItem = { ...item, color: '#000', shadow: false, opacity: 100, outline: null, block: null, glow: null, gradient: null, plate: null }
+  drawTextNow(ctx, plain, item.x * W, item.y * H, (item.size * Math.min(W, H)) / 100, item.width === null ? null : item.width * W)
+  const data = ctx.getImageData(0, 0, W, H).data
+  const mask = new Uint8Array(W * H)
+  for (let i = 0; i < W * H; i++) mask[i] = data[i * 4] < 128 ? 1 : 0
+  return mask
+}
+
+const distance = (a: RGB, b: RGB) => Math.hypot(a[0] - b[0], a[1] - b[1], a[2] - b[2])
+
+/**
+ * Ảnh gốc hay tô mỗi cụm từ của một dòng một màu ("bánh mỳ" nâu, "xá xíu" đỏ) mà mỗi dòng chữ của app chỉ có một màu.
+ * Đo màu ảnh gốc dưới nét của từng từ; nếu các từ khác màu rõ ràng thì tách dòng chữ thành nhiều dòng đặt đúng chỗ cũ,
+ * mỗi dòng một màu. Không chắc (từ không nằm trên chữ của ảnh gốc, màu loang lổ) thì giữ nguyên.
+ */
+async function splitColours(ctx: CanvasRenderingContext2D, thumb: Uint8ClampedArray, W: number, H: number, item: TextItem, bg: string): Promise<TextItem[]> {
+  if (item.gradient || item.vertical || item.width !== null || !/\s/.test(item.text.trim())) return [item]
+  const px = (item.size * Math.min(W, H)) / 100
+  await loadTextFont(item, px).catch(() => {})
+  const measure = (text: string) => (text ? measureTextBox(ctx, { ...item, text }, px).w : 0)
+  const back = rgb(bg)
+  /** Màu ảnh gốc dưới nét chữ của `piece`; null = quá ít điểm ảnh, false = không phải một màu. */
+  const colourOf = (piece: TextItem): RGB | null | false => {
+    const mask = ink(ctx, W, H, piece)
+    const under: RGB[] = []
+    let x0 = W
+    let y0 = H
+    let x1 = -1
+    let y1 = -1
+    for (let i = 0; i < W * H; i++) {
+      if (!mask[i]) continue
+      under.push([thumb[i * 4], thumb[i * 4 + 1], thumb[i * 4 + 2]])
+      x0 = Math.min(x0, i % W)
+      x1 = Math.max(x1, i % W)
+      y0 = Math.min(y0, Math.floor(i / W))
+      y1 = Math.max(y1, Math.floor(i / W))
+    }
+    if (under.length < 12) return null
+    const middle = (list: RGB[]) => [0, 1, 2].map((c) => list.map((v) => v[c]).sort((a, b) => a - b)[list.length >> 1]) as RGB
+    const median = middle(under)
+    const near = under.filter((v) => distance(v, median) < 60).length
+    // Màu quanh nét chữ: trùng với màu dưới nét thì nét vẽ đang nằm trên nền chứ không phải trên chữ của ảnh gốc.
+    const around: RGB[] = []
+    for (let y = Math.max(0, y0 - 3); y <= Math.min(H - 1, y1 + 3); y++)
+      for (let x = Math.max(0, x0 - 3); x <= Math.min(W - 1, x1 + 3); x++) {
+        const i = y * W + x
+        if (!mask[i]) around.push([thumb[i * 4], thumb[i * 4 + 1], thumb[i * 4 + 2]])
+      }
+    return near / under.length < 0.55 || distance(median, back) < 50 || distance(median, middle(around)) < 50 ? false : median
+  }
+  const lines = item.text.split('\n')
+  const widths = lines.map(measure)
+  const box = Math.max(...widths)
+  const angle = (item.rotation * Math.PI) / 180
+  const at = (text: string, along: number, down: number): TextItem => ({
+    ...item,
+    text,
+    x: round(item.x + (along * Math.cos(angle) - down * Math.sin(angle)) / W, 4),
+    y: round(item.y + (along * Math.sin(angle) + down * Math.cos(angle)) / H, 4),
+  })
+  // Mỗi dòng → các cụm từ liền nhau cùng màu.
+  const runs: { line: number; piece: TextItem; color: RGB }[] = []
+  for (const [i, line] of lines.entries()) {
+    const down = (i - (lines.length - 1) / 2) * px * item.lineHeight
+    const left = lineStart(item.align, box, widths[i])
+    const words = line.split(' ')
+    const colours: (RGB | null)[] = []
+    for (let k = 0; k < words.length; k++) {
+      const prefix = words.slice(0, k).join(' ') + (k ? ' ' : '')
+      const c = words[k] ? colourOf(at(words[k], left + measure(prefix) + measure(words[k]) / 2, down)) : null
+      if (c === false) return [item]
+      colours.push(c)
+    }
+    let from = 0
+    let first: RGB | null = null
+    const close = (to: number) => {
+      const prefix = words.slice(0, from).join(' ') + (from ? ' ' : '')
+      const text = words.slice(from, to).join(' ')
+      if (!text.trim()) return true
+      const piece = at(text, left + measure(prefix) + measure(text) / 2, down)
+      const color = colourOf(piece)
+      if (!color) return false
+      runs.push({ line: i, piece: { ...piece, color: hex(color) }, color })
+      return true
+    }
+    for (let k = 0; k < words.length; k++) {
+      const c = colours[k]
+      if (!c) continue
+      if (first && distance(c, first) > 60) {
+        if (!close(k)) return [item]
+        from = k
+        first = c
+      } else first ??= c
+    }
+    if (!first || !close(words.length)) return [item]
+  }
+  if (runs.every((r) => distance(r.color, runs[0].color) <= 60)) return [item]
+  // Các dòng liền nhau trọn một màu thì gộp lại thành một khối nhiều dòng (chỉ đúng vị trí khi canh giữa).
+  const out: TextItem[] = []
+  let block: typeof runs = []
+  const flush = () => {
+    if (!block.length) return
+    const mid = (key: 'x' | 'y') => round(block.reduce((sum, r) => sum + r.piece[key], 0) / block.length, 4)
+    out.push(block.length === 1 ? block[0].piece : { ...block[0].piece, text: block.map((r) => r.piece.text).join('\n'), x: mid('x'), y: mid('y') })
+    block = []
+  }
+  for (const run of runs) {
+    const alone = runs.filter((r) => r.line === run.line).length === 1
+    const last = block[block.length - 1]
+    if (!alone || item.align !== 'center' || (last && (last.line !== run.line - 1 || distance(last.color, run.color) > 60))) flush()
+    block.push(run)
+    if (!alone || item.align !== 'center') flush()
+  }
+  flush()
+  return out
 }
 
 /** Màu chiếm nhiều diện tích nhất của ảnh (gom theo 16 mức mỗi kênh): coi là màu nền. */

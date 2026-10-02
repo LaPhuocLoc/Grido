@@ -1,0 +1,9 @@
+{
+  "font": "vn-dfvn-radja-lover",
+  "aspect": 1.4993,
+  "bg": "#f7f5f2",
+  "items": [
+    {"text":"Thầm","x":0.4729,"y":0.2856,"size":25.76,"color":"#7b6a51","font":"vn-dfvn-radja-lover","bold":false,"shadow":false},
+    {"text":"Yêu","x":0.4538,"y":0.56,"size":25.72,"color":"#7c6b53","font":"vn-dfvn-radja-lover","bold":false,"shadow":false}
+  ]
+}

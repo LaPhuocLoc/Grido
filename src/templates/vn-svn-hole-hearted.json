@@ -1,0 +1,10 @@
+{
+  "font": "vn-svn-hole-hearted",
+  "aspect": 1.0654,
+  "bg": "#fff6fb",
+  "items": [
+    {"text":"font chữ này","x":0.4509,"y":0.2598,"size":13.57,"color":"#ff3253","font":"vn-svn-hole-hearted","bold":false,"shadow":false},
+    {"text":"tự dưng\ncó hình trái tim","x":0.4519,"y":0.4874,"size":11.1,"color":"#fe3253","font":"vn-svn-hole-hearted","bold":false,"shadow":false,"align":"left","lineHeight":1.04},
+    {"text":"không đẹp...","x":0.453,"y":0.7096,"size":14.35,"color":"#ff3253","font":"vn-svn-hole-hearted","bold":false,"shadow":false}
+  ]
+}

@@ -1,0 +1,8 @@
+{
+  "font": "vn-chabul",
+  "aspect": 1,
+  "bg": "#f4ede5",
+  "items": [
+    {"text":"Trả cá về với nước để\nthuyền lại với bờ\nNhư chưa từng hẹn ước,\ntất cả chỉ là tình cờ","x":0.5,"y":0.47,"size":8.8,"color":"#8f3f2c","font":"vn-chabul","bold":false,"shadow":false,"lineHeight":1.35}
+  ]
+}

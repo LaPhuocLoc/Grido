@@ -1,0 +1,9 @@
+{
+  "font": "vn-bing-boss",
+  "aspect": 1,
+  "bg": "#fef9f3",
+  "items": [
+    {"text":"Khi nào lớn, tôi\nsẽ mua hẳn một\nlớp học, chỉ để\nchơi cho mà xem.","x":0.4972,"y":0.4617,"size":10,"color":"#994e34","font":"vn-bing-boss","bold":false,"shadow":false,"lineHeight":1.28},
+    {"text":"(Nhóc Nicolas)","x":0.5115,"y":0.7779,"size":5.57,"color":"#984f36","font":"vn-bing-boss","bold":false,"shadow":false}
+  ]
+}

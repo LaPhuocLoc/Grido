@@ -1,0 +1,9 @@
+{
+  "font": "vn-huggie-bunny",
+  "aspect": 1,
+  "bg": "#f4ede5",
+  "items": [
+    {"text":"Thỏ và Rùa","x":0.5073,"y":0.2683,"size":11.54,"color":"#994e34","font":"vn-huggie-bunny","bold":false,"shadow":false},
+    {"text":"Ngày xưa, có một con thỏ đi tới một\ncái ao để uống nước.","x":0.5062,"y":0.3993,"size":5.4,"color":"#9c543b","font":"vn-huggie-bunny","bold":false,"shadow":false,"align":"left","lineHeight":1.28}
+  ]
+}

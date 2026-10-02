@@ -86,7 +86,12 @@ Font một nét chỉ có một độ đậm thì mẫu đặt `bold: false` đ�
 Chọn font: thumb là câu ngắn có bố cục; bỏ thumb là đoạn văn dài, thumb sống nhờ minh hoạ, và thumb dùng mặt chữ / kiểu
 chữ thay thế mà app không có. Thumb ghi "Tên font + Việt hoá" thì canh theo chữ đó rồi thay bằng câu mẫu khác (`then`).
 
-Kết quả đợt đầu: 136 mẫu.
+Chữ nhiều màu: ảnh gốc hay tô mỗi cụm từ một màu, còn mỗi dòng chữ của app chỉ có một màu. Canh xong, fitter đo màu ảnh gốc
+dưới nét của từng từ; các từ khác màu rõ ràng thì dòng chữ được tách thành nhiều dòng đặt đúng chỗ cũ, mỗi dòng một màu.
+`--recolour` chạy riêng bước này cho các mẫu đã canh. Khi viết nháp, cụm từ nào khác màu trong ảnh gốc thì ghi thành dòng riêng.
+
+Kết quả: đợt đầu 136 mẫu, đợt hai phủ nốt các font tiếng Việt còn lại (445 mẫu / 449 font; 4 font bỏ vì ảnh gốc dùng mặt chữ
+app không có). Ảnh gốc là cả đoạn văn dài thì mẫu chỉ giữ vài dòng đầu.
 
 ## Kiểm thử
 

@@ -1,0 +1,9 @@
+{
+  "font": "vn-svn-morva",
+  "aspect": 1.0636,
+  "bg": "#556727",
+  "items": [
+    {"text":"Ngọc Huyền","x":0.3483,"y":0.3215,"size":13.16,"color":"#fdfdfa","font":"vn-svn-morva","bold":false,"shadow":false},
+    {"text":"Minh Duy","x":0.4368,"y":0.4604,"size":13.16,"color":"#fdfefb","font":"vn-svn-morva","bold":false,"shadow":false}
+  ]
+}

@@ -1,0 +1,8 @@
+{
+  "font": "vn-svn-marpesia-pro",
+  "aspect": 1.0654,
+  "bg": "#8a1010",
+  "items": [
+    {"text":"Ra khơi","x":0.5,"y":0.5,"size":38,"color":"#ff8a3a","font":"vn-svn-marpesia-pro","bold":false,"shadow":false}
+  ]
+}

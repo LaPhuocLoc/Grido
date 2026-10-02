@@ -1,0 +1,9 @@
+{
+  "font": "vn-svn-block",
+  "aspect": 1.0654,
+  "bg": "#475a27",
+  "items": [
+    {"text":"17:30","x":0.5486,"y":0.2989,"size":19.62,"color":"#feea01","font":"vn-svn-block","bold":false,"shadow":false},
+    {"text":"ĐẾN GIỜ TAN CA","x":0.5003,"y":0.516,"size":13.07,"color":"#fee901","font":"vn-svn-block","bold":false,"shadow":false}
+  ]
+}

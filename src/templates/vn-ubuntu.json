@@ -1,0 +1,9 @@
+{
+  "font": "vn-ubuntu",
+  "aspect": 1.5,
+  "bg": "#061619",
+  "items": [
+    {"text":"KẾT NỐI","x":0.5003,"y":0.4221,"size":23.53,"font":"vn-ubuntu","shadow":false},
+    {"text":"MUÔN NƠI","x":0.5042,"y":0.6021,"size":9.56,"color":"#fcfdfc","font":"vn-ubuntu","shadow":false}
+  ]
+}

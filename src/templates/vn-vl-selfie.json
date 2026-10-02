@@ -1,0 +1,9 @@
+{
+  "font": "vn-vl-selfie",
+  "aspect": 1.5,
+  "bg": "#060405",
+  "items": [
+    {"text":"Yêu","x":0.4994,"y":0.3152,"size":37.64,"color":"#f9f8f8","font":"vn-vl-selfie","bold":false,"shadow":false},
+    {"text":"thương","x":0.4571,"y":0.6427,"size":37.64,"color":"#f8f8f8","font":"vn-vl-selfie","bold":false,"shadow":false}
+  ]
+}

@@ -1,0 +1,8 @@
+{
+  "font": "vn-svn-hollie-script-pro",
+  "aspect": 1.0654,
+  "bg": "#7a2a2b",
+  "items": [
+    {"text":"Tết Trung Thu\nTết Nguyên Đán\nLễ Hội Việt","x":0.5003,"y":0.5112,"size":14.61,"color":"#fde41f","font":"vn-svn-hollie-script-pro","bold":false,"shadow":false,"lineHeight":1.51}
+  ]
+}

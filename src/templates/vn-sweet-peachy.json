@@ -1,0 +1,8 @@
+{
+  "font": "vn-sweet-peachy",
+  "aspect": 1,
+  "bg": "#fef9f3",
+  "items": [
+    {"text":"Hãy bao dung với chính\nmình, vì phiên bản của\nem ngày xưa đâu thể\nbiết những điều mà bây\ngiờ em mới hiểu.","x":0.5,"y":0.545,"size":7.8,"color":"#984f36","font":"vn-sweet-peachy","bold":false,"shadow":false,"align":"left","lineHeight":1.38}
+  ]
+}

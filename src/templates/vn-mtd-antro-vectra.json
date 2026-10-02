@@ -1,0 +1,9 @@
+{
+  "font": "vn-mtd-antro-vectra",
+  "aspect": 1.5,
+  "bg": "#1a1d22",
+  "items": [
+    {"text":"Thanh xuân như","x":0.5,"y":0.36,"size":20,"color":"#d8d8d8","font":"vn-mtd-antro-vectra","bold":false,"shadow":false,"rotation":-8},
+    {"text":"một ly trà","x":0.5,"y":0.6,"size":20,"color":"#d8d8d8","font":"vn-mtd-antro-vectra","bold":false,"shadow":false,"rotation":-8}
+  ]
+}

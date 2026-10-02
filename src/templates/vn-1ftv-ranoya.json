@@ -1,0 +1,9 @@
+{
+  "font": "vn-1ftv-ranoya",
+  "aspect": 1.0485,
+  "bg": "#ecdcbd",
+  "items": [
+    {"text":"HÀ NỘI","x":0.5,"y":0.42,"size":22,"color":"#222222","font":"vn-1ftv-ranoya","shadow":false,"bold":false},
+    {"text":"36 phố phường","x":0.5,"y":0.62,"size":9,"color":"#222222","font":"vn-1ftv-ranoya","shadow":false,"bold":false}
+  ]
+}

@@ -1,0 +1,9 @@
+{
+  "font": "vn-svn-ridemybike-pro",
+  "aspect": 1.0654,
+  "bg": "#feffe8",
+  "items": [
+    {"text":"Thứ đau nhất của tôi là gì\ncậu có biết không?","x":0.501,"y":0.412,"size":14.52,"color":"#3d6891","font":"vn-svn-ridemybike-pro","shadow":false,"lineHeight":1.05},
+    {"text":"Lưng.","x":0.5014,"y":0.666,"size":14.71,"color":"#f98237","font":"vn-svn-ridemybike-pro","shadow":false}
+  ]
+}

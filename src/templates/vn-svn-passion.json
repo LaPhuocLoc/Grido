@@ -1,0 +1,11 @@
+{
+  "font": "vn-svn-passion",
+  "aspect": 1.0654,
+  "bg": "#f4ffe8",
+  "items": [
+    {"text":"NGU","x":0.5083,"y":0.3637,"size":40.4,"color":"#f5100a","font":"vn-svn-passion","bold":false,"shadow":false},
+    {"text":"NEVER","x":0.24,"y":0.7,"size":18,"color":"#e01a1a","font":"vn-svn-passion","bold":false,"shadow":false},
+    {"text":"GIVE","x":0.59,"y":0.7,"size":18,"color":"#e01a1a","font":"vn-svn-passion","bold":false,"shadow":false},
+    {"text":"UP","x":0.88,"y":0.7,"size":18,"color":"#e01a1a","font":"vn-svn-passion","bold":false,"shadow":false}
+  ]
+}

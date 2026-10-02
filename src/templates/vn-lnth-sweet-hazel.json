@@ -1,0 +1,11 @@
+{
+  "font": "vn-lnth-sweet-hazel",
+  "aspect": 1.5,
+  "bg": "#f7f5f3",
+  "items": [
+    {"text":"Nụ Cười","x":0.55,"y":0.37,"size":22,"color":"#e15f78","font":"vn-lnth-sweet-hazel","bold":false,"shadow":false},
+    {"text":"Em Là","x":0.33,"y":0.56,"size":22,"color":"#e15f79","font":"vn-lnth-sweet-hazel","bold":false,"shadow":false},
+    {"text":"Nắng","x":0.66,"y":0.58,"size":22,"color":"#f3bb0e","font":"vn-lnth-sweet-hazel","bold":false,"shadow":false},
+    {"text":"cho anh thêm bao mơ màng","x":0.5,"y":0.88,"size":4.5,"color":"#4a7a3a","font":"sans","bold":false,"shadow":false,"italic":true}
+  ]
+}

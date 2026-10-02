@@ -1,0 +1,10 @@
+{
+  "font": "vn-svn-bree",
+  "aspect": 1.0654,
+  "bg": "#faf2e2",
+  "items": [
+    {"text":"Bánh","x":0.2308,"y":0.453,"size":17.56,"color":"#f79404","font":"vn-svn-bree","bold":false,"shadow":false},
+    {"text":"Mỳ","x":0.5545,"y":0.453,"size":17.56,"color":"#f55304","font":"vn-svn-bree","bold":false,"shadow":false},
+    {"text":"ơiii!","x":0.823,"y":0.453,"size":17.56,"color":"#f88143","font":"vn-svn-bree","bold":false,"shadow":false}
+  ]
+}

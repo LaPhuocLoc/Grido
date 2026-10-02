@@ -3,7 +3,7 @@
   "aspect": 1.5,
   "bg": "#0163da",
   "items": [
-    {"text":"MỞ BÁN","x":0.4983,"y":0.3917,"size":19.18,"color":"#fcfefd","font":"vn-nata-sans","shadow":false},
+    {"text":"MỞ BÁN","x":0.4983,"y":0.3917,"size":19.18,"color":"#fcfefd","font":"vn-nata-sans","shadow":false,"bold":true},
     {"text":"HÔM NAY","x":0.5014,"y":0.6046,"size":17.26,"color":"#fcfefd","font":"vn-nata-sans","bold":false,"shadow":false}
   ]
 }

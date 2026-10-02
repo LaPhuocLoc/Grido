@@ -1,0 +1,8 @@
+{
+  "font": "vn-ps-anton",
+  "aspect": 1.7778,
+  "bg": "#b10b0a",
+  "items": [
+    {"text":"HUẾ\nMỘNG\nMƠ","x":0.7424,"y":0.5246,"size":22.65,"color":"#f5ab46","font":"vn-ps-anton","bold":false,"shadow":false,"lineHeight":1.13}
+  ]
+}

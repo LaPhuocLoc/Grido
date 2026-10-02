@@ -1,0 +1,9 @@
+{
+  "font": "vn-thang",
+  "aspect": 1,
+  "bg": "#f3ebe3",
+  "items": [
+    {"text":"Tết","x":0.4868,"y":0.2855,"size":30,"color":"#994e34","font":"vn-thang","bold":false,"shadow":false,"rotation":-4},
+    {"text":"Trung thu","x":0.409,"y":0.4954,"size":30,"color":"#9a4e34","font":"vn-thang","bold":false,"shadow":false,"rotation":-2}
+  ]
+}

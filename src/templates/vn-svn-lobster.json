@@ -1,0 +1,9 @@
+{
+  "font": "vn-svn-lobster",
+  "aspect": 1.0656,
+  "bg": "#696868",
+  "items": [
+    {"text":"Lưu Bút","x":0.5003,"y":0.4272,"size":24.04,"color":"#fefefe","font":"vn-svn-lobster","bold":false,"shadow":false},
+    {"text":"kỉ niệm thanh xuân","x":0.56,"y":0.58,"size":7,"color":"#fcfcfa","font":"vn-svn-lobster","bold":false,"shadow":false}
+  ]
+}

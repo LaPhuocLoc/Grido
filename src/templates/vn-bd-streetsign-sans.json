@@ -1,0 +1,9 @@
+{
+  "font": "vn-bd-streetsign-sans",
+  "aspect": 2,
+  "bg": "#c93320",
+  "items": [
+    {"text":"BIỂN HIỆU","x":0.5,"y":0.34,"size":34,"color":"#f6e3cc","font":"vn-bd-streetsign-sans","shadow":false,"bold":false},
+    {"text":"PHỐ CŨ","x":0.5,"y":0.7,"size":34,"color":"#e39a6c","font":"vn-bd-streetsign-sans","shadow":false,"bold":false}
+  ]
+}

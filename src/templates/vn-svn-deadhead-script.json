@@ -1,0 +1,10 @@
+{
+  "font": "vn-svn-deadhead-script",
+  "aspect": 1.0654,
+  "bg": "#fefdfc",
+  "items": [
+    {"text":"Giỗ Tổ","x":0.5003,"y":0.2185,"size":28.41,"color":"#d54801","font":"vn-svn-deadhead-script","bold":false,"shadow":false},
+    {"text":"Hùng","x":0.6203,"y":0.4537,"size":32.8,"color":"#b52901","font":"vn-svn-deadhead-script","bold":false,"shadow":false},
+    {"text":"Vương","x":0.47,"y":0.67,"size":33,"color":"#a42f1d","font":"vn-svn-deadhead-script","bold":false,"shadow":false,"rotation":-4}
+  ]
+}

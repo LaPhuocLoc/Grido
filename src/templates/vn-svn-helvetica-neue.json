@@ -1,0 +1,9 @@
+{
+  "font": "vn-svn-helvetica-neue",
+  "aspect": 1.0654,
+  "bg": "#020204",
+  "items": [
+    {"text":"Sơn Tùng M-TP","x":0.2983,"y":0.2904,"size":7.04,"color":"#fefefd","font":"vn-svn-helvetica-neue","shadow":false},
+    {"text":"Sơn Tùng M-TP (tên thật là Nguyễn Thanh Tùng,\nsinh năm 1994 tại Thái Bình) là nam ca sĩ, nhạc sĩ,\nrapper và diễn viên vô cùng nổi tiếng người Việt\nNam. Anh được mệnh danh là \"Hoàng tử V-pop\"\nvà là một trong những biểu tượng giải trí có tầm\nảnh hưởng lớn nhất trong nền âm nhạc đương đại\nViệt Nam.","x":0.467,"y":0.56,"size":4.15,"font":"vn-svn-helvetica-neue","bold":false,"shadow":false,"align":"left","lineHeight":1.3}
+  ]
+}

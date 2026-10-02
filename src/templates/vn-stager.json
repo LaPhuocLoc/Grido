@@ -1,0 +1,10 @@
+{
+  "font": "vn-stager",
+  "aspect": 1,
+  "bg": "#f3ede5",
+  "items": [
+    {"text":"Ngày","x":0.4,"y":0.34,"size":14,"color":"#8f3f2c","font":"vn-stager","bold":false,"shadow":false},
+    {"text":"Chưa","x":0.38,"y":0.49,"size":14,"color":"#8f3f2c","font":"vn-stager","bold":false,"shadow":false},
+    {"text":"Giông Bão","x":0.5,"y":0.63,"size":14,"color":"#8f3f2c","font":"vn-stager","bold":false,"shadow":false}
+  ]
+}

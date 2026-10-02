@@ -1,0 +1,8 @@
+{
+  "font": "vn-svn-momento",
+  "aspect": 1.0646,
+  "bg": "#ffffff",
+  "items": [
+    {"text":"Gà Bông","x":0.5024,"y":0.4463,"size":30.3,"color":"#000000","font":"vn-svn-momento","bold":false,"shadow":false}
+  ]
+}

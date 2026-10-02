@@ -1,0 +1,8 @@
+{
+  "font": "vn-jasmineupc",
+  "aspect": 1,
+  "bg": "#f3ede5",
+  "items": [
+    {"text":"Tất cả những mối quan hệ\nmơ hồ trên thế giới này đều\nchỉ là muốn có được mà\nkhông muốn phải hy sinh\nbất cứ thứ gì.","x":0.5,"y":0.46,"size":9.3,"color":"#8f3f2c","font":"vn-jasmineupc","bold":false,"shadow":false,"lineHeight":1}
+  ]
+}

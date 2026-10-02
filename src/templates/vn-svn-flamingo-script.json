@@ -1,0 +1,9 @@
+{
+  "font": "vn-svn-flamingo-script",
+  "aspect": 1.0654,
+  "bg": "#602310",
+  "items": [
+    {"text":"Sự Tích","x":0.3111,"y":0.3693,"size":13.1,"color":"#fecd65","font":"vn-svn-flamingo-script","bold":false,"shadow":false},
+    {"text":"Thánh Gióng","x":0.5062,"y":0.5608,"size":14.58,"color":"#fecd65","font":"vn-svn-flamingo-script","bold":false,"shadow":false}
+  ]
+}

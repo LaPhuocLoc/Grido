@@ -1,0 +1,11 @@
+{
+  "font": "vn-lnth-ralline",
+  "aspect": 1.5,
+  "bg": "#dbd4ca",
+  "items": [
+    {"text":"Nắng","x":0.52,"y":0.2,"size":24,"color":"#3c3334","font":"vn-lnth-ralline","bold":false,"shadow":false,"rotation":-9},
+    {"text":"Kéo Mây Về","x":0.55,"y":0.37,"size":24,"color":"#3a3a3a","font":"vn-lnth-ralline","bold":false,"shadow":false,"rotation":-5},
+    {"text":"Gió Kéo","x":0.56,"y":0.53,"size":24,"color":"#3a3a3a","font":"vn-lnth-ralline","bold":false,"shadow":false,"rotation":-5},
+    {"text":"Đông Về","x":0.56,"y":0.69,"size":24,"color":"#3a3a3a","font":"vn-lnth-ralline","bold":false,"shadow":false,"rotation":-5}
+  ]
+}

@@ -1,0 +1,10 @@
+{
+  "font": "vn-svn-black-diamond",
+  "aspect": 1.0654,
+  "bg": "#030400",
+  "items": [
+    {"text":"VŨ ĐIỆU","x":0.5,"y":0.33,"size":20,"color":"#f90f02","font":"vn-svn-black-diamond","bold":false,"shadow":false,"rotation":-5},
+    {"text":"MA QUÁI","x":0.5,"y":0.54,"size":20,"color":"#e8201a","font":"vn-svn-black-diamond","bold":false,"shadow":false,"rotation":-5},
+    {"text":"câu chuyện có thật","x":0.5031,"y":0.7159,"size":9.29,"color":"#d5180c","font":"vn-svn-black-diamond","bold":false,"shadow":false}
+  ]
+}

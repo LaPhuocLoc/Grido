@@ -1,0 +1,11 @@
+{
+  "font": "vn-svn-new-athletic-m54",
+  "aspect": 1.0654,
+  "bg": "#533900",
+  "items": [
+    {"text":"SỐNG","x":0.2062,"y":0.23,"size":14.7,"color":"#9d7300","font":"vn-svn-new-athletic-m54","bold":false,"shadow":false},
+    {"text":"ĐỂ BỤNG","x":0.2873,"y":0.423,"size":14.52,"color":"#9d7400","font":"vn-svn-new-athletic-m54","bold":false,"shadow":false},
+    {"text":"STRESS","x":0.7373,"y":0.5852,"size":14.7,"color":"#fed78c","font":"vn-svn-new-athletic-m54","bold":false,"shadow":false},
+    {"text":"MANG THEO","x":0.6373,"y":0.7574,"size":14.52,"color":"#fed78c","font":"vn-svn-new-athletic-m54","bold":false,"shadow":false}
+  ]
+}

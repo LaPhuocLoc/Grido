@@ -1,0 +1,11 @@
+{
+  "font": "vn-avalen-rekas",
+  "aspect": 1,
+  "bg": "#f4ede5",
+  "items": [
+    {"text":"Bất","x":0.4642,"y":0.2935,"size":16.96,"color":"#9a4e34","font":"vn-avalen-rekas","bold":false,"shadow":false},
+    {"text":"Vấn","x":0.5319,"y":0.4283,"size":16.78,"color":"#9a4e34","font":"vn-avalen-rekas","bold":false,"shadow":false},
+    {"text":"Biệt","x":0.4753,"y":0.5674,"size":16.79,"color":"#9a4e34","font":"vn-avalen-rekas","bold":false,"shadow":false},
+    {"text":"ly","x":0.4904,"y":0.7283,"size":16.18,"color":"#9a4e34","font":"vn-avalen-rekas","bold":false,"shadow":false}
+  ]
+}

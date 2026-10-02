@@ -1,0 +1,8 @@
+{
+  "font": "vn-neofolia",
+  "aspect": 1,
+  "bg": "#f4ede5",
+  "items": [
+    {"text":"Đố các bạn\ncon gì đầu\ndê mình ốc?","x":0.5062,"y":0.4817,"size":11.14,"color":"#9a4e35","font":"vn-neofolia","bold":false,"shadow":false,"lineHeight":1}
+  ]
+}

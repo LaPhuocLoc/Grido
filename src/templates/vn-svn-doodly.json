@@ -1,0 +1,9 @@
+{
+  "font": "vn-svn-doodly",
+  "aspect": 1.0654,
+  "bg": "#f6f6fe",
+  "items": [
+    {"text":"Bố ơi","x":0.34,"y":0.43,"size":32,"color":"#e8502a","font":"vn-svn-doodly","bold":false,"shadow":false},
+    {"text":"mình đi đâu thế?","x":0.5,"y":0.64,"size":14.5,"color":"#2a3ab0","font":"vn-svn-doodly","bold":false,"shadow":false}
+  ]
+}

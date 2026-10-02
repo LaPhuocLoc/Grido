@@ -1,0 +1,12 @@
+{
+  "font": "vn-berishye",
+  "aspect": 1,
+  "bg": "#f4ede5",
+  "items": [
+    {"text":"Mùa hoa","x":0.5106,"y":0.3206,"size":11.93,"color":"#9b4f35","font":"vn-berishye","bold":false,"shadow":false},
+    {"text":"năm ấy","x":0.5815,"y":0.4154,"size":13.81,"color":"#9a4f35","font":"vn-berishye","bold":false,"shadow":false},
+    {"text":"lại vì","x":0.4005,"y":0.5006,"size":13.56,"color":"#9a4f35","font":"vn-berishye","bold":false,"shadow":false},
+    {"text":"Tôi","x":0.5793,"y":0.5594,"size":18.76,"color":"#9a4e34","font":"vn-berishye","bold":false,"shadow":false},
+    {"text":"mà nở","x":0.5094,"y":0.6864,"size":13.46,"color":"#9a4f35","font":"vn-berishye","bold":false,"shadow":false}
+  ]
+}

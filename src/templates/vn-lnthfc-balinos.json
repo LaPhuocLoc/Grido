@@ -1,0 +1,9 @@
+{
+  "font": "vn-lnthfc-balinos",
+  "aspect": 1.5,
+  "bg": "#1b1f5c",
+  "items": [
+    {"text":"Huyết Chiến","x":0.5,"y":0.34,"size":26,"color":"#e3211c","font":"vn-lnthfc-balinos","bold":false,"shadow":false,"rotation":-3,"outline":{"color":"#ffd23a","width":4}},
+    {"text":"Cửu Giới","x":0.5,"y":0.64,"size":26,"color":"#ffd23a","font":"vn-lnthfc-balinos","bold":false,"shadow":false,"rotation":-3,"outline":{"color":"#ffffff","width":3},"gradient":{"color":"#3a2fc0","angle":180}}
+  ]
+}

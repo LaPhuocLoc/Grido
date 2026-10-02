@@ -1,0 +1,10 @@
+{
+  "font": "vn-amigh",
+  "aspect": 1,
+  "bg": "#f3ede5",
+  "items": [
+    {"text":"Vì sao","x":0.584,"y":0.4853,"size":21.74,"color":"#9a4e34","font":"vn-amigh","bold":false,"shadow":false},
+    {"text":"Đừng hỏi em","x":0.6494,"y":0.3763,"size":3.41,"color":"#a5624a","font":"sans","shadow":false},
+    {"text":"Tình đôi ta\núa màu","x":0.3,"y":0.615,"size":3.4,"color":"#a5624a","font":"sans","shadow":false,"lineHeight":1.3}
+  ]
+}

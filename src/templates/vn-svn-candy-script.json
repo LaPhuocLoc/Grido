@@ -1,0 +1,11 @@
+{
+  "font": "vn-svn-candy-script",
+  "aspect": 1.0654,
+  "bg": "#fff9ed",
+  "items": [
+    {"text":"Hải Phòng","x":0.4851,"y":0.2486,"size":14.77,"color":"#0579c0","font":"vn-svn-candy-script","bold":false,"shadow":false},
+    {"text":"Sài Gòn","x":0.2928,"y":0.497,"size":14.68,"color":"#fb6180","font":"vn-svn-candy-script","bold":false,"shadow":false},
+    {"text":"Hà Nội","x":0.7742,"y":0.4808,"size":12.35,"color":"#c72d34","font":"vn-svn-candy-script","bold":false,"shadow":false},
+    {"text":"Đà Nẵng","x":0.4993,"y":0.7293,"size":14.86,"color":"#febb05","font":"vn-svn-candy-script","bold":false,"shadow":false}
+  ]
+}

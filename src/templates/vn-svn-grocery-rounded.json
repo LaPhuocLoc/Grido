@@ -1,0 +1,8 @@
+{
+  "font": "vn-svn-grocery-rounded",
+  "aspect": 1.0654,
+  "bg": "#032518",
+  "items": [
+    {"text":"RONG BIỂN","x":0.5073,"y":0.5269,"size":22.05,"color":"#e1fec4","font":"vn-svn-grocery-rounded","bold":false,"shadow":false}
+  ]
+}

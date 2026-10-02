@@ -1,0 +1,9 @@
+{
+  "font": "vn-dvn-uefa-euro",
+  "aspect": 1.5,
+  "bg": "#143cda",
+  "items": [
+    {"text":"CHUNG KẾT","x":0.4861,"y":0.3892,"size":18.3,"color":"#fefefe","font":"vn-dvn-uefa-euro","bold":false,"shadow":false},
+    {"text":"ĐÊM NAY","x":0.5247,"y":0.5792,"size":18.3,"font":"vn-dvn-uefa-euro","bold":false,"shadow":false}
+  ]
+}

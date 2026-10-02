@@ -1,0 +1,10 @@
+{
+  "font": "vn-rose-gard",
+  "aspect": 1,
+  "bg": "#f4ece4",
+  "items": [
+    {"text":"Cổ Điển","x":0.4861,"y":0.3606,"size":14.17,"color":"#994f35","font":"vn-rose-gard","bold":false,"shadow":false},
+    {"text":"Tôn Trọng","x":0.4983,"y":0.5375,"size":14.17,"color":"#994e35","font":"vn-rose-gard","bold":false,"shadow":false},
+    {"text":"(Classic, Respec)","x":0.5073,"y":0.6864,"size":9.81,"color":"#994f36","font":"vn-rose-gard","bold":false,"shadow":false}
+  ]
+}

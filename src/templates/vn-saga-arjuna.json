@@ -1,0 +1,10 @@
+{
+  "font": "vn-saga-arjuna",
+  "aspect": 1,
+  "bg": "#f3ece4",
+  "items": [
+    {"text":"Đèn","x":0.5436,"y":0.3592,"size":28.94,"color":"#994e36","font":"vn-saga-arjuna","bold":false,"shadow":false},
+    {"text":"Cá","x":0.5682,"y":0.5708,"size":28.94,"color":"#9a4e35","font":"vn-saga-arjuna","bold":false,"shadow":false},
+    {"text":"Chép","x":0.4948,"y":0.7436,"size":30.2,"color":"#994e34","font":"vn-saga-arjuna","bold":false,"shadow":false}
+  ]
+}

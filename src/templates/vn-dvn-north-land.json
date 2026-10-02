@@ -1,0 +1,9 @@
+{
+  "font": "vn-dvn-north-land",
+  "aspect": 1.5059,
+  "bg": "#1c1f1c",
+  "items": [
+    {"text":"THỨ BẢY","x":0.5,"y":0.4,"size":24,"font":"vn-dvn-north-land","bold":false,"shadow":false},
+    {"text":"MÌNH ĐI CHƠI NHÉ","x":0.5,"y":0.68,"size":9,"color":"#fafafa","font":"vn-dvn-north-land","bold":false,"shadow":false}
+  ]
+}

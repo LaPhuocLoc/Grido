@@ -1,0 +1,8 @@
+{
+  "font": "vn-svn-safina-script",
+  "aspect": 1.0654,
+  "bg": "#0c2845",
+  "items": [
+    {"text":"Đom đóm\ntrong đêm","x":0.5,"y":0.5,"size":25,"color":"#e8f04a","font":"vn-svn-safina-script","bold":false,"shadow":false,"lineHeight":0.85}
+  ]
+}

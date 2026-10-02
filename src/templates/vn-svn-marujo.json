@@ -1,0 +1,8 @@
+{
+  "font": "vn-svn-marujo",
+  "aspect": 1.0646,
+  "bg": "#d8c8f0",
+  "items": [
+    {"text":"THỎ BẢY MÀU","x":0.4972,"y":0.4134,"size":16.43,"color":"#000000","font":"vn-svn-marujo","bold":false,"shadow":false,"outline":{"color":"#ffffff","width":4}}
+  ]
+}

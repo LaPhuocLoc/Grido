@@ -1,0 +1,8 @@
+{
+  "font": "vn-gelato-fresco",
+  "aspect": 1,
+  "bg": "#f3ece4",
+  "items": [
+    {"text":"Hành trình đằng đẵng\ncủa cuộc đời vốn đã có\nvô vàn giao lộ.","x":0.5,"y":0.5,"size":8,"color":"#8f3f2c","font":"vn-gelato-fresco","bold":false,"shadow":false,"lineHeight":1.5}
+  ]
+}

@@ -1,0 +1,9 @@
+{
+  "font": "vn-scaver",
+  "aspect": 1,
+  "bg": "#f4ede5",
+  "items": [
+    {"text":"Trời tạnh mưa rồi,\nngười có cầm ô đến\nnữa hay không chẳng\ncòn quan trọng.","x":0.5073,"y":0.4349,"size":7.55,"color":"#975038","font":"vn-scaver","bold":false,"shadow":false,"lineHeight":1.38},
+    {"text":"(sưu tầm)","x":0.5083,"y":0.6783,"size":5.53,"color":"#965139","font":"vn-scaver","bold":false,"shadow":false}
+  ]
+}

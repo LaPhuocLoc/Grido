@@ -1,0 +1,8 @@
+{
+  "font": "vn-rancho",
+  "aspect": 1,
+  "bg": "#f4ede5",
+  "items": [
+    {"text":"Ta nhớ người ngồi sau ta khi chiều qua\nTrên con đường ngày không mưa ta đội nắng đến mặt trời\nKìa gió kia ngược lối, còn em đang mỉm cười\nMình có nhau giữa mùa thảnh thơi","x":0.5,"y":0.337,"size":4.4,"color":"#8f3f2c","font":"vn-rancho","bold":false,"shadow":false,"lineHeight":1.3}
+  ]
+}

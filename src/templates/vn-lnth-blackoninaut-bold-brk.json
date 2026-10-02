@@ -1,0 +1,12 @@
+{
+  "font": "vn-lnth-blackoninaut-bold-brk",
+  "aspect": 1.5,
+  "bg": "#f1ebd5",
+  "items": [
+    {"text":"THANH XUÂN","x":0.5003,"y":0.1196,"size":15.35,"color":"#010102","font":"vn-lnth-blackoninaut-bold-brk","bold":false,"shadow":false},
+    {"text":"như một","x":0.5003,"y":0.2123,"size":13.33,"color":"#5a953d","font":"vn-lnth-blackoninaut-bold-brk","bold":false,"shadow":false},
+    {"text":"TÁCH TRÀ","x":0.4993,"y":0.3371,"size":15.45,"color":"#010101","font":"vn-lnth-blackoninaut-bold-brk","bold":false,"shadow":false},
+    {"text":"Thêm trân châu, thêm sữa","x":0.4538,"y":0.8889,"size":5.76,"color":"#eabe93","font":"vn-lnth-blackoninaut-bold-brk","bold":false,"shadow":false,"lineHeight":1.1},
+    {"text":"thế là tăng cân","x":0.5011,"y":0.9374,"size":6.88,"color":"#eabb8e","font":"vn-lnth-blackoninaut-bold-brk","bold":false,"shadow":false,"lineHeight":1.1}
+  ]
+}

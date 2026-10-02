@@ -1,0 +1,9 @@
+{
+  "font": "vn-svn-kitten",
+  "aspect": 1.0656,
+  "bg": "#970803",
+  "items": [
+    {"text":"Tôi yêu","x":0.5346,"y":0.4425,"size":17.64,"color":"#f4a904","font":"vn-svn-kitten","bold":false,"shadow":false,"lineHeight":0.95},
+    {"text":"Tiếng Việt","x":0.5557,"y":0.607,"size":17.64,"color":"#f4aa04","font":"vn-svn-kitten","bold":false,"shadow":false,"lineHeight":0.95}
+  ]
+}

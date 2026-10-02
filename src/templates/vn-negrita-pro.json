@@ -1,0 +1,9 @@
+{
+  "font": "vn-negrita-pro",
+  "aspect": 1,
+  "bg": "#f3ece4",
+  "items": [
+    {"text":"Rồng Rắn\nLên Mây","x":0.5104,"y":0.4626,"size":17,"color":"#9a4e34","font":"vn-negrita-pro","bold":false,"shadow":false,"lineHeight":0.95},
+    {"text":"có cái cây lúc lắc\ncó ông chủ ở nhà không?","x":0.4962,"y":0.6869,"size":4.01,"color":"#96543e","font":"vn-negrita-pro","bold":false,"shadow":false,"lineHeight":1.58}
+  ]
+}

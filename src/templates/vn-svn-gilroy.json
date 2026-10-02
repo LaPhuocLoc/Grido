@@ -1,0 +1,11 @@
+{
+  "font": "vn-svn-gilroy",
+  "aspect": 1.0654,
+  "bg": "#f3f6ff",
+  "items": [
+    {"text":"Chiếc font quốc dân","x":0.3042,"y":0.267,"size":5.35,"color":"#0d0d0f","font":"vn-svn-gilroy","shadow":false,"bold":false},
+    {"text":"Có quá nhiều định dạng để cho bạn chọn lựa","x":0.49,"y":0.345,"size":4,"color":"#111111","font":"vn-svn-gilroy","bold":false,"shadow":false},
+    {"text":"ƯU ĐÃI NGẬP TRÀN","x":0.4993,"y":0.5498,"size":10.36,"color":"#000000","font":"vn-svn-gilroy","shadow":false},
+    {"text":"deal lớn mời bạn","x":0.4542,"y":0.6876,"size":10.48,"color":"#000000","font":"vn-svn-gilroy","shadow":false}
+  ]
+}

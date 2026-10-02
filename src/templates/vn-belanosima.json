@@ -1,0 +1,9 @@
+{
+  "font": "vn-belanosima",
+  "aspect": 1,
+  "bg": "#f4ede5",
+  "items": [
+    {"text":"Vũ trụ này đôi lúc thật kỳ lạ,\nkhi mình cố trốn tránh một\nký ức, một con người để rồi\nlại gặp từng mảnh của ký\nức ấy, lác đác, vương vãi ở\nnhững nơi mình bước qua.","x":0.4993,"y":0.4763,"size":5.84,"color":"#985036","font":"vn-belanosima","bold":false,"shadow":false,"lineHeight":1.36},
+    {"text":"(Nguyễn Nhật Ánh)","x":0.5,"y":0.77,"size":4.6,"color":"#8f3f2c","font":"vn-belanosima","shadow":false,"bold":false}
+  ]
+}

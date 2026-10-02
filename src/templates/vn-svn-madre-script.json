@@ -1,0 +1,8 @@
+{
+  "font": "vn-svn-madre-script",
+  "aspect": 1.0643,
+  "bg": "#fef8f8",
+  "items": [
+    {"text":"Nàng Xuân","x":0.499,"y":0.4997,"size":15.01,"color":"#020101","font":"vn-svn-madre-script","bold":false,"shadow":false}
+  ]
+}

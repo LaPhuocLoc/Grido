@@ -1,0 +1,9 @@
+{
+  "font": "vn-svn-mutlu",
+  "aspect": 1.0654,
+  "bg": "#fe37b6",
+  "items": [
+    {"text":"Đếch","x":0.4017,"y":0.3796,"size":36.71,"color":"#6becfe","font":"vn-svn-mutlu","bold":false,"shadow":false},
+    {"text":"quan tâm","x":0.5,"y":0.64,"size":22,"color":"#5ae8f8","font":"vn-svn-mutlu","bold":false,"shadow":false}
+  ]
+}

@@ -1,0 +1,11 @@
+{
+  "font": "vn-svn-cafe-lounge-19",
+  "aspect": 1.0654,
+  "bg": "#ffeded",
+  "items": [
+    {"text":"phòng","x":0.5253,"y":0.2693,"size":18.42,"color":"#ad0001","font":"vn-svn-cafe-lounge-19","bold":false,"shadow":false},
+    {"text":"Chữ,","x":0.4214,"y":0.4525,"size":18.53,"color":"#ad0001","font":"vn-svn-cafe-lounge-19","bold":false,"shadow":false},
+    {"text":"điệu ghê","x":0.4693,"y":0.5863,"size":17.44,"color":"#ad0001","font":"vn-svn-cafe-lounge-19","bold":false,"shadow":false},
+    {"text":"lả lướt","x":0.4809,"y":0.7781,"size":18.3,"color":"#ae0001","font":"vn-svn-cafe-lounge-19","bold":false,"shadow":false}
+  ]
+}

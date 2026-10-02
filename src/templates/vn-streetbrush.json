@@ -1,0 +1,10 @@
+{
+  "font": "vn-streetbrush",
+  "aspect": 1,
+  "bg": "#f3ece4",
+  "items": [
+    {"text":"Bách","x":0.4892,"y":0.3376,"size":21.88,"color":"#994f36","font":"vn-streetbrush","bold":false,"shadow":false},
+    {"text":"Quỷ","x":0.491,"y":0.5036,"size":21.72,"color":"#994f36","font":"vn-streetbrush","bold":false,"shadow":false},
+    {"text":"Dạ Hành","x":0.4983,"y":0.7182,"size":22.21,"color":"#994e35","font":"vn-streetbrush","bold":false,"shadow":false}
+  ]
+}

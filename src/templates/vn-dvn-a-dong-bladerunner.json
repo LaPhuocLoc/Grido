@@ -1,0 +1,11 @@
+{
+  "font": "vn-dvn-a-dong-bladerunner",
+  "aspect": 1.5,
+  "bg": "#f7e6a8",
+  "items": [
+    {"text":"Lồng","x":0.53,"y":0.33,"size":18.4,"color":"#866335","font":"vn-dvn-a-dong-bladerunner","bold":false,"shadow":false},
+    {"text":"Đèn","x":0.51,"y":0.47,"size":22,"color":"#8d6835","font":"vn-dvn-a-dong-bladerunner","bold":false,"shadow":false},
+    {"text":"Đẹp","x":0.51,"y":0.62,"size":22,"color":"#845e33","font":"vn-dvn-a-dong-bladerunner","bold":false,"shadow":false},
+    {"text":"TẾT EM VUI","x":0.52,"y":0.78,"size":6.5,"color":"#9a773e","font":"vn-dvn-a-dong-bladerunner","bold":false,"shadow":false}
+  ]
+}

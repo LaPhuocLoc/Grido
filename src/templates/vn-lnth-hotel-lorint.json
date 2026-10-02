@@ -1,0 +1,15 @@
+{
+  "font": "vn-lnth-hotel-lorint",
+  "aspect": 1.5,
+  "bg": "#a7d5da",
+  "items": [
+    {"text":"Mây","x":0.4882,"y":0.2063,"size":30.77,"color":"#f3fafa","font":"vn-lnth-hotel-lorint","bold":false,"shadow":false},
+    {"text":"Của","x":0.3717,"y":0.3463,"size":23.48,"color":"#103c41","font":"vn-lnth-hotel-lorint","bold":false,"shadow":false},
+    {"text":"Trời","x":0.6314,"y":0.4396,"size":30,"color":"#f5fafa","font":"vn-lnth-hotel-lorint","bold":false,"shadow":false},
+    {"text":"Hãy","x":0.4417,"y":0.4921,"size":21,"color":"#143e45","font":"vn-lnth-hotel-lorint","bold":false,"shadow":false},
+    {"text":"Để","x":0.6024,"y":0.6025,"size":22.91,"color":"#122e31","font":"vn-lnth-hotel-lorint","bold":false,"shadow":false},
+    {"text":"Gió","x":0.3974,"y":0.6725,"size":34.27,"color":"#fafcfc","font":"vn-lnth-hotel-lorint","bold":false,"shadow":false},
+    {"text":"Cuốn","x":0.6464,"y":0.7562,"size":24.07,"color":"#113036","font":"vn-lnth-hotel-lorint","bold":false,"shadow":false},
+    {"text":"Đi","x":0.4829,"y":0.8627,"size":21.81,"color":"#133c46","font":"vn-lnth-hotel-lorint","bold":false,"shadow":false}
+  ]
+}

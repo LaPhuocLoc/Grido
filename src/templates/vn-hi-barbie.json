@@ -1,0 +1,8 @@
+{
+  "font": "vn-hi-barbie",
+  "aspect": 1,
+  "bg": "#f3ece4",
+  "items": [
+    {"text":"Một ngày nào đó, ba mẹ\nsẽ không còn hiểu nổi\nphương hướng cuộc đời bạn.","x":0.5,"y":0.32,"size":6.9,"color":"#8f3f2c","font":"vn-hi-barbie","bold":false,"shadow":false,"lineHeight":1.45}
+  ]
+}

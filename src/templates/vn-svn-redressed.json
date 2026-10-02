@@ -1,0 +1,11 @@
+{
+  "font": "vn-svn-redressed",
+  "aspect": 1.0654,
+  "bg": "#010000",
+  "items": [
+    {"text":"Pháp","x":0.4989,"y":0.178,"size":21.94,"color":"#fc0000","font":"vn-svn-redressed","bold":false,"shadow":false,"lineHeight":1.32},
+    {"text":"Trận","x":0.4989,"y":0.3774,"size":21.94,"color":"#fb0002","font":"vn-svn-redressed","bold":false,"shadow":false,"lineHeight":1.32},
+    {"text":"Bát","x":0.5,"y":0.6,"size":21.94,"color":"#fb0003","font":"vn-svn-redressed","bold":false,"shadow":false,"lineHeight":1.32},
+    {"text":"Quái","x":0.5,"y":0.8,"size":21.94,"color":"#fa0003","font":"vn-svn-redressed","bold":false,"shadow":false,"lineHeight":1.32}
+  ]
+}
