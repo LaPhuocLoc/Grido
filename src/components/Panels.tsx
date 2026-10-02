@@ -506,6 +506,7 @@ export function TextPanel() {
       {item ? (
         <FontPicker
           value={item.font}
+          text={item.text}
           onChange={(font) => updateText(item.id, { font })}
           onPreview={(font) => setPreviewFont(font ? { id: item.id, font } : null)}
         />

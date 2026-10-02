@@ -8,6 +8,8 @@ release
 # Font gốc tải từ fontvn.com (nặng); bản đã tối ưu nằm ở public/fonts, dựng bằng scripts/build-fonts.py
 fontvn/downloads
 fontvn/fonts
+# File woff2 đã cắt glyph, giữ lại để lần dựng sau khỏi chuyển đổi lại (font Nhật / Hàn mất cả phút mỗi file)
+fontvn/cache
 
 # Tàn dư của bản web cũ (Cloudflare / Netlify)
 .wrangler

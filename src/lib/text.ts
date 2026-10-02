@@ -164,12 +164,16 @@ export function snapAngle(deg: number, threshold = 4): number {
 
 export type FontId = string
 export type FontGroup = VnFontGroup
+/** Ngôn ngữ mà một font vẽ được đầy đủ (ngoài chữ Latin cơ bản). */
+export type FontLang = 'vi' | 'ko' | 'ja'
 
 export interface FontInfo {
   id: FontId
   label: string
   family: string
   group: FontGroup
+  /** Font của máy không biết trước nên để trống. */
+  langs: FontLang[]
   /** Ảnh minh hoạ font đang được dùng trong thiết kế thật; 4 font cơ bản không có. */
   thumb?: string
 }
@@ -181,15 +185,23 @@ export const FONT_GROUPS: { id: FontGroup; label: string }[] = [
   { id: 'display', label: 'Trang trí' },
 ]
 
-const FALLBACK: Record<FontGroup, string> = { sans: 'sans-serif', serif: 'serif', script: 'cursive', display: 'sans-serif' }
+/** Thứ tự hiển thị; người dùng chủ yếu là người Việt nên tên ngôn ngữ viết bằng tiếng Việt. */
+export const FONT_LANGS: { id: FontLang; label: string }[] = [
+  { id: 'vi', label: 'Tiếng Việt' },
+  { id: 'ko', label: 'Tiếng Hàn' },
+  { id: 'ja', label: 'Tiếng Nhật' },
+]
 
-// Mọi font đều có đủ dấu tiếng Việt. 4 font đầu đi kèm app từ trước; phần còn lại là bộ font Việt hoá (scripts/build-fonts.py).
+const FALLBACK: Record<FontGroup, string> = { sans: 'sans-serif', serif: 'serif', script: 'cursive', display: 'sans-serif' }
+const VI: FontLang[] = ['vi']
+
+// Mọi font hiện có đều đủ dấu tiếng Việt. 4 font đầu đi kèm app từ trước; phần còn lại là bộ font Việt hoá (scripts/build-fonts.py).
 export const FONTS: FontInfo[] = [
-  { id: 'sans', label: 'Hiện đại', family: '"Be Vietnam Pro", sans-serif', group: 'sans' },
-  { id: 'round', label: 'Mềm mại', family: '"Quicksand", sans-serif', group: 'sans' },
-  { id: 'serif', label: 'Cổ điển', family: '"Lora", serif', group: 'serif' },
-  { id: 'script', label: 'Viết tay', family: '"Dancing Script", cursive', group: 'script' },
-  ...VN_FONTS.map((f) => ({ ...f, family: `"${f.id}", ${FALLBACK[f.group]}`, thumb: `/fonts/thumbs/${f.id}.webp` })),
+  { id: 'sans', label: 'Hiện đại', family: '"Be Vietnam Pro", sans-serif', group: 'sans', langs: VI },
+  { id: 'round', label: 'Mềm mại', family: '"Quicksand", sans-serif', group: 'sans', langs: VI },
+  { id: 'serif', label: 'Cổ điển', family: '"Lora", serif', group: 'serif', langs: VI },
+  { id: 'script', label: 'Viết tay', family: '"Dancing Script", cursive', group: 'script', langs: VI },
+  ...VN_FONTS.map(({ lang, ...f }) => ({ ...f, family: `"${f.id}", ${FALLBACK[f.group]}`, langs: lang === 'vi' ? VI : [lang], thumb: `/fonts/thumbs/${f.id}.webp` })),
 ]
 
 const BY_ID = new Map(FONTS.map((f) => [f.id, f]))
@@ -222,6 +234,7 @@ export const systemFont = (family: string): FontInfo => ({
   // Máy khác không có font này thì rơi về font không chân mặc định.
   family: `"${family.replace(/["\\]/g, '')}", sans-serif`,
   group: 'sans',
+  langs: [],
 })
 
 export const fontInfo = (id: FontId) => BY_ID.get(id) ?? (isSystemFont(id) ? systemFont(id.slice(SYSTEM_PREFIX.length)) : FONTS[0])

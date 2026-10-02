@@ -1,0 +1,1969 @@
+[
+  {
+    "slug": "noto-sans-jp",
+    "title": "Noto Sans JP",
+    "lang": "ja",
+    "group": "sans",
+    "url": "https://fonts.google.com/specimen/Noto+Sans+JP",
+    "popularity": 10,
+    "fontFiles": [
+      "fonts/google-noto-sans-jp/NotoSansJP-VariableFont_wght.ttf"
+    ],
+    "licenseFiles": [
+      "fonts/google-noto-sans-jp/OFL.txt"
+    ],
+    "license": "OFL",
+    "status": "ok",
+    "thumbUrl": "https://lh3.googleusercontent.com/SY5t9-kJKCJB_gWz1CbNuyPTIh7G8aYv86VAmz93SclzwigvPVVz4k4qAYI",
+    "thumb": "thumbs/google-noto-sans-jp.jpg"
+  },
+  {
+    "slug": "noto-serif-jp",
+    "title": "Noto Serif JP",
+    "lang": "ja",
+    "group": "serif",
+    "url": "https://fonts.google.com/specimen/Noto+Serif+JP",
+    "popularity": 89,
+    "fontFiles": [
+      "fonts/google-noto-serif-jp/NotoSerifJP-VariableFont_wght.ttf"
+    ],
+    "licenseFiles": [
+      "fonts/google-noto-serif-jp/OFL.txt"
+    ],
+    "license": "OFL",
+    "status": "ok",
+    "thumbUrl": "https://lh3.googleusercontent.com/a4j0Zty3Ly-841aDB10efO4dgmNrcZt1tev7N5DsJZY_Slg8zUQqnO6aZBqr",
+    "thumb": "thumbs/google-noto-serif-jp.jpg"
+  },
+  {
+    "slug": "m-plus-rounded-1c",
+    "title": "M PLUS Rounded 1c",
+    "lang": "ja",
+    "group": "sans",
+    "url": "https://fonts.google.com/specimen/M+PLUS+Rounded+1c",
+    "popularity": 118,
+    "fontFiles": [
+      "fonts/google-m-plus-rounded-1c/MPLUSRounded1c-Black.ttf",
+      "fonts/google-m-plus-rounded-1c/MPLUSRounded1c-Bold.ttf",
+      "fonts/google-m-plus-rounded-1c/MPLUSRounded1c-ExtraBold.ttf",
+      "fonts/google-m-plus-rounded-1c/MPLUSRounded1c-Light.ttf",
+      "fonts/google-m-plus-rounded-1c/MPLUSRounded1c-Medium.ttf",
+      "fonts/google-m-plus-rounded-1c/MPLUSRounded1c-Regular.ttf",
+      "fonts/google-m-plus-rounded-1c/MPLUSRounded1c-Thin.ttf"
+    ],
+    "licenseFiles": [
+      "fonts/google-m-plus-rounded-1c/OFL.txt"
+    ],
+    "license": "OFL",
+    "status": "ok",
+    "thumbUrl": "https://lh3.googleusercontent.com/JVwVbFGVbD0m4zsF7c_NUQ-a5aF2vLUINatHMLGm6pCpEYWzpyDRirhpL9E",
+    "thumb": "thumbs/google-m-plus-rounded-1c.jpg"
+  },
+  {
+    "slug": "zen-kaku-gothic-new",
+    "title": "Zen Kaku Gothic New",
+    "lang": "ja",
+    "group": "sans",
+    "url": "https://fonts.google.com/specimen/Zen+Kaku+Gothic+New",
+    "popularity": 162,
+    "fontFiles": [
+      "fonts/google-zen-kaku-gothic-new/ZenKakuGothicNew-Black.ttf",
+      "fonts/google-zen-kaku-gothic-new/ZenKakuGothicNew-Bold.ttf",
+      "fonts/google-zen-kaku-gothic-new/ZenKakuGothicNew-Light.ttf",
+      "fonts/google-zen-kaku-gothic-new/ZenKakuGothicNew-Medium.ttf",
+      "fonts/google-zen-kaku-gothic-new/ZenKakuGothicNew-Regular.ttf"
+    ],
+    "licenseFiles": [
+      "fonts/google-zen-kaku-gothic-new/OFL.txt"
+    ],
+    "license": "OFL",
+    "status": "ok",
+    "thumbUrl": "https://lh3.googleusercontent.com/j6xfB4ZI0JBUKWkNSjVvraZJhEi0Tj1tf-l_ei6QUQTZVHHR7NvrMaukaUH7",
+    "thumb": "thumbs/google-zen-kaku-gothic-new.jpg"
+  },
+  {
+    "slug": "m-plus-1p",
+    "title": "M PLUS 1p",
+    "lang": "ja",
+    "group": "sans",
+    "url": "https://fonts.google.com/specimen/M+PLUS+1p",
+    "popularity": 165,
+    "fontFiles": [
+      "fonts/google-m-plus-1p/MPLUS1p-Black.ttf",
+      "fonts/google-m-plus-1p/MPLUS1p-Bold.ttf",
+      "fonts/google-m-plus-1p/MPLUS1p-ExtraBold.ttf",
+      "fonts/google-m-plus-1p/MPLUS1p-Light.ttf",
+      "fonts/google-m-plus-1p/MPLUS1p-Medium.ttf",
+      "fonts/google-m-plus-1p/MPLUS1p-Regular.ttf",
+      "fonts/google-m-plus-1p/MPLUS1p-Thin.ttf"
+    ],
+    "licenseFiles": [
+      "fonts/google-m-plus-1p/OFL.txt"
+    ],
+    "license": "OFL",
+    "status": "ok",
+    "thumbUrl": "https://lh3.googleusercontent.com/3ZTIJOkElkFXjp7lkUOrI5vIu7Db0_FGh8OFJ-A4-WLer3Zqp7nbb5FiHFI",
+    "thumb": "thumbs/google-m-plus-1p.jpg"
+  },
+  {
+    "slug": "zen-maru-gothic",
+    "title": "Zen Maru Gothic",
+    "lang": "ja",
+    "group": "sans",
+    "url": "https://fonts.google.com/specimen/Zen+Maru+Gothic",
+    "popularity": 207,
+    "fontFiles": [
+      "fonts/google-zen-maru-gothic/ZenMaruGothic-Black.ttf",
+      "fonts/google-zen-maru-gothic/ZenMaruGothic-Bold.ttf",
+      "fonts/google-zen-maru-gothic/ZenMaruGothic-Light.ttf",
+      "fonts/google-zen-maru-gothic/ZenMaruGothic-Medium.ttf",
+      "fonts/google-zen-maru-gothic/ZenMaruGothic-Regular.ttf"
+    ],
+    "licenseFiles": [
+      "fonts/google-zen-maru-gothic/OFL.txt"
+    ],
+    "license": "OFL",
+    "status": "ok",
+    "thumbUrl": "https://lh3.googleusercontent.com/NKwJ9Y7fU5-4pHH7fxrEonOAOK7rpKZEice6GOVHm6XTxasqULRdc120KXE",
+    "thumb": "thumbs/google-zen-maru-gothic.jpg"
+  },
+  {
+    "slug": "line-seed-jp",
+    "title": "LINE Seed JP",
+    "lang": "ja",
+    "group": "sans",
+    "url": "https://fonts.google.com/specimen/LINE+Seed+JP",
+    "popularity": 228,
+    "fontFiles": [
+      "fonts/google-line-seed-jp/LINESeedJP-Bold.ttf",
+      "fonts/google-line-seed-jp/LINESeedJP-ExtraBold.ttf",
+      "fonts/google-line-seed-jp/LINESeedJP-Regular.ttf",
+      "fonts/google-line-seed-jp/LINESeedJP-Thin.ttf"
+    ],
+    "licenseFiles": [
+      "fonts/google-line-seed-jp/OFL.txt"
+    ],
+    "license": "OFL",
+    "status": "ok",
+    "thumbUrl": "https://lh3.googleusercontent.com/Z7tZJEdGN-h-iFutKUlDnShq8iHVZLDAiJQBUEAU_s2tnT64xPQN-MCPf0I",
+    "thumb": "thumbs/google-line-seed-jp.jpg"
+  },
+  {
+    "slug": "shippori-mincho",
+    "title": "Shippori Mincho",
+    "lang": "ja",
+    "group": "serif",
+    "url": "https://fonts.google.com/specimen/Shippori+Mincho",
+    "popularity": 248,
+    "fontFiles": [
+      "fonts/google-shippori-mincho/ShipporiMincho-Bold.ttf",
+      "fonts/google-shippori-mincho/ShipporiMincho-ExtraBold.ttf",
+      "fonts/google-shippori-mincho/ShipporiMincho-Medium.ttf",
+      "fonts/google-shippori-mincho/ShipporiMincho-Regular.ttf",
+      "fonts/google-shippori-mincho/ShipporiMincho-SemiBold.ttf"
+    ],
+    "licenseFiles": [
+      "fonts/google-shippori-mincho/OFL.txt"
+    ],
+    "license": "OFL",
+    "status": "ok",
+    "thumbUrl": "https://lh3.googleusercontent.com/TESBT3-5xWrm6Tu5fOsxbDgW2P63CzFrdwXw-p2gaHEq7YpAYtrovtwHNZ2W",
+    "thumb": "thumbs/google-shippori-mincho.jpg"
+  },
+  {
+    "slug": "sawarabi-mincho",
+    "title": "Sawarabi Mincho",
+    "lang": "ja",
+    "group": "serif",
+    "url": "https://fonts.google.com/specimen/Sawarabi+Mincho",
+    "popularity": 288,
+    "fontFiles": [
+      "fonts/google-sawarabi-mincho/SawarabiMincho-Regular.ttf"
+    ],
+    "licenseFiles": [
+      "fonts/google-sawarabi-mincho/OFL.txt"
+    ],
+    "license": "OFL",
+    "status": "ok"
+  },
+  {
+    "slug": "biz-udpgothic",
+    "title": "BIZ UDPGothic",
+    "lang": "ja",
+    "group": "sans",
+    "url": "https://fonts.google.com/specimen/BIZ+UDPGothic",
+    "popularity": 289,
+    "fontFiles": [
+      "fonts/google-biz-udpgothic/BIZUDPGothic-Bold.ttf",
+      "fonts/google-biz-udpgothic/BIZUDPGothic-Regular.ttf"
+    ],
+    "licenseFiles": [
+      "fonts/google-biz-udpgothic/OFL.txt"
+    ],
+    "license": "OFL",
+    "status": "ok",
+    "thumbUrl": "https://lh3.googleusercontent.com/aSNu63vLbFCuNOjHFZu_3j9IW2aJY86CsV-oQnCNOwYXFp-Y9rWbIuwMXKA",
+    "thumb": "thumbs/google-biz-udpgothic.jpg"
+  },
+  {
+    "slug": "zen-old-mincho",
+    "title": "Zen Old Mincho",
+    "lang": "ja",
+    "group": "serif",
+    "url": "https://fonts.google.com/specimen/Zen+Old+Mincho",
+    "popularity": 305,
+    "fontFiles": [
+      "fonts/google-zen-old-mincho/ZenOldMincho-Black.ttf",
+      "fonts/google-zen-old-mincho/ZenOldMincho-Bold.ttf",
+      "fonts/google-zen-old-mincho/ZenOldMincho-Medium.ttf",
+      "fonts/google-zen-old-mincho/ZenOldMincho-Regular.ttf",
+      "fonts/google-zen-old-mincho/ZenOldMincho-SemiBold.ttf"
+    ],
+    "licenseFiles": [
+      "fonts/google-zen-old-mincho/OFL.txt"
+    ],
+    "license": "OFL",
+    "status": "ok",
+    "thumbUrl": "https://lh3.googleusercontent.com/FO5vzPkG1uLpHx9YuUt3Dr5w8sSK39GuAuWc2teirYKzw4_AV4vY5zytAVQ",
+    "thumb": "thumbs/google-zen-old-mincho.jpg"
+  },
+  {
+    "slug": "sawarabi-gothic",
+    "title": "Sawarabi Gothic",
+    "lang": "ja",
+    "group": "sans",
+    "url": "https://fonts.google.com/specimen/Sawarabi+Gothic",
+    "popularity": 315,
+    "fontFiles": [
+      "fonts/google-sawarabi-gothic/SawarabiGothic-Regular.ttf"
+    ],
+    "licenseFiles": [
+      "fonts/google-sawarabi-gothic/OFL.txt"
+    ],
+    "license": "OFL",
+    "status": "ok",
+    "thumbUrl": "https://lh3.googleusercontent.com/zuD1eXKulCJc9ogKKS3hC0H7M6u1R-Cc1mVayNrItY0z0_3KYJpBBukswHs",
+    "thumb": "thumbs/google-sawarabi-gothic.jpg"
+  },
+  {
+    "slug": "kosugi-maru",
+    "title": "Kosugi Maru",
+    "lang": "ja",
+    "group": "sans",
+    "url": "https://fonts.google.com/specimen/Kosugi+Maru",
+    "popularity": 341,
+    "fontFiles": [
+      "fonts/google-kosugi-maru/KosugiMaru-Regular.ttf"
+    ],
+    "licenseFiles": [
+      "fonts/google-kosugi-maru/LICENSE.txt"
+    ],
+    "license": "Apache-2.0",
+    "status": "ok",
+    "thumbUrl": "https://lh3.googleusercontent.com/d662oLb5yMTt44w10rVWBhEIZq63rXP97_OoujMJtF5fG4LgNEuvi7n9-KU",
+    "thumb": "thumbs/google-kosugi-maru.jpg"
+  },
+  {
+    "slug": "m-plus-1",
+    "title": "M PLUS 1",
+    "lang": "ja",
+    "group": "sans",
+    "url": "https://fonts.google.com/specimen/M+PLUS+1",
+    "popularity": 358,
+    "fontFiles": [
+      "fonts/google-m-plus-1/MPLUS1-VariableFont_wght.ttf"
+    ],
+    "licenseFiles": [
+      "fonts/google-m-plus-1/OFL.txt"
+    ],
+    "license": "OFL",
+    "status": "ok",
+    "thumbUrl": "https://lh3.googleusercontent.com/YEd5k04ZTtySASpXKEh201yVJZ3LxLnfSV1QEPEoz54Eh6ndqBGr5WHX7N0",
+    "thumb": "thumbs/google-m-plus-1.jpg"
+  },
+  {
+    "slug": "dela-gothic-one",
+    "title": "Dela Gothic One",
+    "lang": "ja",
+    "group": "display",
+    "url": "https://fonts.google.com/specimen/Dela+Gothic+One",
+    "popularity": 379,
+    "fontFiles": [
+      "fonts/google-dela-gothic-one/DelaGothicOne-Regular.ttf"
+    ],
+    "licenseFiles": [
+      "fonts/google-dela-gothic-one/OFL.txt"
+    ],
+    "license": "OFL",
+    "status": "ok",
+    "thumbUrl": "https://lh3.googleusercontent.com/xxLbYynim3QL6M_smEsNpBY339zOZ9hLk5uo2cc0gUaX1Woz3wvONvKPjCCs",
+    "thumb": "thumbs/google-dela-gothic-one.jpg"
+  },
+  {
+    "slug": "biz-udgothic",
+    "title": "BIZ UDGothic",
+    "lang": "ja",
+    "group": "sans",
+    "url": "https://fonts.google.com/specimen/BIZ+UDGothic",
+    "popularity": 423,
+    "fontFiles": [
+      "fonts/google-biz-udgothic/BIZUDGothic-Bold.ttf",
+      "fonts/google-biz-udgothic/BIZUDGothic-Regular.ttf"
+    ],
+    "licenseFiles": [
+      "fonts/google-biz-udgothic/OFL.txt"
+    ],
+    "license": "OFL",
+    "status": "ok",
+    "thumbUrl": "https://lh3.googleusercontent.com/6Z-nbV9ruqSKnj_P0NIPyFVq4iOX9Z9eYDhhQbHIUbnfGVlSCw72N-H-B60",
+    "thumb": "thumbs/google-biz-udgothic.jpg"
+  },
+  {
+    "slug": "shippori-mincho-b1",
+    "title": "Shippori Mincho B1",
+    "lang": "ja",
+    "group": "serif",
+    "url": "https://fonts.google.com/specimen/Shippori+Mincho+B1",
+    "popularity": 454,
+    "fontFiles": [
+      "fonts/google-shippori-mincho-b1/ShipporiMinchoB1-Bold.ttf",
+      "fonts/google-shippori-mincho-b1/ShipporiMinchoB1-ExtraBold.ttf",
+      "fonts/google-shippori-mincho-b1/ShipporiMinchoB1-Medium.ttf",
+      "fonts/google-shippori-mincho-b1/ShipporiMinchoB1-Regular.ttf",
+      "fonts/google-shippori-mincho-b1/ShipporiMinchoB1-SemiBold.ttf"
+    ],
+    "licenseFiles": [
+      "fonts/google-shippori-mincho-b1/OFL.txt"
+    ],
+    "license": "OFL",
+    "status": "ok",
+    "thumbUrl": "https://lh3.googleusercontent.com/7geWWmxIEzjYHs_u8kHYwg2j9PlY4TX86Ep-BAs3qh8qd0a9m-mbxzYVHw",
+    "thumb": "thumbs/google-shippori-mincho-b1.jpg"
+  },
+  {
+    "slug": "ibm-plex-sans-jp",
+    "title": "IBM Plex Sans JP",
+    "lang": "ja",
+    "group": "sans",
+    "url": "https://fonts.google.com/specimen/IBM+Plex+Sans+JP",
+    "popularity": 476,
+    "fontFiles": [
+      "fonts/google-ibm-plex-sans-jp/IBMPlexSansJP-Bold.ttf",
+      "fonts/google-ibm-plex-sans-jp/IBMPlexSansJP-ExtraLight.ttf",
+      "fonts/google-ibm-plex-sans-jp/IBMPlexSansJP-Light.ttf",
+      "fonts/google-ibm-plex-sans-jp/IBMPlexSansJP-Medium.ttf",
+      "fonts/google-ibm-plex-sans-jp/IBMPlexSansJP-Regular.ttf",
+      "fonts/google-ibm-plex-sans-jp/IBMPlexSansJP-SemiBold.ttf",
+      "fonts/google-ibm-plex-sans-jp/IBMPlexSansJP-Thin.ttf"
+    ],
+    "licenseFiles": [
+      "fonts/google-ibm-plex-sans-jp/OFL.txt"
+    ],
+    "license": "OFL",
+    "status": "ok",
+    "thumbUrl": "https://lh3.googleusercontent.com/88j-Z5ZPTkbhC6bNGPK8Ft92NoBlkPvu98P3OP2xN-Ke2MFmZ37fq9pe5Os",
+    "thumb": "thumbs/google-ibm-plex-sans-jp.jpg"
+  },
+  {
+    "slug": "m-plus-2",
+    "title": "M PLUS 2",
+    "lang": "ja",
+    "group": "sans",
+    "url": "https://fonts.google.com/specimen/M+PLUS+2",
+    "popularity": 484,
+    "fontFiles": [
+      "fonts/google-m-plus-2/MPLUS2-VariableFont_wght.ttf"
+    ],
+    "licenseFiles": [
+      "fonts/google-m-plus-2/OFL.txt"
+    ],
+    "license": "OFL",
+    "status": "ok",
+    "thumbUrl": "https://lh3.googleusercontent.com/ki9n0OZuah6oeOsxu7YH41ywmmkOcmz0IZwb0nVkvGm87jdNdAQns7u9XQcT",
+    "thumb": "thumbs/google-m-plus-2.jpg"
+  },
+  {
+    "slug": "zen-kaku-gothic-antique",
+    "title": "Zen Kaku Gothic Antique",
+    "lang": "ja",
+    "group": "sans",
+    "url": "https://fonts.google.com/specimen/Zen+Kaku+Gothic+Antique",
+    "popularity": 489,
+    "fontFiles": [
+      "fonts/google-zen-kaku-gothic-antique/ZenKakuGothicAntique-Black.ttf",
+      "fonts/google-zen-kaku-gothic-antique/ZenKakuGothicAntique-Bold.ttf",
+      "fonts/google-zen-kaku-gothic-antique/ZenKakuGothicAntique-Light.ttf",
+      "fonts/google-zen-kaku-gothic-antique/ZenKakuGothicAntique-Medium.ttf",
+      "fonts/google-zen-kaku-gothic-antique/ZenKakuGothicAntique-Regular.ttf"
+    ],
+    "licenseFiles": [
+      "fonts/google-zen-kaku-gothic-antique/OFL.txt"
+    ],
+    "license": "OFL",
+    "status": "ok",
+    "thumbUrl": "https://lh3.googleusercontent.com/J0fS8rZnSV9B1P7QP5Rj9TV5S3UXI9SkwRpf_F2NpNhEd7DqynCz8El8c3u-",
+    "thumb": "thumbs/google-zen-kaku-gothic-antique.jpg"
+  },
+  {
+    "slug": "kaisei-decol",
+    "title": "Kaisei Decol",
+    "lang": "ja",
+    "group": "serif",
+    "url": "https://fonts.google.com/specimen/Kaisei+Decol",
+    "popularity": 529,
+    "fontFiles": [
+      "fonts/google-kaisei-decol/KaiseiDecol-Bold.ttf",
+      "fonts/google-kaisei-decol/KaiseiDecol-Medium.ttf",
+      "fonts/google-kaisei-decol/KaiseiDecol-Regular.ttf"
+    ],
+    "licenseFiles": [
+      "fonts/google-kaisei-decol/OFL.txt"
+    ],
+    "license": "OFL",
+    "status": "ok",
+    "thumbUrl": "https://lh3.googleusercontent.com/A9YkviN7TAK0J02tcmW28g7eRHBO3cVuXYLA3Jr0sRAjxukYfNFr0_RuPw",
+    "thumb": "thumbs/google-kaisei-decol.jpg"
+  },
+  {
+    "slug": "potta-one",
+    "title": "Potta One",
+    "lang": "ja",
+    "group": "display",
+    "url": "https://fonts.google.com/specimen/Potta+One",
+    "popularity": 572,
+    "fontFiles": [
+      "fonts/google-potta-one/PottaOne-Regular.ttf"
+    ],
+    "licenseFiles": [
+      "fonts/google-potta-one/OFL.txt"
+    ],
+    "license": "OFL",
+    "status": "ok",
+    "thumbUrl": "https://lh3.googleusercontent.com/TAUQqs-GR7VzISwTu-853YLJPks8BESQvpcQCPw5rIktUQkcdVu6xSc6PUA",
+    "thumb": "thumbs/google-potta-one.jpg"
+  },
+  {
+    "slug": "hachi-maru-pop",
+    "title": "Hachi Maru Pop",
+    "lang": "ja",
+    "group": "script",
+    "url": "https://fonts.google.com/specimen/Hachi+Maru+Pop",
+    "popularity": 581,
+    "fontFiles": [
+      "fonts/google-hachi-maru-pop/HachiMaruPop-Regular.ttf"
+    ],
+    "licenseFiles": [
+      "fonts/google-hachi-maru-pop/OFL.txt"
+    ],
+    "license": "OFL",
+    "status": "ok",
+    "thumbUrl": "https://lh3.googleusercontent.com/vLKvhcKOfirQQYGweWM-gOm2tOPOK9zzwh94hAVtT83aiB8EWlOM_Pu6dbo",
+    "thumb": "thumbs/google-hachi-maru-pop.jpg"
+  },
+  {
+    "slug": "murecho",
+    "title": "Murecho",
+    "lang": "ja",
+    "group": "sans",
+    "url": "https://fonts.google.com/specimen/Murecho",
+    "popularity": 602,
+    "fontFiles": [
+      "fonts/google-murecho/Murecho-VariableFont_wght.ttf"
+    ],
+    "licenseFiles": [
+      "fonts/google-murecho/OFL.txt"
+    ],
+    "license": "OFL",
+    "status": "ok",
+    "thumbUrl": "https://lh3.googleusercontent.com/1CbdHJfdMJo4Tr1F3V-rr7z4g1UmUUneQFlPr6F--AjG_D7KR3JD0c388ne4",
+    "thumb": "thumbs/google-murecho.jpg"
+  },
+  {
+    "slug": "kiwi-maru",
+    "title": "Kiwi Maru",
+    "lang": "ja",
+    "group": "serif",
+    "url": "https://fonts.google.com/specimen/Kiwi+Maru",
+    "popularity": 620,
+    "fontFiles": [
+      "fonts/google-kiwi-maru/KiwiMaru-Light.ttf",
+      "fonts/google-kiwi-maru/KiwiMaru-Medium.ttf",
+      "fonts/google-kiwi-maru/KiwiMaru-Regular.ttf"
+    ],
+    "licenseFiles": [
+      "fonts/google-kiwi-maru/OFL.txt"
+    ],
+    "license": "OFL",
+    "status": "ok",
+    "thumbUrl": "https://lh3.googleusercontent.com/wX5J1FE_Eng8rAZW-if3qbKo4QEzmPOISiJ5RLy-7Yn7YcUhz9tmnBoP4ZM",
+    "thumb": "thumbs/google-kiwi-maru.jpg"
+  },
+  {
+    "slug": "yuji-mai",
+    "title": "Yuji Mai",
+    "lang": "ja",
+    "group": "serif",
+    "url": "https://fonts.google.com/specimen/Yuji+Mai",
+    "popularity": 635,
+    "fontFiles": [
+      "fonts/google-yuji-mai/YujiMai-Regular.ttf"
+    ],
+    "licenseFiles": [
+      "fonts/google-yuji-mai/OFL.txt"
+    ],
+    "license": "OFL",
+    "status": "ok",
+    "thumbUrl": "https://lh3.googleusercontent.com/-7MO6ICq1mPhozu2xxjGUUMlBqY7a8BHdYHavJEfw_VFSdB0tfim02x4fBA",
+    "thumb": "thumbs/google-yuji-mai.jpg"
+  },
+  {
+    "slug": "kosugi",
+    "title": "Kosugi",
+    "lang": "ja",
+    "group": "sans",
+    "url": "https://fonts.google.com/specimen/Kosugi",
+    "popularity": 653,
+    "fontFiles": [
+      "fonts/google-kosugi/Kosugi-Regular.ttf"
+    ],
+    "licenseFiles": [
+      "fonts/google-kosugi/LICENSE.txt"
+    ],
+    "license": "Apache-2.0",
+    "status": "ok",
+    "thumbUrl": "https://lh3.googleusercontent.com/hnyrCl1eGE2sbZpR-CJVkXIe7iLvr5B49_IXIUbsQb3r0R952rO2eEEII-g",
+    "thumb": "thumbs/google-kosugi.jpg"
+  },
+  {
+    "slug": "dotgothic16",
+    "title": "DotGothic16",
+    "lang": "ja",
+    "group": "sans",
+    "url": "https://fonts.google.com/specimen/DotGothic16",
+    "popularity": 656,
+    "fontFiles": [
+      "fonts/google-dotgothic16/DotGothic16-Regular.ttf"
+    ],
+    "licenseFiles": [
+      "fonts/google-dotgothic16/OFL.txt"
+    ],
+    "license": "OFL",
+    "status": "ok",
+    "thumbUrl": "https://lh3.googleusercontent.com/GADBCPTnQ6gMMYNiTYXnYxwrV0rq1IIZwEenOCgvgPUHIqfdX58Is8WoodU",
+    "thumb": "thumbs/google-dotgothic16.jpg"
+  },
+  {
+    "slug": "biz-udpmincho",
+    "title": "BIZ UDPMincho",
+    "lang": "ja",
+    "group": "serif",
+    "url": "https://fonts.google.com/specimen/BIZ+UDPMincho",
+    "popularity": 686,
+    "fontFiles": [
+      "fonts/google-biz-udpmincho/BIZUDPMincho-Bold.ttf",
+      "fonts/google-biz-udpmincho/BIZUDPMincho-Regular.ttf"
+    ],
+    "licenseFiles": [
+      "fonts/google-biz-udpmincho/OFL.txt"
+    ],
+    "license": "OFL",
+    "status": "ok",
+    "thumbUrl": "https://lh3.googleusercontent.com/KiCeNpA90GNwkZRzZxodyBLAzcZ4yf0yp2ulGcsAf9HSXqZB4OpbKMCvWfU",
+    "thumb": "thumbs/google-biz-udpmincho.jpg"
+  },
+  {
+    "slug": "klee-one",
+    "title": "Klee One",
+    "lang": "ja",
+    "group": "script",
+    "url": "https://fonts.google.com/specimen/Klee+One",
+    "popularity": 706,
+    "fontFiles": [
+      "fonts/google-klee-one/KleeOne-Regular.ttf",
+      "fonts/google-klee-one/KleeOne-SemiBold.ttf"
+    ],
+    "licenseFiles": [
+      "fonts/google-klee-one/OFL.txt"
+    ],
+    "license": "OFL",
+    "status": "ok",
+    "thumbUrl": "https://lh3.googleusercontent.com/HtgzkSZtwF6UFmEA6QIc-UmxZ9JCYRMAP92bwDEFElWNOg5xUI5D83e9uIw",
+    "thumb": "thumbs/google-klee-one.jpg"
+  },
+  {
+    "slug": "mochiy-pop-one",
+    "title": "Mochiy Pop One",
+    "lang": "ja",
+    "group": "sans",
+    "url": "https://fonts.google.com/specimen/Mochiy+Pop+One",
+    "popularity": 707,
+    "fontFiles": [
+      "fonts/google-mochiy-pop-one/MochiyPopOne-Regular.ttf"
+    ],
+    "licenseFiles": [
+      "fonts/google-mochiy-pop-one/OFL.txt"
+    ],
+    "license": "OFL",
+    "status": "ok",
+    "thumbUrl": "https://lh3.googleusercontent.com/urFfBMVOAZ5qvj4SneK5l_UFTByvgNOrzCQ2BQi0e__tTKH1pXz-SQ4_WGyj",
+    "thumb": "thumbs/google-mochiy-pop-one.jpg"
+  },
+  {
+    "slug": "rocknroll-one",
+    "title": "RocknRoll One",
+    "lang": "ja",
+    "group": "sans",
+    "url": "https://fonts.google.com/specimen/RocknRoll+One",
+    "popularity": 733,
+    "fontFiles": [
+      "fonts/google-rocknroll-one/RocknRollOne-Regular.ttf"
+    ],
+    "licenseFiles": [
+      "fonts/google-rocknroll-one/OFL.txt"
+    ],
+    "license": "OFL",
+    "status": "ok",
+    "thumbUrl": "https://lh3.googleusercontent.com/j_VbQOtiE4rYS9YPQxH66oQb4lyWZ9IEaC_lXWY3qPMgTZcDF97L5DEpnM3-",
+    "thumb": "thumbs/google-rocknroll-one.jpg"
+  },
+  {
+    "slug": "rampart-one",
+    "title": "Rampart One",
+    "lang": "ja",
+    "group": "display",
+    "url": "https://fonts.google.com/specimen/Rampart+One",
+    "popularity": 734,
+    "fontFiles": [
+      "fonts/google-rampart-one/RampartOne-Regular.ttf"
+    ],
+    "licenseFiles": [
+      "fonts/google-rampart-one/OFL.txt"
+    ],
+    "license": "OFL",
+    "status": "ok",
+    "thumbUrl": "https://lh3.googleusercontent.com/sSGUGdI-U3iTqMAgCTx8UwSjcbKv9NHuNU0rFgJ0EFCmQ06kp_olPFRWTmk",
+    "thumb": "thumbs/google-rampart-one.jpg"
+  },
+  {
+    "slug": "hina-mincho",
+    "title": "Hina Mincho",
+    "lang": "ja",
+    "group": "serif",
+    "url": "https://fonts.google.com/specimen/Hina+Mincho",
+    "popularity": 744,
+    "fontFiles": [
+      "fonts/google-hina-mincho/HinaMincho-Regular.ttf"
+    ],
+    "licenseFiles": [
+      "fonts/google-hina-mincho/OFL.txt"
+    ],
+    "license": "OFL",
+    "status": "ok",
+    "thumbUrl": "https://lh3.googleusercontent.com/s_ZV8q5KmkxzinlBISqOXxvnauRpUsQoW6rW4C3vGCDsixNyEEMQU8S2LA",
+    "thumb": "thumbs/google-hina-mincho.jpg"
+  },
+  {
+    "slug": "yusei-magic",
+    "title": "Yusei Magic",
+    "lang": "ja",
+    "group": "sans",
+    "url": "https://fonts.google.com/specimen/Yusei+Magic",
+    "popularity": 790,
+    "fontFiles": [
+      "fonts/google-yusei-magic/YuseiMagic-Regular.ttf"
+    ],
+    "licenseFiles": [
+      "fonts/google-yusei-magic/OFL.txt"
+    ],
+    "license": "OFL",
+    "status": "ok",
+    "thumbUrl": "https://lh3.googleusercontent.com/cv786Y7kPG-OYkUEXc6CukOVH-PD7MACJD2zxR_9R-39qiqxKE4B-Xro_U8",
+    "thumb": "thumbs/google-yusei-magic.jpg"
+  },
+  {
+    "slug": "monomaniac-one",
+    "title": "Monomaniac One",
+    "lang": "ja",
+    "group": "sans",
+    "url": "https://fonts.google.com/specimen/Monomaniac+One",
+    "popularity": 801,
+    "fontFiles": [
+      "fonts/google-monomaniac-one/MonomaniacOne-Regular.ttf"
+    ],
+    "licenseFiles": [
+      "fonts/google-monomaniac-one/OFL.txt"
+    ],
+    "license": "OFL",
+    "status": "ok"
+  },
+  {
+    "slug": "zen-kurenaido",
+    "title": "Zen Kurenaido",
+    "lang": "ja",
+    "group": "sans",
+    "url": "https://fonts.google.com/specimen/Zen+Kurenaido",
+    "popularity": 836,
+    "fontFiles": [
+      "fonts/google-zen-kurenaido/ZenKurenaido-Regular.ttf"
+    ],
+    "licenseFiles": [
+      "fonts/google-zen-kurenaido/OFL.txt"
+    ],
+    "license": "OFL",
+    "status": "ok",
+    "thumbUrl": "https://lh3.googleusercontent.com/0_p2ms9PpHLxYpM4AxqqIO6TAXVu9oT5u0D1nWQ9H7i0L_N_JSqRNljGvdFI",
+    "thumb": "thumbs/google-zen-kurenaido.jpg"
+  },
+  {
+    "slug": "yuji-syuku",
+    "title": "Yuji Syuku",
+    "lang": "ja",
+    "group": "serif",
+    "url": "https://fonts.google.com/specimen/Yuji+Syuku",
+    "popularity": 876,
+    "fontFiles": [
+      "fonts/google-yuji-syuku/YujiSyuku-Regular.ttf"
+    ],
+    "licenseFiles": [
+      "fonts/google-yuji-syuku/OFL.txt"
+    ],
+    "license": "OFL",
+    "status": "ok",
+    "thumbUrl": "https://lh3.googleusercontent.com/eeOfKeW2sogaJH1VDFYeXg0OjXdu7SakL5l387oSy5SX3N-N-d9X4fT7ijk",
+    "thumb": "thumbs/google-yuji-syuku.jpg"
+  },
+  {
+    "slug": "kaisei-opti",
+    "title": "Kaisei Opti",
+    "lang": "ja",
+    "group": "serif",
+    "url": "https://fonts.google.com/specimen/Kaisei+Opti",
+    "popularity": 896,
+    "fontFiles": [
+      "fonts/google-kaisei-opti/KaiseiOpti-Bold.ttf",
+      "fonts/google-kaisei-opti/KaiseiOpti-Medium.ttf",
+      "fonts/google-kaisei-opti/KaiseiOpti-Regular.ttf"
+    ],
+    "licenseFiles": [
+      "fonts/google-kaisei-opti/OFL.txt"
+    ],
+    "license": "OFL",
+    "status": "ok",
+    "thumbUrl": "https://lh3.googleusercontent.com/gYkq0kr7Dhqqis8Gvls9UqzjCkDRIuMwq_HSrFPsDlZ4kkzv7zyZQBgyoQo",
+    "thumb": "thumbs/google-kaisei-opti.jpg"
+  },
+  {
+    "slug": "zen-antique",
+    "title": "Zen Antique",
+    "lang": "ja",
+    "group": "serif",
+    "url": "https://fonts.google.com/specimen/Zen+Antique",
+    "popularity": 903,
+    "fontFiles": [
+      "fonts/google-zen-antique/ZenAntique-Regular.ttf"
+    ],
+    "licenseFiles": [
+      "fonts/google-zen-antique/OFL.txt"
+    ],
+    "license": "OFL",
+    "status": "ok",
+    "thumbUrl": "https://lh3.googleusercontent.com/zB0ndwVWn35H5Fgd4pfVAS42nZUu2pO9rlHmPty0vR6Hb7y_xaGq9aAmoQ",
+    "thumb": "thumbs/google-zen-antique.jpg"
+  },
+  {
+    "slug": "cherry-bomb-one",
+    "title": "Cherry Bomb One",
+    "lang": "ja",
+    "group": "display",
+    "url": "https://fonts.google.com/specimen/Cherry+Bomb+One",
+    "popularity": 924,
+    "fontFiles": [
+      "fonts/google-cherry-bomb-one/CherryBombOne-Regular.ttf"
+    ],
+    "licenseFiles": [
+      "fonts/google-cherry-bomb-one/OFL.txt"
+    ],
+    "license": "OFL",
+    "status": "ok"
+  },
+  {
+    "slug": "shippori-antique",
+    "title": "Shippori Antique",
+    "lang": "ja",
+    "group": "sans",
+    "url": "https://fonts.google.com/specimen/Shippori+Antique",
+    "popularity": 981,
+    "fontFiles": [
+      "fonts/google-shippori-antique/ShipporiAntique-Regular.ttf"
+    ],
+    "licenseFiles": [
+      "fonts/google-shippori-antique/OFL.txt"
+    ],
+    "license": "OFL",
+    "status": "ok",
+    "thumbUrl": "https://lh3.googleusercontent.com/o2STGNeZEHO76PuH9HUod9pEn7UvDQv3aMXtpSE0baZgQS3iHt7eFp-q-ASV",
+    "thumb": "thumbs/google-shippori-antique.jpg"
+  },
+  {
+    "slug": "zen-antique-soft",
+    "title": "Zen Antique Soft",
+    "lang": "ja",
+    "group": "serif",
+    "url": "https://fonts.google.com/specimen/Zen+Antique+Soft",
+    "popularity": 987,
+    "fontFiles": [
+      "fonts/google-zen-antique-soft/ZenAntiqueSoft-Regular.ttf"
+    ],
+    "licenseFiles": [
+      "fonts/google-zen-antique-soft/OFL.txt"
+    ],
+    "license": "OFL",
+    "status": "ok",
+    "thumbUrl": "https://lh3.googleusercontent.com/foRjECuJWy8B9bb6UKU6IiliRMxVvETP0SawJPa_GXCRpnRGmOnK30KrxuU",
+    "thumb": "thumbs/google-zen-antique-soft.jpg"
+  },
+  {
+    "slug": "reggae-one",
+    "title": "Reggae One",
+    "lang": "ja",
+    "group": "display",
+    "url": "https://fonts.google.com/specimen/Reggae+One",
+    "popularity": 1058,
+    "fontFiles": [
+      "fonts/google-reggae-one/ReggaeOne-Regular.ttf"
+    ],
+    "licenseFiles": [
+      "fonts/google-reggae-one/OFL.txt"
+    ],
+    "license": "OFL",
+    "status": "ok",
+    "thumbUrl": "https://lh3.googleusercontent.com/366LszU7Zf60_oki1hEeCmx1BgQ_9U-axiLjkMyl8xlpGmPKBOH66uun9dpT",
+    "thumb": "thumbs/google-reggae-one.jpg"
+  },
+  {
+    "slug": "kaisei-tokumin",
+    "title": "Kaisei Tokumin",
+    "lang": "ja",
+    "group": "serif",
+    "url": "https://fonts.google.com/specimen/Kaisei+Tokumin",
+    "popularity": 1064,
+    "fontFiles": [
+      "fonts/google-kaisei-tokumin/KaiseiTokumin-Bold.ttf",
+      "fonts/google-kaisei-tokumin/KaiseiTokumin-ExtraBold.ttf",
+      "fonts/google-kaisei-tokumin/KaiseiTokumin-Medium.ttf",
+      "fonts/google-kaisei-tokumin/KaiseiTokumin-Regular.ttf"
+    ],
+    "licenseFiles": [
+      "fonts/google-kaisei-tokumin/OFL.txt"
+    ],
+    "license": "OFL",
+    "status": "ok",
+    "thumbUrl": "https://lh3.googleusercontent.com/AlCsRT_fSrKOk43bGCz3vI6KRd9n_MkL-cQ9j1JSRQyP1i81mNUH1Ul0xQ",
+    "thumb": "thumbs/google-kaisei-tokumin.jpg"
+  },
+  {
+    "slug": "train-one",
+    "title": "Train One",
+    "lang": "ja",
+    "group": "display",
+    "url": "https://fonts.google.com/specimen/Train+One",
+    "popularity": 1075,
+    "fontFiles": [
+      "fonts/google-train-one/TrainOne-Regular.ttf"
+    ],
+    "licenseFiles": [
+      "fonts/google-train-one/OFL.txt"
+    ],
+    "license": "OFL",
+    "status": "ok"
+  },
+  {
+    "slug": "mochiy-pop-p-one",
+    "title": "Mochiy Pop P One",
+    "lang": "ja",
+    "group": "sans",
+    "url": "https://fonts.google.com/specimen/Mochiy+Pop+P+One",
+    "popularity": 1110,
+    "fontFiles": [
+      "fonts/google-mochiy-pop-p-one/MochiyPopPOne-Regular.ttf"
+    ],
+    "licenseFiles": [
+      "fonts/google-mochiy-pop-p-one/OFL.txt"
+    ],
+    "license": "OFL",
+    "status": "ok",
+    "thumbUrl": "https://lh3.googleusercontent.com/aYO3iQ5M7pR8sSgDZkpEQDs-RrVao13_QS8yacA0QJ1ZLb4rsH0ccY1SAKGk",
+    "thumb": "thumbs/google-mochiy-pop-p-one.jpg"
+  },
+  {
+    "slug": "aoboshi-one",
+    "title": "Aoboshi One",
+    "lang": "ja",
+    "group": "serif",
+    "url": "https://fonts.google.com/specimen/Aoboshi+One",
+    "popularity": 1118,
+    "fontFiles": [
+      "fonts/google-aoboshi-one/AoboshiOne-Regular.ttf"
+    ],
+    "licenseFiles": [
+      "fonts/google-aoboshi-one/OFL.txt"
+    ],
+    "license": "OFL",
+    "status": "ok"
+  },
+  {
+    "slug": "darumadrop-one",
+    "title": "Darumadrop One",
+    "lang": "ja",
+    "group": "display",
+    "url": "https://fonts.google.com/specimen/Darumadrop+One",
+    "popularity": 1129,
+    "fontFiles": [
+      "fonts/google-darumadrop-one/DarumadropOne-Regular.ttf"
+    ],
+    "licenseFiles": [
+      "fonts/google-darumadrop-one/OFL.txt"
+    ],
+    "license": "OFL",
+    "status": "ok"
+  },
+  {
+    "slug": "m-plus-1-code",
+    "title": "M PLUS 1 Code",
+    "lang": "ja",
+    "group": "sans",
+    "url": "https://fonts.google.com/specimen/M+PLUS+1+Code",
+    "popularity": 1142,
+    "fontFiles": [
+      "fonts/google-m-plus-1-code/MPLUS1Code-VariableFont_wght.ttf"
+    ],
+    "licenseFiles": [
+      "fonts/google-m-plus-1-code/OFL.txt"
+    ],
+    "license": "OFL",
+    "status": "ok",
+    "thumbUrl": "https://lh3.googleusercontent.com/o6VBtN-se6_WPjpTCVI7lS7LNvFvUzW4D5Sq3BPlJyJVvUOJQj5XP3FjG_-C",
+    "thumb": "thumbs/google-m-plus-1-code.jpg"
+  },
+  {
+    "slug": "yomogi",
+    "title": "Yomogi",
+    "lang": "ja",
+    "group": "script",
+    "url": "https://fonts.google.com/specimen/Yomogi",
+    "popularity": 1157,
+    "fontFiles": [
+      "fonts/google-yomogi/Yomogi-Regular.ttf"
+    ],
+    "licenseFiles": [
+      "fonts/google-yomogi/OFL.txt"
+    ],
+    "license": "OFL",
+    "status": "ok"
+  },
+  {
+    "slug": "biz-udmincho",
+    "title": "BIZ UDMincho",
+    "lang": "ja",
+    "group": "serif",
+    "url": "https://fonts.google.com/specimen/BIZ+UDMincho",
+    "popularity": 1164,
+    "fontFiles": [
+      "fonts/google-biz-udmincho/BIZUDMincho-Bold.ttf",
+      "fonts/google-biz-udmincho/BIZUDMincho-Regular.ttf"
+    ],
+    "licenseFiles": [
+      "fonts/google-biz-udmincho/OFL.txt"
+    ],
+    "license": "OFL",
+    "status": "ok",
+    "thumbUrl": "https://lh3.googleusercontent.com/kfJMyp22jwS2P7L3Nn7oIArkY8AQswq-8z7_e1fyZxmWUG--3el2higGflM",
+    "thumb": "thumbs/google-biz-udmincho.jpg"
+  },
+  {
+    "slug": "stick",
+    "title": "Stick",
+    "lang": "ja",
+    "group": "sans",
+    "url": "https://fonts.google.com/specimen/Stick",
+    "popularity": 1203,
+    "fontFiles": [
+      "fonts/google-stick/Stick-Regular.ttf"
+    ],
+    "licenseFiles": [
+      "fonts/google-stick/OFL.txt"
+    ],
+    "license": "OFL",
+    "status": "ok",
+    "thumbUrl": "https://lh3.googleusercontent.com/CQesMCbocRkSII5d_vTbVJQoAFiaCehWPH9jLX9PjxgBqaKGC_XaV0El57RE",
+    "thumb": "thumbs/google-stick.jpg"
+  },
+  {
+    "slug": "kapakana",
+    "title": "Kapakana",
+    "lang": "ja",
+    "group": "script",
+    "url": "https://fonts.google.com/specimen/Kapakana",
+    "popularity": 1254,
+    "fontFiles": [
+      "fonts/google-kapakana/Kapakana-VariableFont_wght.ttf"
+    ],
+    "licenseFiles": [
+      "fonts/google-kapakana/OFL.txt"
+    ],
+    "license": "OFL",
+    "status": "ok"
+  },
+  {
+    "slug": "shippori-antique-b1",
+    "title": "Shippori Antique B1",
+    "lang": "ja",
+    "group": "sans",
+    "url": "https://fonts.google.com/specimen/Shippori+Antique+B1",
+    "popularity": 1356,
+    "fontFiles": [
+      "fonts/google-shippori-antique-b1/ShipporiAntiqueB1-Regular.ttf"
+    ],
+    "licenseFiles": [
+      "fonts/google-shippori-antique-b1/OFL.txt"
+    ],
+    "license": "OFL",
+    "status": "ok",
+    "thumbUrl": "https://lh3.googleusercontent.com/ABvg5KdEVCXeMJfiwpC9M4x5VPgu_CvW_sowvEcSnkSlLKebuNkm7m9SFw",
+    "thumb": "thumbs/google-shippori-antique-b1.jpg"
+  },
+  {
+    "slug": "yuji-boku",
+    "title": "Yuji Boku",
+    "lang": "ja",
+    "group": "serif",
+    "url": "https://fonts.google.com/specimen/Yuji+Boku",
+    "popularity": 1358,
+    "fontFiles": [
+      "fonts/google-yuji-boku/YujiBoku-Regular.ttf"
+    ],
+    "licenseFiles": [
+      "fonts/google-yuji-boku/OFL.txt"
+    ],
+    "license": "OFL",
+    "status": "ok",
+    "thumbUrl": "https://lh3.googleusercontent.com/qsQ5OWdziOPuDuvSGvGOICpOxG_PP89Izr4FJNj_EMgvZtLeMsDgnwYHt_E",
+    "thumb": "thumbs/google-yuji-boku.jpg"
+  },
+  {
+    "slug": "kaisei-harunoumi",
+    "title": "Kaisei HarunoUmi",
+    "lang": "ja",
+    "group": "serif",
+    "url": "https://fonts.google.com/specimen/Kaisei+HarunoUmi",
+    "popularity": 1401,
+    "fontFiles": [
+      "fonts/google-kaisei-harunoumi/KaiseiHarunoUmi-Bold.ttf",
+      "fonts/google-kaisei-harunoumi/KaiseiHarunoUmi-Medium.ttf",
+      "fonts/google-kaisei-harunoumi/KaiseiHarunoUmi-Regular.ttf"
+    ],
+    "licenseFiles": [
+      "fonts/google-kaisei-harunoumi/OFL.txt"
+    ],
+    "license": "OFL",
+    "status": "ok",
+    "thumbUrl": "https://lh3.googleusercontent.com/wAFZTHsPaBpHxju4KPBsBK8MoB-S_5qluRkhWo1hT6VWndMbzs1Q1IPnBW0",
+    "thumb": "thumbs/google-kaisei-harunoumi.jpg"
+  },
+  {
+    "slug": "new-tegomin",
+    "title": "New Tegomin",
+    "lang": "ja",
+    "group": "serif",
+    "url": "https://fonts.google.com/specimen/New+Tegomin",
+    "popularity": 1473,
+    "fontFiles": [
+      "fonts/google-new-tegomin/NewTegomin-Regular.ttf"
+    ],
+    "licenseFiles": [
+      "fonts/google-new-tegomin/OFL.txt"
+    ],
+    "license": "OFL",
+    "status": "ok",
+    "thumbUrl": "https://lh3.googleusercontent.com/jLR6YWqqHxLjiNuNnZV2yt0FdFH1sHGxLoSiR9ey1yKRLx08mR39nybiaZ9a",
+    "thumb": "thumbs/google-new-tegomin.jpg"
+  },
+  {
+    "slug": "wdxl-lubrifont-jp-n",
+    "title": "WDXL Lubrifont JP N",
+    "lang": "ja",
+    "group": "sans",
+    "url": "https://fonts.google.com/specimen/WDXL+Lubrifont+JP+N",
+    "popularity": 1548,
+    "fontFiles": [
+      "fonts/google-wdxl-lubrifont-jp-n/WDXLLubrifontJPN-Regular.ttf"
+    ],
+    "licenseFiles": [
+      "fonts/google-wdxl-lubrifont-jp-n/OFL.txt"
+    ],
+    "license": "OFL",
+    "status": "ok",
+    "thumbUrl": "https://lh3.googleusercontent.com/mmTJEdioAGlAOT5KhAGJr-fHwpf1NuBqBm9MeAzBRBAakOE8_wtQRkhkPLc",
+    "thumb": "thumbs/google-wdxl-lubrifont-jp-n.jpg"
+  },
+  {
+    "slug": "shizuru",
+    "title": "Shizuru",
+    "lang": "ja",
+    "group": "display",
+    "url": "https://fonts.google.com/specimen/Shizuru",
+    "popularity": 1665,
+    "fontFiles": [
+      "fonts/google-shizuru/Shizuru-Regular.ttf"
+    ],
+    "licenseFiles": [
+      "fonts/google-shizuru/OFL.txt"
+    ],
+    "license": "OFL",
+    "status": "ok"
+  },
+  {
+    "slug": "tsukimi-rounded",
+    "title": "Tsukimi Rounded",
+    "lang": "ja",
+    "group": "sans",
+    "url": "https://fonts.google.com/specimen/Tsukimi+Rounded",
+    "popularity": 1672,
+    "fontFiles": [
+      "fonts/google-tsukimi-rounded/TsukimiRounded-Bold.ttf",
+      "fonts/google-tsukimi-rounded/TsukimiRounded-Light.ttf",
+      "fonts/google-tsukimi-rounded/TsukimiRounded-Medium.ttf",
+      "fonts/google-tsukimi-rounded/TsukimiRounded-Regular.ttf",
+      "fonts/google-tsukimi-rounded/TsukimiRounded-SemiBold.ttf"
+    ],
+    "licenseFiles": [
+      "fonts/google-tsukimi-rounded/OFL.txt"
+    ],
+    "license": "OFL",
+    "status": "ok"
+  },
+  {
+    "slug": "slackside-one",
+    "title": "Slackside One",
+    "lang": "ja",
+    "group": "script",
+    "url": "https://fonts.google.com/specimen/Slackside+One",
+    "popularity": 1703,
+    "fontFiles": [
+      "fonts/google-slackside-one/SlacksideOne-Regular.ttf"
+    ],
+    "licenseFiles": [
+      "fonts/google-slackside-one/OFL.txt"
+    ],
+    "license": "OFL",
+    "status": "ok"
+  },
+  {
+    "slug": "rock-3d",
+    "title": "Rock 3D",
+    "lang": "ja",
+    "group": "display",
+    "url": "https://fonts.google.com/specimen/Rock+3D",
+    "popularity": 1790,
+    "fontFiles": [
+      "fonts/google-rock-3d/Rock3D-Regular.ttf"
+    ],
+    "licenseFiles": [
+      "fonts/google-rock-3d/OFL.txt"
+    ],
+    "license": "OFL",
+    "status": "ok"
+  },
+  {
+    "slug": "m-plus-u",
+    "title": "M PLUS U",
+    "lang": "ja",
+    "group": "sans",
+    "url": "https://fonts.google.com/specimen/M+PLUS+U",
+    "popularity": 1830,
+    "fontFiles": [
+      "fonts/google-m-plus-u/MPLUSU-VariableFont_wght.ttf"
+    ],
+    "licenseFiles": [
+      "fonts/google-m-plus-u/OFL.txt"
+    ],
+    "license": "OFL",
+    "status": "ok",
+    "thumbUrl": "https://lh3.googleusercontent.com/b48zjm4j4NWRni0o9Ol733z3yVy8uPvc0ue7qGjt9WSQsPiHkzZcSaeQCV4",
+    "thumb": "thumbs/google-m-plus-u.jpg"
+  },
+  {
+    "slug": "palette-mosaic",
+    "title": "Palette Mosaic",
+    "lang": "ja",
+    "group": "display",
+    "url": "https://fonts.google.com/specimen/Palette+Mosaic",
+    "popularity": 1852,
+    "fontFiles": [
+      "fonts/google-palette-mosaic/PaletteMosaic-Regular.ttf"
+    ],
+    "licenseFiles": [
+      "fonts/google-palette-mosaic/OFL.txt"
+    ],
+    "license": "OFL",
+    "status": "ok"
+  },
+  {
+    "slug": "chokokutai",
+    "title": "Chokokutai",
+    "lang": "ja",
+    "group": "display",
+    "url": "https://fonts.google.com/specimen/Chokokutai",
+    "popularity": 1877,
+    "fontFiles": [
+      "fonts/google-chokokutai/Chokokutai-Regular.ttf"
+    ],
+    "licenseFiles": [
+      "fonts/google-chokokutai/OFL.txt"
+    ],
+    "license": "OFL",
+    "status": "ok"
+  },
+  {
+    "slug": "yuji-hentaigana-akari",
+    "title": "Yuji Hentaigana Akari",
+    "lang": "ja",
+    "group": "script",
+    "url": "https://fonts.google.com/specimen/Yuji+Hentaigana+Akari",
+    "popularity": 1937,
+    "fontFiles": [
+      "fonts/google-yuji-hentaigana-akari/YujiHentaiganaAkari-Regular.ttf"
+    ],
+    "licenseFiles": [
+      "fonts/google-yuji-hentaigana-akari/OFL.txt"
+    ],
+    "license": "OFL",
+    "status": "ok"
+  },
+  {
+    "slug": "yuji-hentaigana-akebono",
+    "title": "Yuji Hentaigana Akebono",
+    "lang": "ja",
+    "group": "script",
+    "url": "https://fonts.google.com/specimen/Yuji+Hentaigana+Akebono",
+    "popularity": 2038,
+    "fontFiles": [
+      "fonts/google-yuji-hentaigana-akebono/YujiHentaiganaAkebono-Regular.ttf"
+    ],
+    "licenseFiles": [
+      "fonts/google-yuji-hentaigana-akebono/OFL.txt"
+    ],
+    "license": "OFL",
+    "status": "ok"
+  },
+  {
+    "slug": "noto-sans-kr",
+    "title": "Noto Sans KR",
+    "lang": "ko",
+    "group": "sans",
+    "url": "https://fonts.google.com/specimen/Noto+Sans+KR",
+    "popularity": 36,
+    "fontFiles": [
+      "fonts/google-noto-sans-kr/NotoSansKR-VariableFont_wght.ttf"
+    ],
+    "licenseFiles": [
+      "fonts/google-noto-sans-kr/OFL.txt"
+    ],
+    "license": "OFL",
+    "status": "ok",
+    "thumbUrl": "https://lh3.googleusercontent.com/WZKNAcj-abHlIDonDTf_AaJBYZwOMtcaI_wipgHG6xabgCy3nQJQA19XJb1y",
+    "thumb": "thumbs/google-noto-sans-kr.jpg"
+  },
+  {
+    "slug": "nanum-gothic",
+    "title": "Nanum Gothic",
+    "lang": "ko",
+    "group": "sans",
+    "url": "https://fonts.google.com/specimen/Nanum+Gothic",
+    "popularity": 103,
+    "fontFiles": [
+      "fonts/google-nanum-gothic/NanumGothic-Bold.ttf",
+      "fonts/google-nanum-gothic/NanumGothic-ExtraBold.ttf",
+      "fonts/google-nanum-gothic/NanumGothic-Regular.ttf"
+    ],
+    "licenseFiles": [
+      "fonts/google-nanum-gothic/OFL.txt"
+    ],
+    "license": "OFL",
+    "status": "ok",
+    "thumbUrl": "https://lh3.googleusercontent.com/00HZ8nagTKcYre7PqK5TEmBJLYSqcqcBdlqVegsGXH2j0R6VYMtR6rY55w",
+    "thumb": "thumbs/google-nanum-gothic.jpg"
+  },
+  {
+    "slug": "nanum-myeongjo",
+    "title": "Nanum Myeongjo",
+    "lang": "ko",
+    "group": "serif",
+    "url": "https://fonts.google.com/specimen/Nanum+Myeongjo",
+    "popularity": 195,
+    "fontFiles": [
+      "fonts/google-nanum-myeongjo/NanumMyeongjo-Bold.ttf",
+      "fonts/google-nanum-myeongjo/NanumMyeongjo-ExtraBold.ttf",
+      "fonts/google-nanum-myeongjo/NanumMyeongjo-Regular.ttf"
+    ],
+    "licenseFiles": [
+      "fonts/google-nanum-myeongjo/OFL.txt"
+    ],
+    "license": "OFL",
+    "status": "ok",
+    "thumbUrl": "https://lh3.googleusercontent.com/2nY9FhLPic4b7zh6E3tk2yCKbk0XWJLdJQtb-Fx4jQT4Ucf4BC5Bg7jkJLrK",
+    "thumb": "thumbs/google-nanum-myeongjo.jpg"
+  },
+  {
+    "slug": "noto-serif-kr",
+    "title": "Noto Serif KR",
+    "lang": "ko",
+    "group": "serif",
+    "url": "https://fonts.google.com/specimen/Noto+Serif+KR",
+    "popularity": 203,
+    "fontFiles": [
+      "fonts/google-noto-serif-kr/NotoSerifKR-VariableFont_wght.ttf"
+    ],
+    "licenseFiles": [
+      "fonts/google-noto-serif-kr/OFL.txt"
+    ],
+    "license": "OFL",
+    "status": "ok",
+    "thumbUrl": "https://lh3.googleusercontent.com/V-EgKXFrbVH2IXLZZU-_mxto-66abv1KO9KwjzWIQn8uHKaxXvU_igdvEQg",
+    "thumb": "thumbs/google-noto-serif-kr.jpg"
+  },
+  {
+    "slug": "gothic-a1",
+    "title": "Gothic A1",
+    "lang": "ko",
+    "group": "sans",
+    "url": "https://fonts.google.com/specimen/Gothic+A1",
+    "popularity": 272,
+    "fontFiles": [
+      "fonts/google-gothic-a1/GothicA1-Black.ttf",
+      "fonts/google-gothic-a1/GothicA1-Bold.ttf",
+      "fonts/google-gothic-a1/GothicA1-ExtraBold.ttf",
+      "fonts/google-gothic-a1/GothicA1-ExtraLight.ttf",
+      "fonts/google-gothic-a1/GothicA1-Light.ttf",
+      "fonts/google-gothic-a1/GothicA1-Medium.ttf",
+      "fonts/google-gothic-a1/GothicA1-Regular.ttf",
+      "fonts/google-gothic-a1/GothicA1-SemiBold.ttf",
+      "fonts/google-gothic-a1/GothicA1-Thin.ttf"
+    ],
+    "licenseFiles": [
+      "fonts/google-gothic-a1/OFL.txt"
+    ],
+    "license": "OFL",
+    "status": "ok",
+    "thumbUrl": "https://lh3.googleusercontent.com/v__B8fqBnfTCviwg7EkEPbw7wSlQYjdPOTdteDpbuimKD8T0ECuxsEgKYQ",
+    "thumb": "thumbs/google-gothic-a1.jpg"
+  },
+  {
+    "slug": "nanum-gothic-coding",
+    "title": "Nanum Gothic Coding",
+    "lang": "ko",
+    "group": "script",
+    "url": "https://fonts.google.com/specimen/Nanum+Gothic+Coding",
+    "popularity": 290,
+    "fontFiles": [
+      "fonts/google-nanum-gothic-coding/NanumGothicCoding-Bold.ttf",
+      "fonts/google-nanum-gothic-coding/NanumGothicCoding-Regular.ttf"
+    ],
+    "licenseFiles": [
+      "fonts/google-nanum-gothic-coding/OFL.txt"
+    ],
+    "license": "OFL",
+    "status": "ok",
+    "thumbUrl": "https://lh3.googleusercontent.com/CCkNNnDRanrX4a_gXzP7IXxOhzaABS-9iQhUK92DtRuxWgFz2SpFtLtWmN8",
+    "thumb": "thumbs/google-nanum-gothic-coding.jpg"
+  },
+  {
+    "slug": "nanum-pen-script",
+    "title": "Nanum Pen Script",
+    "lang": "ko",
+    "group": "script",
+    "url": "https://fonts.google.com/specimen/Nanum+Pen+Script",
+    "popularity": 388,
+    "fontFiles": [
+      "fonts/google-nanum-pen-script/NanumPenScript-Regular.ttf"
+    ],
+    "licenseFiles": [
+      "fonts/google-nanum-pen-script/OFL.txt"
+    ],
+    "license": "OFL",
+    "status": "ok",
+    "thumbUrl": "https://lh3.googleusercontent.com/wuesyk_aj2aSuvxdeFJ0A1qZo--OVhlPZvbTaBNksR0TRnIfB0OHbwTg-ICh",
+    "thumb": "thumbs/google-nanum-pen-script.jpg"
+  },
+  {
+    "slug": "jua",
+    "title": "Jua",
+    "lang": "ko",
+    "group": "sans",
+    "url": "https://fonts.google.com/specimen/Jua",
+    "popularity": 418,
+    "fontFiles": [
+      "fonts/google-jua/Jua-Regular.ttf"
+    ],
+    "licenseFiles": [
+      "fonts/google-jua/OFL.txt"
+    ],
+    "license": "OFL",
+    "status": "ok",
+    "thumbUrl": "https://lh3.googleusercontent.com/tAprdGhGZNcoNY75o2ia8NgUlNNvF0CApn0V_nq3syEyTBW_UF4hYG2gawY",
+    "thumb": "thumbs/google-jua.jpg"
+  },
+  {
+    "slug": "black-han-sans",
+    "title": "Black Han Sans",
+    "lang": "ko",
+    "group": "sans",
+    "url": "https://fonts.google.com/specimen/Black+Han+Sans",
+    "popularity": 426,
+    "fontFiles": [
+      "fonts/google-black-han-sans/BlackHanSans-Regular.ttf"
+    ],
+    "licenseFiles": [
+      "fonts/google-black-han-sans/OFL.txt"
+    ],
+    "license": "OFL",
+    "status": "ok",
+    "thumbUrl": "https://lh3.googleusercontent.com/pNTXfJk_-M849sge_6Zpw_pshrjd95vXCPhm3AUQECeoKrQEpSrP6jtmcs4",
+    "thumb": "thumbs/google-black-han-sans.jpg"
+  },
+  {
+    "slug": "dongle",
+    "title": "Dongle",
+    "lang": "ko",
+    "group": "sans",
+    "url": "https://fonts.google.com/specimen/Dongle",
+    "popularity": 486,
+    "fontFiles": [
+      "fonts/google-dongle/Dongle-Bold.ttf",
+      "fonts/google-dongle/Dongle-Light.ttf",
+      "fonts/google-dongle/Dongle-Regular.ttf"
+    ],
+    "licenseFiles": [
+      "fonts/google-dongle/OFL.txt"
+    ],
+    "license": "OFL",
+    "status": "ok",
+    "thumbUrl": "https://lh3.googleusercontent.com/0nQEhwcsOeEywUHwNEXsFVqaXaDtxYqOzyhnu-5_rh4PHso6_9-Ozu26FXU",
+    "thumb": "thumbs/google-dongle.jpg"
+  },
+  {
+    "slug": "do-hyeon",
+    "title": "Do Hyeon",
+    "lang": "ko",
+    "group": "sans",
+    "url": "https://fonts.google.com/specimen/Do+Hyeon",
+    "popularity": 523,
+    "fontFiles": [
+      "fonts/google-do-hyeon/DoHyeon-Regular.ttf"
+    ],
+    "licenseFiles": [
+      "fonts/google-do-hyeon/OFL.txt"
+    ],
+    "license": "OFL",
+    "status": "ok",
+    "thumbUrl": "https://lh3.googleusercontent.com/nj0HpLTf9dIz2AH9M4OX4yLkT9mVaPp-heYGNHDf_aHmDTKiE2PATZ1HB2k",
+    "thumb": "thumbs/google-do-hyeon.jpg"
+  },
+  {
+    "slug": "ibm-plex-sans-kr",
+    "title": "IBM Plex Sans KR",
+    "lang": "ko",
+    "group": "sans",
+    "url": "https://fonts.google.com/specimen/IBM+Plex+Sans+KR",
+    "popularity": 555,
+    "fontFiles": [
+      "fonts/google-ibm-plex-sans-kr/IBMPlexSansKR-Bold.ttf",
+      "fonts/google-ibm-plex-sans-kr/IBMPlexSansKR-ExtraLight.ttf",
+      "fonts/google-ibm-plex-sans-kr/IBMPlexSansKR-Light.ttf",
+      "fonts/google-ibm-plex-sans-kr/IBMPlexSansKR-Medium.ttf",
+      "fonts/google-ibm-plex-sans-kr/IBMPlexSansKR-Regular.ttf",
+      "fonts/google-ibm-plex-sans-kr/IBMPlexSansKR-SemiBold.ttf",
+      "fonts/google-ibm-plex-sans-kr/IBMPlexSansKR-Thin.ttf"
+    ],
+    "licenseFiles": [
+      "fonts/google-ibm-plex-sans-kr/OFL.txt"
+    ],
+    "license": "OFL",
+    "status": "ok",
+    "thumbUrl": "https://lh3.googleusercontent.com/r4KDS1seJY6LCS2ijniUwje7H0R1XAqGzvFFAfdlv08hIEbdZJ1oV6HM5ks",
+    "thumb": "thumbs/google-ibm-plex-sans-kr.jpg"
+  },
+  {
+    "slug": "gowun-batang",
+    "title": "Gowun Batang",
+    "lang": "ko",
+    "group": "serif",
+    "url": "https://fonts.google.com/specimen/Gowun+Batang",
+    "popularity": 621,
+    "fontFiles": [
+      "fonts/google-gowun-batang/GowunBatang-Bold.ttf",
+      "fonts/google-gowun-batang/GowunBatang-Regular.ttf"
+    ],
+    "licenseFiles": [
+      "fonts/google-gowun-batang/OFL.txt"
+    ],
+    "license": "OFL",
+    "status": "ok",
+    "thumbUrl": "https://lh3.googleusercontent.com/7keTNFnIF2dfk9pIIeJN2nnuAf4gzcwV7Q7p-YLjX8Y58mPdH3k2I8tHDhQ",
+    "thumb": "thumbs/google-gowun-batang.jpg"
+  },
+  {
+    "slug": "nanum-brush-script",
+    "title": "Nanum Brush Script",
+    "lang": "ko",
+    "group": "script",
+    "url": "https://fonts.google.com/specimen/Nanum+Brush+Script",
+    "popularity": 678,
+    "fontFiles": [
+      "fonts/google-nanum-brush-script/NanumBrushScript-Regular.ttf"
+    ],
+    "licenseFiles": [
+      "fonts/google-nanum-brush-script/OFL.txt"
+    ],
+    "license": "OFL",
+    "status": "ok",
+    "thumbUrl": "https://lh3.googleusercontent.com/OUhBq39whnEMKz-Ha3vLK0Qdygn0HT70dtlBF-ZErjfiLnh5l45RFgF5mhM",
+    "thumb": "thumbs/google-nanum-brush-script.jpg"
+  },
+  {
+    "slug": "gowun-dodum",
+    "title": "Gowun Dodum",
+    "lang": "ko",
+    "group": "sans",
+    "url": "https://fonts.google.com/specimen/Gowun+Dodum",
+    "popularity": 735,
+    "fontFiles": [
+      "fonts/google-gowun-dodum/GowunDodum-Regular.ttf"
+    ],
+    "licenseFiles": [
+      "fonts/google-gowun-dodum/OFL.txt"
+    ],
+    "license": "OFL",
+    "status": "ok",
+    "thumbUrl": "https://lh3.googleusercontent.com/1BNNFswrwy3AE7eEs-KVflxqQ1MIe7dkRJZqvswLJIi0cPXfFi4ZOvEGsw",
+    "thumb": "thumbs/google-gowun-dodum.jpg"
+  },
+  {
+    "slug": "hahmlet",
+    "title": "Hahmlet",
+    "lang": "ko",
+    "group": "serif",
+    "url": "https://fonts.google.com/specimen/Hahmlet",
+    "popularity": 743,
+    "fontFiles": [
+      "fonts/google-hahmlet/Hahmlet-VariableFont_wght.ttf"
+    ],
+    "licenseFiles": [
+      "fonts/google-hahmlet/OFL.txt"
+    ],
+    "license": "OFL",
+    "status": "ok",
+    "thumbUrl": "https://lh3.googleusercontent.com/cERTIAfAYDn1wN9g1LuHylQJp3-5rH-AZITeIVlJTgyfvSw129XGXHgc8jIk",
+    "thumb": "thumbs/google-hahmlet.jpg"
+  },
+  {
+    "slug": "hi-melody",
+    "title": "Hi Melody",
+    "lang": "ko",
+    "group": "script",
+    "url": "https://fonts.google.com/specimen/Hi+Melody",
+    "popularity": 820,
+    "fontFiles": [
+      "fonts/google-hi-melody/HiMelody-Regular.ttf"
+    ],
+    "licenseFiles": [
+      "fonts/google-hi-melody/OFL.txt"
+    ],
+    "license": "OFL",
+    "status": "ok",
+    "thumbUrl": "https://lh3.googleusercontent.com/Qx5Lug-4cGoBOwcSIFtK31ZK-kPEtcDoX4UivFnmAh_-LFxsgMZcHKUI3S3o",
+    "thumb": "thumbs/google-hi-melody.jpg"
+  },
+  {
+    "slug": "gaegu",
+    "title": "Gaegu",
+    "lang": "ko",
+    "group": "script",
+    "url": "https://fonts.google.com/specimen/Gaegu",
+    "popularity": 854,
+    "fontFiles": [
+      "fonts/google-gaegu/Gaegu-Bold.ttf",
+      "fonts/google-gaegu/Gaegu-Light.ttf",
+      "fonts/google-gaegu/Gaegu-Regular.ttf"
+    ],
+    "licenseFiles": [
+      "fonts/google-gaegu/OFL.txt"
+    ],
+    "license": "OFL",
+    "status": "ok",
+    "thumbUrl": "https://lh3.googleusercontent.com/joeiLHnw0Ey2gcQ2SY7T3ztPbmhcbraU9g592CAOWaA3mBC7stfj1CJANJKY",
+    "thumb": "thumbs/google-gaegu.jpg"
+  },
+  {
+    "slug": "sunflower",
+    "title": "Sunflower",
+    "lang": "ko",
+    "group": "sans",
+    "url": "https://fonts.google.com/specimen/Sunflower",
+    "popularity": 949,
+    "fontFiles": [
+      "fonts/google-sunflower/Sunflower-Bold.ttf",
+      "fonts/google-sunflower/Sunflower-Light.ttf",
+      "fonts/google-sunflower/Sunflower-Medium.ttf"
+    ],
+    "licenseFiles": [
+      "fonts/google-sunflower/OFL.txt"
+    ],
+    "license": "OFL",
+    "status": "ok",
+    "thumbUrl": "https://lh3.googleusercontent.com/jnvIH__JDpNY4M9z6HVpl9hk6UIBv3l0gIZ5HEWbiI-9TdsCBUkjbH3W8cA",
+    "thumb": "thumbs/google-sunflower.jpg"
+  },
+  {
+    "slug": "bagel-fat-one",
+    "title": "Bagel Fat One",
+    "lang": "ko",
+    "group": "display",
+    "url": "https://fonts.google.com/specimen/Bagel+Fat+One",
+    "popularity": 998,
+    "fontFiles": [
+      "fonts/google-bagel-fat-one/BagelFatOne-Regular.ttf"
+    ],
+    "licenseFiles": [
+      "fonts/google-bagel-fat-one/OFL.txt"
+    ],
+    "license": "OFL",
+    "status": "ok",
+    "thumbUrl": "https://lh3.googleusercontent.com/2fUoG5ITvM0oGpePxTX-UMuclx-f0HL80GPgWyrxvE9x1W4TM0kOuCNNlk4",
+    "thumb": "thumbs/google-bagel-fat-one.jpg"
+  },
+  {
+    "slug": "asta-sans",
+    "title": "Asta Sans",
+    "lang": "ko",
+    "group": "sans",
+    "url": "https://fonts.google.com/specimen/Asta+Sans",
+    "popularity": 1080,
+    "fontFiles": [
+      "fonts/google-asta-sans/AstaSans-VariableFont_wght.ttf"
+    ],
+    "licenseFiles": [
+      "fonts/google-asta-sans/OFL.txt"
+    ],
+    "license": "OFL",
+    "status": "ok",
+    "thumbUrl": "https://lh3.googleusercontent.com/IOOJB-ZLFOqiQdsWjjBOpCouHJKBdTQ0AguuK3ScMBZYcP-45R2H_R5J3A",
+    "thumb": "thumbs/google-asta-sans.jpg"
+  },
+  {
+    "slug": "song-myung",
+    "title": "Song Myung",
+    "lang": "ko",
+    "group": "serif",
+    "url": "https://fonts.google.com/specimen/Song+Myung",
+    "popularity": 1087,
+    "fontFiles": [
+      "fonts/google-song-myung/SongMyung-Regular.ttf"
+    ],
+    "licenseFiles": [
+      "fonts/google-song-myung/OFL.txt"
+    ],
+    "license": "OFL",
+    "status": "ok",
+    "thumbUrl": "https://lh3.googleusercontent.com/id_LCkpjiTyOLvf5r6uRtGUi4cFF9EE0nFPdWKbFZQJbV1S-hDL5RJVwi8M",
+    "thumb": "thumbs/google-song-myung.jpg"
+  },
+  {
+    "slug": "gamja-flower",
+    "title": "Gamja Flower",
+    "lang": "ko",
+    "group": "script",
+    "url": "https://fonts.google.com/specimen/Gamja+Flower",
+    "popularity": 1090,
+    "fontFiles": [
+      "fonts/google-gamja-flower/GamjaFlower-Regular.ttf"
+    ],
+    "licenseFiles": [
+      "fonts/google-gamja-flower/OFL.txt"
+    ],
+    "license": "OFL",
+    "status": "ok",
+    "thumbUrl": "https://lh3.googleusercontent.com/R1nhahUrdCZ79Nf9Fb1Bn6kbvvv9pu1OuOJlr0zSJqx2g-34CIpLkUQB5Jav",
+    "thumb": "thumbs/google-gamja-flower.jpg"
+  },
+  {
+    "slug": "dokdo",
+    "title": "Dokdo",
+    "lang": "ko",
+    "group": "display",
+    "url": "https://fonts.google.com/specimen/Dokdo",
+    "popularity": 1095,
+    "fontFiles": [
+      "fonts/google-dokdo/Dokdo-Regular.ttf"
+    ],
+    "licenseFiles": [
+      "fonts/google-dokdo/OFL.txt"
+    ],
+    "license": "OFL",
+    "status": "ok",
+    "thumbUrl": "https://lh3.googleusercontent.com/XHCfvcgkHOJy6oQ8xsIzkJ7WfrlPYDGkoxKUHHXbnSHze_kOevm9BeaDtw",
+    "thumb": "thumbs/google-dokdo.jpg"
+  },
+  {
+    "slug": "gasoek-one",
+    "title": "Gasoek One",
+    "lang": "ko",
+    "group": "sans",
+    "url": "https://fonts.google.com/specimen/Gasoek+One",
+    "popularity": 1124,
+    "fontFiles": [
+      "fonts/google-gasoek-one/GasoekOne-Regular.ttf"
+    ],
+    "licenseFiles": [
+      "fonts/google-gasoek-one/OFL.txt"
+    ],
+    "license": "OFL",
+    "status": "ok",
+    "thumbUrl": "https://lh3.googleusercontent.com/8LYwtrmuZH8NnRkLR7nJwGHEZK6Sr-xHYcqNNEx4dmwkzmsR3lVQNeaActU",
+    "thumb": "thumbs/google-gasoek-one.jpg"
+  },
+  {
+    "slug": "gugi",
+    "title": "Gugi",
+    "lang": "ko",
+    "group": "display",
+    "url": "https://fonts.google.com/specimen/Gugi",
+    "popularity": 1199,
+    "fontFiles": [
+      "fonts/google-gugi/Gugi-Regular.ttf"
+    ],
+    "licenseFiles": [
+      "fonts/google-gugi/OFL.txt"
+    ],
+    "license": "OFL",
+    "status": "ok",
+    "thumbUrl": "https://lh3.googleusercontent.com/VFYCwGs8uX-QCilZorA6yxFhN9IqPmcAO3RfHk_RQLm_544GeTXZaQi47DJZ",
+    "thumb": "thumbs/google-gugi.jpg"
+  },
+  {
+    "slug": "east-sea-dokdo",
+    "title": "East Sea Dokdo",
+    "lang": "ko",
+    "group": "script",
+    "url": "https://fonts.google.com/specimen/East+Sea+Dokdo",
+    "popularity": 1219,
+    "fontFiles": [
+      "fonts/google-east-sea-dokdo/EastSeaDokdo-Regular.ttf"
+    ],
+    "licenseFiles": [
+      "fonts/google-east-sea-dokdo/OFL.txt"
+    ],
+    "license": "OFL",
+    "status": "ok",
+    "thumbUrl": "https://lh3.googleusercontent.com/-N9lYGqHp_6Z7tjgEoQOpgbGTRiLLuQJBWsnQNMR7g7vB_-yv6ZfjIG03jmy",
+    "thumb": "thumbs/google-east-sea-dokdo.jpg"
+  },
+  {
+    "slug": "yeon-sung",
+    "title": "Yeon Sung",
+    "lang": "ko",
+    "group": "display",
+    "url": "https://fonts.google.com/specimen/Yeon+Sung",
+    "popularity": 1237,
+    "fontFiles": [
+      "fonts/google-yeon-sung/YeonSung-Regular.ttf"
+    ],
+    "licenseFiles": [
+      "fonts/google-yeon-sung/OFL.txt"
+    ],
+    "license": "OFL",
+    "status": "ok",
+    "thumbUrl": "https://lh3.googleusercontent.com/EOuzENz4giw10o2XR3e9n8tkk8ass7UJx0Jq_VUhyCbWyM59a226q9wD2QY",
+    "thumb": "thumbs/google-yeon-sung.jpg"
+  },
+  {
+    "slug": "single-day",
+    "title": "Single Day",
+    "lang": "ko",
+    "group": "display",
+    "url": "https://fonts.google.com/specimen/Single+Day",
+    "popularity": 1317,
+    "fontFiles": [
+      "fonts/google-single-day/SingleDay-Regular.ttf"
+    ],
+    "licenseFiles": [
+      "fonts/google-single-day/OFL.txt"
+    ],
+    "license": "OFL",
+    "status": "ok",
+    "thumbUrl": "https://lh3.googleusercontent.com/BKN3G2KuXmFQEy_aeFKYZgE_hwMXN6-rN7ju9YpjRTW81ZjJDo3oAXJOPpc",
+    "thumb": "thumbs/google-single-day.jpg"
+  },
+  {
+    "slug": "stylish",
+    "title": "Stylish",
+    "lang": "ko",
+    "group": "sans",
+    "url": "https://fonts.google.com/specimen/Stylish",
+    "popularity": 1327,
+    "fontFiles": [
+      "fonts/google-stylish/Stylish-Regular.ttf"
+    ],
+    "licenseFiles": [
+      "fonts/google-stylish/OFL.txt"
+    ],
+    "license": "OFL",
+    "status": "ok",
+    "thumbUrl": "https://lh3.googleusercontent.com/WuFs3aycho7okA4YZUkGVj08r3QyUsjr6xmj7Ilu2X1z0M88wXfgllP8N-I",
+    "thumb": "thumbs/google-stylish.jpg"
+  },
+  {
+    "slug": "cute-font",
+    "title": "Cute Font",
+    "lang": "ko",
+    "group": "display",
+    "url": "https://fonts.google.com/specimen/Cute+Font",
+    "popularity": 1338,
+    "fontFiles": [
+      "fonts/google-cute-font/CuteFont-Regular.ttf"
+    ],
+    "licenseFiles": [
+      "fonts/google-cute-font/OFL.txt"
+    ],
+    "license": "OFL",
+    "status": "ok",
+    "thumbUrl": "https://lh3.googleusercontent.com/fmg3ZQZcs9q-nQEQOuJEZMxf1fRQVPnMKvtI0ZMmPZMNPETkdeB9ZzclDXA",
+    "thumb": "thumbs/google-cute-font.jpg"
+  },
+  {
+    "slug": "poor-story",
+    "title": "Poor Story",
+    "lang": "ko",
+    "group": "display",
+    "url": "https://fonts.google.com/specimen/Poor+Story",
+    "popularity": 1366,
+    "fontFiles": [
+      "fonts/google-poor-story/PoorStory-Regular.ttf"
+    ],
+    "licenseFiles": [
+      "fonts/google-poor-story/OFL.txt"
+    ],
+    "license": "OFL",
+    "status": "ok",
+    "thumbUrl": "https://lh3.googleusercontent.com/C3UXM7iNKr2r_45PtRCrXGvYKTF85LZJ3GVUKdHMHH-MDgEYjY5o6z6lYJ-U",
+    "thumb": "thumbs/google-poor-story.jpg"
+  },
+  {
+    "slug": "orbit",
+    "title": "Orbit",
+    "lang": "ko",
+    "group": "sans",
+    "url": "https://fonts.google.com/specimen/Orbit",
+    "popularity": 1445,
+    "fontFiles": [
+      "fonts/google-orbit/Orbit-Regular.ttf"
+    ],
+    "licenseFiles": [
+      "fonts/google-orbit/OFL.txt"
+    ],
+    "license": "OFL",
+    "status": "ok",
+    "thumbUrl": "https://lh3.googleusercontent.com/A4yyGaSWo7KzfC3F9k0I1Ke0Tuh3YESp60Wj0eO9Z3sy1k0eKkbjIUK5vtg",
+    "thumb": "thumbs/google-orbit.jpg"
+  },
+  {
+    "slug": "kirang-haerang",
+    "title": "Kirang Haerang",
+    "lang": "ko",
+    "group": "display",
+    "url": "https://fonts.google.com/specimen/Kirang+Haerang",
+    "popularity": 1621,
+    "fontFiles": [
+      "fonts/google-kirang-haerang/KirangHaerang-Regular.ttf"
+    ],
+    "licenseFiles": [
+      "fonts/google-kirang-haerang/OFL.txt"
+    ],
+    "license": "OFL",
+    "status": "ok",
+    "thumbUrl": "https://lh3.googleusercontent.com/q1H0FlxlUwl0LzCx5j0oIgdNd_x6oFbZGsfcnLmenJItVbpuDKaw1D6HPmI",
+    "thumb": "thumbs/google-kirang-haerang.jpg"
+  },
+  {
+    "slug": "diphylleia",
+    "title": "Diphylleia",
+    "lang": "ko",
+    "group": "serif",
+    "url": "https://fonts.google.com/specimen/Diphylleia",
+    "popularity": 1628,
+    "fontFiles": [
+      "fonts/google-diphylleia/Diphylleia-Regular.ttf"
+    ],
+    "licenseFiles": [
+      "fonts/google-diphylleia/OFL.txt"
+    ],
+    "license": "OFL",
+    "status": "ok",
+    "thumbUrl": "https://lh3.googleusercontent.com/XRVcJoymgJTZlzFVKKMv04AtFWMSx0q8kElAUnpPZSEBAEroe-dXbKf0WQ4N",
+    "thumb": "thumbs/google-diphylleia.jpg"
+  },
+  {
+    "slug": "black-and-white-picture",
+    "title": "Black And White Picture",
+    "lang": "ko",
+    "group": "display",
+    "url": "https://fonts.google.com/specimen/Black+And+White+Picture",
+    "popularity": 1717,
+    "fontFiles": [
+      "fonts/google-black-and-white-picture/BlackAndWhitePicture-Regular.ttf"
+    ],
+    "licenseFiles": [
+      "fonts/google-black-and-white-picture/OFL.txt"
+    ],
+    "license": "OFL",
+    "status": "ok",
+    "thumbUrl": "https://lh3.googleusercontent.com/bxW_5QlwrDHcidZ1h4COW1IeEuCjllgCB7fvCyjNgHB-hN0xa3n0xP375w",
+    "thumb": "thumbs/google-black-and-white-picture.jpg"
+  },
+  {
+    "slug": "grandiflora-one",
+    "title": "Grandiflora One",
+    "lang": "ko",
+    "group": "serif",
+    "url": "https://fonts.google.com/specimen/Grandiflora+One",
+    "popularity": 1827,
+    "fontFiles": [
+      "fonts/google-grandiflora-one/GrandifloraOne-Regular.ttf"
+    ],
+    "licenseFiles": [
+      "fonts/google-grandiflora-one/OFL.txt"
+    ],
+    "license": "OFL",
+    "status": "ok",
+    "thumbUrl": "https://lh3.googleusercontent.com/E6axpmma26kBMeXvDLUULSnS9LoieBwMG5zJ-5FWMWS2Y8YC3yxin7mu2w",
+    "thumb": "thumbs/google-grandiflora-one.jpg"
+  },
+  {
+    "slug": "moirai-one",
+    "title": "Moirai One",
+    "lang": "ko",
+    "group": "display",
+    "url": "https://fonts.google.com/specimen/Moirai+One",
+    "popularity": 1853,
+    "fontFiles": [
+      "fonts/google-moirai-one/MoiraiOne-Regular.ttf"
+    ],
+    "licenseFiles": [
+      "fonts/google-moirai-one/OFL.txt"
+    ],
+    "license": "OFL",
+    "status": "ok",
+    "thumbUrl": "https://lh3.googleusercontent.com/IYfX-iYM5lEeNjzRS1ShSC2uy7kojulQugv2apT4K7y1M1MtFBxx1dyJ-dyT",
+    "thumb": "thumbs/google-moirai-one.jpg"
+  }
+]

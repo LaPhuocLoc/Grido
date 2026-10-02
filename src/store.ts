@@ -82,6 +82,8 @@ interface Settings {
   panelWidth: number
   /** Người dùng đã đóng dải mẹo thao tác ở cuối thư viện. */
   libraryTipSeen: boolean
+  /** Cách xem kho font: lưới ảnh mẫu, hoặc danh sách viết câu chữ đang chọn bằng từng font. */
+  fontView: 'grid' | 'list'
 }
 
 /** Những trường tạo nên một ảnh ghép — là thứ được undo/redo và lưu nháp. */
@@ -340,6 +342,7 @@ export const useStore = create<State>()(
       leftCollapsed: false,
       panelWidth: PANEL_WIDTH,
       libraryTipSeen: false,
+      fontView: 'grid',
 
       photos: [],
       imports: [],
@@ -678,6 +681,7 @@ export const useStore = create<State>()(
         panelWidth: s.panelWidth,
         recentFonts: s.recentFonts,
         libraryTipSeen: s.libraryTipSeen,
+        fontView: s.fontView,
         designs: s.designs,
         currentDesignId: s.currentDesignId,
         favorites: s.favorites,

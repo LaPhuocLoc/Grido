@@ -3,7 +3,8 @@
   fontvn/fonts/piklab-<slug>/             đã giải nén
   fontvn/thumbs/piklab-<slug>.<đuôi>      ảnh xem trước
 Cập nhật archive / files / fontFiles / thumb / status vào fontvn/piklab.json.
-Chạy: python scripts/download-piklab.py <file link>   (mỗi dòng: id|url; link hết hạn sau 1 giờ)"""
+Chạy: python scripts/download-piklab.py <file link>   (link hết hạn sau 1 giờ)
+Mỗi dòng của file link: id|url, hoặc dạng rút gọn id|đường dẫn file|X-Amz-Date|chữ ký."""
 import json, os, shutil, sys, urllib.parse, urllib.request, zipfile
 from concurrent.futures import ThreadPoolExecutor
 
@@ -12,6 +13,10 @@ SRC = os.path.join(ROOT, 'fontvn')
 LIST = os.path.join(SRC, 'piklab.json')
 UA = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/126 Safari/537.36'}
 FONT_EXT = ('.ttf', '.otf', '.ttc', '.woff', '.woff2')
+# Link R2 đã ký mà API piklab trả về; chỉ đường dẫn, ngày và chữ ký thay đổi giữa các file.
+SIGNED = ('https://piklab-private.cdf5d9d87eede67c4d758a3d6bbb6775.r2.cloudflarestorage.com/resources/%s?X-Amz-Algorithm=AWS4-HMAC-SHA256'
+          '&X-Amz-Content-Sha256=UNSIGNED-PAYLOAD&X-Amz-Credential=b88ffd0c172c078f35e466b233f0ef38%%2F%s%%2Fauto%%2Fs3%%2Faws4_request'
+          '&X-Amz-Date=%s&X-Amz-Expires=3600&X-Amz-Signature=%s&X-Amz-SignedHeaders=host&x-amz-checksum-mode=ENABLED&x-id=GetObject')
 
 
 def fetch(url, dst):
@@ -73,7 +78,13 @@ def work(item, url):
 
 def main():
     items = json.load(open(LIST, encoding='utf-8'))
-    links = dict(line.strip().split('|', 1) for line in open(sys.argv[1], encoding='utf-8') if '|' in line)
+    links = {}
+    for line in open(sys.argv[1], encoding='utf-8'):
+        parts = line.strip().split('|')
+        if len(parts) == 2:
+            links[parts[0]] = parts[1]
+        elif len(parts) == 4:  # dạng rút gọn: id|đường dẫn file|X-Amz-Date|chữ ký
+            links[parts[0]] = SIGNED % (parts[1], parts[2][:8], parts[2], parts[3])  # đường dẫn đã mã hoá sẵn
 
     def safe(item):
         if item['id'] not in links:
