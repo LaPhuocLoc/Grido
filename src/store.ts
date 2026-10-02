@@ -9,7 +9,9 @@ import { getLayouts, MAX_PHOTOS } from './lib/layout/registry'
 import type { LayoutNode } from './lib/layout/types'
 import { albumName, pruneAlbumMap, type Album } from './lib/albums'
 import { copyName, designTitle } from './lib/designs'
+import { placeTemplate, type TextTemplate } from './lib/templates'
 import { normalizeText, type TextItem } from './lib/text'
+import type { TextPatches } from './lib/textGroup'
 import {
   CUSTOM_PRESET_ID,
   DEFAULT_PRESET_ID,
@@ -146,6 +148,10 @@ interface State extends Settings {
   recentFonts: string[]
   /** Font đang xem thử trên một dòng chữ (rê chuột trong bảng font); không ghi vào thiết kế. */
   previewFont: { id: string; font: string } | null
+  /** Nhóm chữ đang được kéo / phóng / xoay: giá trị tạm của từng dòng, thả tay mới ghi vào `texts`. Không lưu, không vào lịch sử. */
+  liveTexts: TextPatches | null
+  /** Bảng Chữ đang mở mục nào: các mẫu chữ dựng sẵn, hay kho font của dòng chữ đang chọn. */
+  textView: 'templates' | 'font'
   /** Id các khung ảnh được thả tim. */
   favoritePresets: string[]
   albums: Album[]
@@ -209,8 +215,16 @@ interface State extends Settings {
   removeActiveCell: () => void
   addText: () => void
   updateText: (id: string, patch: Partial<TextItem>) => void
-  removeText: (id: string) => void
+  /** Sửa nhiều dòng chữ một lượt (thao tác trên cả nhóm) thành một bước undo. */
+  updateTexts: (patches: TextPatches) => void
+  /** Xoá dòng chữ; dòng thuộc một nhóm thì xoá cả nhóm, trừ khi `alone`. */
+  removeText: (id: string, alone?: boolean) => void
+  /** Nhân bản dòng chữ; dòng thuộc một nhóm thì nhân bản cả nhóm. */
   duplicateText: (id: string) => void
+  /** Chèn một mẫu chữ vào giữa khung thành một nhóm mới. */
+  insertTemplate: (template: TextTemplate) => void
+  /** Tách nhóm: các dòng chữ trở lại độc lập. */
+  ungroupTexts: (group: string) => void
   setActiveText: (id: string | null) => void
   setEditingText: (id: string | null) => void
   undo: () => void
@@ -220,6 +234,8 @@ interface State extends Settings {
 }
 
 let seq = 1
+/** Các dòng chữ của mẫu vừa chèn, đúng như lúc chèn; dòng nào bị sửa thì không còn là đối tượng này nữa. */
+let lastTemplate: TextItem[] = []
 
 type Persisted = Settings & Snapshot & Pick<State, 'designs' | 'currentDesignId' | 'favorites' | 'favoriteFonts' | 'recentFonts' | 'favoritePresets' | 'savedLayouts' | 'albums' | 'photoAlbum' | 'collapsedAlbums'>
 
@@ -392,6 +408,8 @@ export const useStore = create<State>()(
       favoriteFonts: [],
       recentFonts: [],
       previewFont: null,
+      liveTexts: null,
+      textView: 'templates',
       favoritePresets: [],
       albums: [],
       photoAlbum: {},
@@ -673,30 +691,57 @@ export const useStore = create<State>()(
         const id = `t${Date.now().toString(36)}${seq++}`
         const item = normalizeText({ id, text: 'Chữ của bạn' })
         // Vào luôn chế độ gõ để người dùng thay chữ mẫu ngay trên ảnh.
-        set((s) => ({ texts: [...s.texts, item], activeText: id, editingText: id, activeCell: null, tab: 'text' }))
+        set((s) => ({ texts: [...s.texts, item], activeText: id, editingText: id, activeCell: null, tab: 'text', textView: 'font' }))
       },
 
       updateText: (id, patch) => set((s) => ({ texts: s.texts.map((t) => (t.id === id ? { ...t, ...patch } : t)) })),
 
-      removeText: (id) =>
-        set((s) => ({
-          texts: s.texts.filter((t) => t.id !== id),
-          activeText: s.activeText === id ? null : s.activeText,
-          editingText: s.editingText === id ? null : s.editingText,
-        })),
+      updateTexts: (patches) => set((s) => ({ texts: s.texts.map((t) => (patches[t.id] ? { ...t, ...patches[t.id] } : t)) })),
+
+      removeText: (id, alone = false) =>
+        set((s) => {
+          const group = alone ? null : s.texts.find((t) => t.id === id)?.group
+          const gone = new Set(s.texts.filter((t) => t.id === id || (group && t.group === group)).map((t) => t.id))
+          return {
+            texts: s.texts.filter((t) => !gone.has(t.id)),
+            activeText: s.activeText && gone.has(s.activeText) ? null : s.activeText,
+            editingText: s.editingText && gone.has(s.editingText) ? null : s.editingText,
+          }
+        }),
 
       duplicateText: (id) => {
         const source = get().texts.find((t) => t.id === id)
         if (!source) return
-        const copy: TextItem = {
-          ...source,
-          id: `t${Date.now().toString(36)}${seq++}`,
-          // Lệch nhẹ để thấy bản sao; sát mép thì lệch ngược lại cho khỏi ra ngoài khung.
-          x: source.x + (source.x > 0.9 ? -0.04 : 0.04),
-          y: source.y + (source.y > 0.9 ? -0.04 : 0.04),
-        }
-        set((s) => ({ texts: [...s.texts, copy], activeText: copy.id, editingText: null, activeCell: null, tab: 'text' }))
+        const members = source.group ? get().texts.filter((t) => t.group === source.group) : [source]
+        const group = source.group ? `g${Date.now().toString(36)}${seq++}` : null
+        // Lệch nhẹ để thấy bản sao; sát mép thì lệch ngược lại cho khỏi ra ngoài khung.
+        const dx = source.x > 0.9 ? -0.04 : 0.04
+        const dy = source.y > 0.9 ? -0.04 : 0.04
+        const copies = members.map((t): TextItem => ({ ...t, id: `t${Date.now().toString(36)}${seq++}`, group, x: t.x + dx, y: t.y + dy }))
+        const active = copies[members.indexOf(source)].id
+        set((s) => ({ texts: [...s.texts, ...copies], activeText: active, editingText: null, activeCell: null, tab: 'text' }))
       },
+
+      insertTemplate: (template) => {
+        const { width, height } = canvasSize(get())
+        const placed = placeTemplate(template, width, height)
+        if (!placed.length) return
+        const group = placed.length > 1 ? `g${Date.now().toString(36)}${seq++}` : null
+        const items = placed.map((t): TextItem => ({ ...t, id: `t${Date.now().toString(36)}${seq++}`, group }))
+        // Đang lướt thử các mẫu: mẫu vừa chèn mà chưa đụng tới (vẫn đang được chọn) thì thay bằng mẫu mới, khỏi chồng lên nhau.
+        const previous = lastTemplate
+        const untouched = previous.length > 0 && previous.every((t) => get().texts.includes(t)) && previous.some((t) => t.id === get().activeText)
+        lastTemplate = items
+        set((s) => ({
+          texts: [...(untouched ? s.texts.filter((t) => !previous.includes(t)) : s.texts), ...items],
+          activeText: items[0].id,
+          editingText: null,
+          activeCell: null,
+          tab: 'text',
+        }))
+      },
+
+      ungroupTexts: (group) => set((s) => ({ texts: s.texts.map((t) => (t.group === group ? { ...t, group: null } : t)) })),
 
       setActiveText: (activeText) =>
         set(activeText === null ? { activeText, editingText: null } : { activeText, editingText: null, activeCell: null, tab: 'text' }),

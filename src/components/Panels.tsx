@@ -20,6 +20,7 @@ import { buildSpec, exportToFile, useExportProgress } from '../lib/useCollage'
 import { canvasSize, originalCanvasOf, pctToPx, currentDesign, useStore, type ExportFormat, type ExportSharpen } from '../store'
 import { FontPicker } from './FontPicker'
 import { PresetArt } from './PresetArt'
+import { TemplatePicker } from './TemplatePicker'
 import { Button, cx, Section, Segmented, Slider } from './ui'
 
 /* ───────────── Khung ảnh ───────────── */
@@ -486,6 +487,7 @@ export function TextPanel() {
   const activeText = useStore((s) => s.activeText)
   // Thiết kế đang mở mà đã bỏ hết ảnh vẫn có khung để đặt chữ.
   const hasCollage = useStore((s) => !!s.tree || currentDesign(s) !== null)
+  const view = useStore((s) => s.textView)
   const { addText, updateText, setPreviewFont } = useStore.getState()
   const item = texts.find((t) => t.id === activeText)
 
@@ -504,7 +506,18 @@ export function TextPanel() {
         Thêm chữ
       </Button>
 
-      {item ? (
+      <Segmented
+        value={view}
+        options={[
+          { value: 'templates', label: 'Mẫu chữ' },
+          { value: 'font', label: 'Font' },
+        ]}
+        onChange={(textView) => useStore.setState({ textView })}
+      />
+
+      {view === 'templates' ? (
+        <TemplatePicker />
+      ) : item ? (
         <FontPicker
           value={item.font}
           text={item.text}

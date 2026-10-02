@@ -1,0 +1,9 @@
+{
+  "font": "vn-storm-fighter",
+  "aspect": 1.5,
+  "bg": "#f6efe9",
+  "items": [
+    { "text": "Nước Mắt\nCá Sấu", "x": 0.5, "y": 0.43, "size": 21, "color": "#b5533c", "font": "vn-storm-fighter", "bold": false, "shadow": false, "lineHeight": 1.15 },
+    { "text": "HIEUTHUHAI", "x": 0.5, "y": 0.74, "size": 5, "color": "#6b5248", "font": "sans", "bold": false, "shadow": false, "spacing": 300 }
+  ]
+}

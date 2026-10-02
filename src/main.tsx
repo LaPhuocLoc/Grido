@@ -29,7 +29,11 @@ async function start() {
   )
 }
 
-if (window.grido) {
+if (import.meta.env.DEV && new URLSearchParams(location.search).has('lab')) {
+  // Bản dev: trang so sánh mẫu chữ với ảnh mẫu gốc của font (xem src/dev/Lab.tsx).
+  const { Lab } = await import('./dev/Lab')
+  root.render(<Lab />)
+} else if (window.grido) {
   // Bản desktop: preload của Electron đã gắn sẵn cầu nối sang main process.
   await start()
 } else {

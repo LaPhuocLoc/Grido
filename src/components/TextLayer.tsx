@@ -10,6 +10,7 @@ import {
   Minus,
   Plus,
   RotateCw,
+  Sparkles,
   Strikethrough,
   TextAlignCenter,
   TextAlignEnd,
@@ -18,15 +19,27 @@ import {
   Underline,
   UnfoldHorizontal,
   UnfoldVertical,
+  Ungroup,
 } from 'lucide-react'
 import { useEffect, useLayoutEffect, useRef, useState, type CSSProperties, type PointerEvent as ReactPointerEvent, type ReactNode } from 'react'
 import { createPortal, flushSync } from 'react-dom'
+import { useShallow } from 'zustand/react/shallow'
 import { clamp } from '../lib/geometry'
 import {
   anchorShift,
+  BLOCK_RANGE,
   DECORATION,
+  drawTextNow,
+  effectBleed,
   fontInfo,
+  GLOW_RANGE,
+  hasEffects,
   LINE_HEIGHT_RANGE,
+  loadTextFont,
+  measureTextBox,
+  OUTLINE_RANGE,
+  PLATE_PAD_RANGE,
+  PLATE_RADIUS_RANGE,
   MAX_TEXT_SIZE,
   MIN_TEXT_SIZE,
   snapAngle,
@@ -38,6 +51,7 @@ import {
   type TextAnchor,
   type TextItem,
 } from '../lib/text'
+import { moveGroup, rotateGroup, scaleGroup } from '../lib/textGroup'
 import { useStore } from '../store'
 import type { Guide } from './Stage'
 import { cx, IconButton } from './ui'
@@ -77,15 +91,22 @@ export function TextLayer({
   overlay: HTMLElement | null
   onGuides: (guides: Guide[]) => void
 }) {
-  const { updateText, removeText, duplicateText, setActiveText, setEditingText } = useStore.getState()
+  const { updateText, updateTexts, removeText, duplicateText, setActiveText, setEditingText } = useStore.getState()
   const el = useRef<HTMLDivElement>(null)
   const [live, setLive] = useState<Live | null>(null)
   const liveRef = useRef<Live | null>(null)
   const [box, setBox] = useState({ w: 0, h: 0 })
   // Đang rê chuột xem thử font trong bảng font: chỉ đổi cách hiển thị, không đụng tới nội dung đã lưu.
   const previewFont = useStore((s) => (s.previewFont?.id === stored.id ? s.previewFont.font : null))
+  // Cả nhóm đang được kéo / phóng / xoay: giá trị tạm của dòng này nằm ở store để mọi dòng trong nhóm cùng đổi.
+  const shared = useStore((s) => s.liveTexts?.[stored.id])
   const id = stored.id
-  const item = live ? { ...stored, ...live } : stored
+  const group = stored.group
+  const item = live ? { ...stored, ...live } : shared ? { ...stored, ...shared } : stored
+  // Dòng chữ có hiệu ứng: chữ thật do canvas bên dưới vẽ (bằng chính hàm vẽ lúc xuất), khối DOM này chỉ còn dàn chữ, bắt chuột và gõ.
+  const effects = hasEffects(item)
+  // Nội dung đang gõ dở (chưa ghi vào store), để canvas hiệu ứng vẽ theo từng phím.
+  const [draft, setDraft] = useState<string | null>(null)
   const px = (Math.min(width, height) * item.size * k) / 100
   const shadow = textShadow(px)
 
@@ -163,22 +184,35 @@ export function TextLayer({
     return () => {
       const text = (node.textContent ?? '').replace(/\n+$/, '')
       getSelection()?.removeAllRanges()
+      setDraft(null)
       const current = useStore.getState().texts.find((t) => t.id === id)
       if (!current) return
       // Trình duyệt có thể đã tách / gộp node trong lúc gõ → đưa DOM về đúng một node chữ như React vẫn nghĩ.
       node.textContent = text || ' '
-      if (!text.trim()) removeText(id)
+      // Xoá hết chữ của một dòng trong nhóm thì chỉ bỏ dòng đó, các dòng khác của nhóm vẫn còn.
+      if (!text.trim()) removeText(id, true)
       else if (text !== current.text) updateText(id, { text })
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [editing, id])
 
-  const drag = useRef<{ x: number; y: number; itemX: number; itemY: number; wasActive: boolean; moved: boolean } | null>(null)
+  const drag = useRef<{
+    x: number
+    y: number
+    itemX: number
+    itemY: number
+    wasActive: boolean
+    moved: boolean
+    /** Kéo một dòng thuộc nhóm là kéo cả nhóm: các dòng lúc bắt đầu kéo và tâm nhóm (theo tỉ lệ khung). */
+    members: TextItem[] | null
+    centre: { x: number; y: number } | null
+  } | null>(null)
   const endDrag = () => {
     const d = drag.current
     drag.current = null
     if (!d) return
-    if (d.moved) commit()
+    if (d.moved && d.members) commitGroup(updateTexts, onGuides)
+    else if (d.moved) commit()
     // Bấm vào dòng chữ đang chọn (kể cả cú thứ hai của bấm đúp) → gõ trực tiếp.
     else if (d.wasActive) setEditingText(stored.id)
   }
@@ -261,6 +295,15 @@ export function TextLayer({
 
   return (
     <>
+      {effects && (
+        <EffectCanvas
+          item={{ ...item, text: draft ?? stored.text, font: previewFont ?? item.font }}
+          px={px}
+          wrap={item.width === null ? null : item.width * width * k}
+          left={cxPx}
+          top={cyPx}
+        />
+      )}
       <div
         ref={el}
         contentEditable={editing ? 'plaintext-only' : undefined}
@@ -276,7 +319,18 @@ export function TextLayer({
           e.stopPropagation()
           if (editing || e.button !== 0) return
           e.currentTarget.setPointerCapture(e.pointerId)
-          drag.current = { x: e.clientX, y: e.clientY, itemX: stored.x, itemY: stored.y, wasActive: active, moved: false }
+          const members = group ? useStore.getState().texts.filter((t) => t.group === group) : null
+          const rect = group && overlay ? groupRect(group, overlay) : null
+          drag.current = {
+            x: e.clientX,
+            y: e.clientY,
+            itemX: stored.x,
+            itemY: stored.y,
+            wasActive: active,
+            moved: false,
+            members,
+            centre: rect && { x: (rect.left + rect.right) / 2 / (width * k), y: (rect.top + rect.bottom) / 2 / (height * k) },
+          }
           if (!active) setActiveText(stored.id)
         }}
         onPointerMove={(e) => {
@@ -284,6 +338,25 @@ export function TextLayer({
           if (!d) return
           if (!d.moved && Math.hypot(e.clientX - d.x, e.clientY - d.y) < 4) return
           d.moved = true
+          if (d.members) {
+            // Cả nhóm đi theo con trỏ; tâm nhóm hít vào giữa khung.
+            let dx = (e.clientX - d.x) / (width * k)
+            let dy = (e.clientY - d.y) / (height * k)
+            const guides: Guide[] = []
+            if (d.centre && Math.abs(d.centre.x + dx - 0.5) * width * k < SNAP) {
+              dx = 0.5 - d.centre.x
+              guides.push({ dir: 'v', pos: width / 2, from: 0, to: height })
+            }
+            if (d.centre && Math.abs(d.centre.y + dy - 0.5) * height * k < SNAP) {
+              dy = 0.5 - d.centre.y
+              guides.push({ dir: 'h', pos: height / 2, from: 0, to: width })
+            }
+            flushSync(() => {
+              onGuides(guides)
+              useStore.setState({ liveTexts: moveGroup(d.members!, dx, dy) })
+            })
+            return
+          }
           let nx = clamp(d.itemX + (e.clientX - d.x) / (width * k), 0, 1)
           let ny = clamp(d.itemY + (e.clientY - d.y) / (height * k), 0, 1)
           const guides: Guide[] = []
@@ -300,6 +373,9 @@ export function TextLayer({
         onPointerUp={endDrag}
         onPointerCancel={endDrag}
         onBlur={() => useStore.getState().editingText === stored.id && setEditingText(null)}
+        onInput={(e) => effects && setDraft((e.currentTarget.textContent ?? '').replace(/\n+$/, ''))}
+        data-text={stored.id}
+        data-text-group={group ?? undefined}
         onKeyDown={(e) => {
           if (!editing) return
           // Phím gõ không được lọt ra phím tắt toàn cục (Delete xoá dòng chữ, Esc bỏ chọn…).
@@ -317,20 +393,23 @@ export function TextLayer({
           top: cyPx,
           transform: `translate(-50%, -50%) rotate(${item.rotation}deg)`,
           ...textLayoutStyle(item, px, item.width === null ? null : item.width * width * k, previewFont ?? item.font),
-          opacity: item.opacity / 100,
-          color: item.color,
+          opacity: effects ? undefined : item.opacity / 100,
+          color: effects ? 'transparent' : item.color,
           caretColor: item.color,
-          textDecorationLine: [item.underline && 'underline', item.strike && 'line-through'].filter(Boolean).join(' ') || undefined,
+          textDecorationLine: (!effects && [item.underline && 'underline', item.strike && 'line-through'].filter(Boolean).join(' ')) || undefined,
           textDecorationThickness: `${DECORATION.thickness}em`,
           textUnderlineOffset: `${DECORATION.underline}em`,
           textDecorationSkipInk: 'none',
-          textShadow: item.shadow ? `0 ${shadow.offsetY}px ${shadow.blur}px ${shadow.color}` : undefined,
+          textShadow: item.shadow && !effects ? `0 ${shadow.offsetY}px ${shadow.blur}px ${shadow.color}` : undefined,
         }}
       >
         {stored.text || ' '}
       </div>
 
+      {active && group && overlay && createPortal(<GroupFrame group={group} width={width} height={height} k={k} overlay={overlay} hidden={editing} onGuides={onGuides} />, overlay)}
+
       {active &&
+        !group &&
         overlay &&
         box.w > 0 &&
         createPortal(
@@ -410,6 +489,226 @@ export function TextLayer({
           </>,
           overlay,
         )}
+    </>
+  )
+}
+
+/** Canvas xem trước không vượt quá bấy nhiêu điểm ảnh; chữ rất to khi phóng lớn khung thì vẽ thưa hơn mật độ màn hình. */
+const MAX_EFFECT_PIXELS = 12e6
+
+/**
+ * Lớp vẽ của một dòng chữ có hiệu ứng: gọi đúng hàm vẽ dùng lúc xuất ảnh nên những gì thấy ở đây là những gì có trong ảnh xuất.
+ * Vẽ không xoay rồi để CSS xoay và làm mờ, nên kéo / xoay / đổi độ trong suốt không phải vẽ lại.
+ */
+function EffectCanvas({ item, px, wrap, left, top }: { item: TextItem; px: number; wrap: number | null; left: number; top: number }) {
+  const ref = useRef<HTMLCanvasElement>(null)
+  const flat: TextItem = { ...item, x: 0, y: 0, rotation: 0, opacity: 100, id: '', group: null }
+  const key = `${JSON.stringify(flat)}|${px}|${wrap}`
+  useEffect(() => {
+    let stale = false
+    void loadTextFont(flat, px)
+      // Chưa tải được font (mất mạng): vẫn vẽ bằng font dự phòng như khối chữ DOM, lúc xuất ảnh mới báo lỗi.
+      .catch(() => {})
+      .then(() => {
+        const canvas = ref.current
+        const ctx = canvas?.getContext('2d')
+        if (stale || !canvas || !ctx || px <= 0) return
+        const box = measureTextBox(ctx, flat, px, wrap)
+        const bleed = effectBleed(flat, px)
+        const w = box.w + bleed * 2
+        const h = box.h + bleed * 2
+        const scale = Math.min(window.devicePixelRatio || 1, Math.sqrt(MAX_EFFECT_PIXELS / (w * h)))
+        canvas.width = Math.ceil(w * scale)
+        canvas.height = Math.ceil(h * scale)
+        canvas.style.width = `${canvas.width / scale}px`
+        canvas.style.height = `${canvas.height / scale}px`
+        // Bóng và độ nhoè của canvas không co giãn theo transform, nên vẽ thẳng ở cỡ điểm ảnh thật thay vì scale context.
+        drawTextNow(ctx, flat, canvas.width / 2, canvas.height / 2, px * scale, wrap === null ? null : wrap * scale)
+      })
+    return () => {
+      stale = true
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [key])
+  return (
+    <canvas
+      ref={ref}
+      aria-hidden
+      className="pointer-events-none absolute z-20"
+      style={{ left, top, transform: `translate(-50%, -50%) rotate(${item.rotation}deg)`, opacity: item.opacity / 100 }}
+    />
+  )
+}
+
+interface Box {
+  left: number
+  top: number
+  right: number
+  bottom: number
+}
+
+/** Hình chữ nhật bao quanh mọi dòng chữ của nhóm, theo px màn hình tính từ góc lớp phủ. */
+export function groupRect(group: string, overlay: HTMLElement): Box | null {
+  const origin = overlay.getBoundingClientRect()
+  const rects = [...document.querySelectorAll(`[data-text-group="${group}"]`)].map((node) => node.getBoundingClientRect())
+  if (!rects.length) return null
+  return {
+    left: Math.min(...rects.map((r) => r.left)) - origin.left,
+    top: Math.min(...rects.map((r) => r.top)) - origin.top,
+    right: Math.max(...rects.map((r) => r.right)) - origin.left,
+    bottom: Math.max(...rects.map((r) => r.bottom)) - origin.top,
+  }
+}
+
+/** Thả tay sau khi kéo / phóng / xoay nhóm: ghi giá trị tạm vào thiết kế thành một bước undo. */
+function commitGroup(updateTexts: (patches: Record<string, Partial<TextItem>>) => void, onGuides: (guides: Guide[]) => void) {
+  const patches = useStore.getState().liveTexts
+  if (patches) updateTexts(patches)
+  useStore.setState({ liveTexts: null })
+  onGuides([])
+}
+
+/** Khung chọn của một nhóm chữ: bao quanh mọi dòng, có tay nắm phóng / xoay cả nhóm và các nút nhân bản, tách nhóm, xoá. */
+function GroupFrame({
+  group,
+  width,
+  height,
+  k,
+  overlay,
+  hidden,
+  onGuides,
+}: {
+  group: string
+  width: number
+  height: number
+  k: number
+  overlay: HTMLElement
+  /** Đang gõ một dòng trong nhóm: ẩn tay nắm và các nút cho đỡ vướng. */
+  hidden: boolean
+  onGuides: (guides: Guide[]) => void
+}) {
+  const { updateTexts, removeText, duplicateText, ungroupTexts } = useStore.getState()
+  const members = useStore(useShallow((s) => s.texts.filter((t) => t.group === group)))
+  const live = useStore((s) => s.liveTexts)
+  const [rect, setRect] = useState<Box | null>(null)
+  const [angle, setAngle] = useState<number | null>(null)
+
+  // Khung bám theo kích thước thật của các dòng chữ (đổi khi gõ, đổi font, font tải xong, đang kéo…).
+  useLayoutEffect(() => {
+    const read = () => {
+      const next = groupRect(group, overlay)
+      setRect((now) => (now && next && now.left === next.left && now.top === next.top && now.right === next.right && now.bottom === next.bottom ? now : next))
+    }
+    read()
+    const observer = new ResizeObserver(read)
+    document.querySelectorAll(`[data-text-group="${group}"]`).forEach((node) => observer.observe(node))
+    return () => observer.disconnect()
+  }, [group, overlay, members, live, k, width, height])
+
+  const move = useRef<((e: ReactPointerEvent) => void) | null>(null)
+  const end = () => {
+    move.current = null
+    setAngle(null)
+    commitGroup(updateTexts, onGuides)
+  }
+  /** Gắn thao tác kéo cho một tay nắm: `begin` nhận tâm nhóm (toạ độ cửa sổ và px khung xuất) rồi trả về hàm xử lý từng lần chuột dời. */
+  const grip = (begin: (e: ReactPointerEvent, centre: { clientX: number; clientY: number; x: number; y: number }, base: TextItem[]) => (e: ReactPointerEvent) => void) => ({
+    onPointerDown: (e: ReactPointerEvent) => {
+      if (e.button !== 0 || !rect) return
+      e.stopPropagation()
+      e.currentTarget.setPointerCapture(e.pointerId)
+      const origin = overlay.getBoundingClientRect()
+      const x = (rect.left + rect.right) / 2
+      const y = (rect.top + rect.bottom) / 2
+      move.current = begin(e, { clientX: origin.left + x, clientY: origin.top + y, x: x / k, y: y / k }, useStore.getState().texts.filter((t) => t.group === group))
+    },
+    onPointerMove: (e: ReactPointerEvent) => move.current?.(e),
+    onPointerUp: end,
+    onPointerCancel: end,
+  })
+  const scale = grip((e, c, base) => {
+    const d0 = Math.max(8, Math.hypot(e.clientX - c.clientX, e.clientY - c.clientY))
+    return (e) => useStore.setState({ liveTexts: scaleGroup(base, c.x, c.y, Math.hypot(e.clientX - c.clientX, e.clientY - c.clientY) / d0, width, height) })
+  })
+  const rotate = grip((e, c, base) => {
+    const a0 = Math.atan2(e.clientY - c.clientY, e.clientX - c.clientX)
+    return (e) => {
+      const deg = snapAngle(((Math.atan2(e.clientY - c.clientY, e.clientX - c.clientX) - a0) * 180) / Math.PI)
+      setAngle(deg)
+      useStore.setState({ liveTexts: rotateGroup(base, c.x, c.y, deg, width, height) })
+    }
+  })
+
+  if (!rect || !members.length) return null
+  const w = rect.right - rect.left
+  const h = rect.bottom - rect.top
+  const barAbove = rect.top - 60 > -52
+  const dot =
+    'pointer-events-auto absolute size-3.5 -translate-x-1/2 -translate-y-1/2 touch-none rounded-full bg-white shadow-[0_1px_4px_rgb(0_0_0/0.4)] ring-2 ring-coral transition-transform hover:scale-125'
+  return (
+    <>
+      <div className="pointer-events-none absolute" style={{ left: rect.left - 4, top: rect.top - 4, width: w + 8, height: h + 8 }}>
+        <span className="absolute inset-0 rounded-[3px] shadow-[0_0_0_2px_var(--color-coral)]" />
+        {!hidden && (
+          <>
+            {(
+              [
+                ['0%', '0%'],
+                ['100%', '0%'],
+                ['0%', '100%'],
+                ['100%', '100%'],
+              ] as const
+            ).map(([left, top]) => (
+              <span
+                key={left + top}
+                data-tip="Kéo để phóng to / thu nhỏ cả nhóm chữ"
+                className={cx(dot, left === top ? 'cursor-nwse-resize' : 'cursor-nesw-resize')}
+                style={{ left, top }}
+                {...scale}
+              />
+            ))}
+            <span
+              data-tip="Kéo để xoay cả nhóm chữ"
+              className="pointer-events-auto absolute left-1/2 grid size-7 -translate-x-1/2 cursor-grab touch-none place-items-center rounded-full bg-white text-[#2b2622] shadow-[0_1px_6px_rgb(0_0_0/0.35)] ring-1 ring-black/10 active:cursor-grabbing"
+              style={{ top: `calc(100% + ${ROTATE_GAP - 14}px)` }}
+              {...rotate}
+            >
+              <RotateCw className="size-3.5" />
+            </span>
+            {angle !== null && (
+              <span
+                className="absolute left-1/2 -translate-x-1/2 rounded-full bg-black/70 px-2 py-0.5 text-[11px] font-semibold tabular-nums text-white"
+                style={{ top: `calc(100% + ${ROTATE_GAP + 22}px)` }}
+              >
+                {angle}°
+              </span>
+            )}
+          </>
+        )}
+      </div>
+
+      {/* Chỉ hiện khi đang chọn mà chưa gõ; đang gõ hoặc đang kéo thì ẩn cho đỡ vướng. */}
+      {!hidden && !live && (
+        <div
+          className="pointer-events-auto absolute flex animate-pop rounded-full bg-card p-0.5 shadow-lift ring-1 ring-black/5"
+          style={{
+            left: rect.left + w / 2,
+            top: barAbove ? rect.top - 18 : rect.bottom + ROTATE_GAP + 34,
+            transform: `translate(-50%, ${barAbove ? '-100%' : '0'})`,
+          }}
+          onPointerDown={(e) => e.stopPropagation()}
+        >
+          <IconButton label="Nhân bản nhóm chữ (Ctrl+D)" onClick={() => duplicateText(members[0].id)}>
+            <Copy className="size-4" />
+          </IconButton>
+          <IconButton label="Tách nhóm: chỉnh từng dòng chữ riêng" onClick={() => ungroupTexts(group)}>
+            <Ungroup className="size-4" />
+          </IconButton>
+          <IconButton label="Xoá nhóm chữ (Delete)" onClick={() => removeText(members[0].id)}>
+            <Trash2 className="size-4" />
+          </IconButton>
+        </div>
+      )}
     </>
   )
 }
@@ -551,7 +850,51 @@ function HexInput({ value, onChange }: { value: string; onChange: (color: string
   )
 }
 
-type Menu = 'color' | 'spacing' | 'opacity'
+/** Một hiệu ứng trong bảng Hiệu ứng: công tắc bật / tắt, bật rồi thì hiện ô màu và các thanh chỉnh. */
+function EffectRow({
+  label,
+  on,
+  onToggle,
+  color,
+  onColor,
+  children,
+}: {
+  label: string
+  on: boolean
+  onToggle: () => void
+  color?: string
+  onColor: (color: string) => void
+  children?: ReactNode
+}) {
+  return (
+    <div className="border-t border-line pt-3 first:border-t-0 first:pt-0">
+      <div className="flex items-center gap-2">
+        <button type="button" role="switch" aria-checked={on} aria-label={label} onClick={onToggle} className="flex min-w-0 flex-1 items-center gap-2.5 text-left">
+          <span className={cx('relative h-5 w-9 shrink-0 rounded-full transition-colors', on ? 'bg-coral' : 'bg-line')}>
+            <span className={cx('absolute top-0.5 size-4 rounded-full bg-white shadow transition-[left]', on ? 'left-[18px]' : 'left-0.5')} />
+          </span>
+          <span className="truncate text-[13px] font-semibold text-ink">{label}</span>
+        </button>
+        {on && color && (
+          <label className="relative size-6 shrink-0 cursor-pointer overflow-hidden rounded-full border border-black/15 transition-transform hover:scale-110" style={{ background: color }} data-tip="Đổi màu">
+            <input type="color" aria-label={`Màu ${label.toLowerCase()}`} value={color} onChange={(e) => onColor(e.target.value)} className="absolute inset-0 size-full cursor-pointer opacity-0" />
+          </label>
+        )}
+      </div>
+      {on && children && <div className="mt-2.5 space-y-2.5">{children}</div>}
+    </div>
+  )
+}
+
+/** Chữ sáng thì viền / nền tối và ngược lại, để hiệu ứng vừa bật lên đã thấy rõ. */
+const contrast = (hex: string) => {
+  const m = HEX.exec(hex)
+  if (!m) return '#000000'
+  const n = parseInt(m[1], 16)
+  return ((n >> 16) & 255) * 0.299 + ((n >> 8) & 255) * 0.587 + (n & 255) * 0.114 > 150 ? '#000000' : '#ffffff'
+}
+
+type Menu = 'color' | 'effects' | 'spacing' | 'opacity'
 
 /** Thanh công cụ ở đáy khung ghép cho dòng chữ đang chọn. `unit`: số px ảnh xuất ứng với 1% cỡ chữ. */
 export function TextToolbar({ item, unit }: { item: TextItem; unit: number }) {
@@ -581,7 +924,7 @@ export function TextToolbar({ item, unit }: { item: TextItem; unit: number }) {
         <button
           type="button"
           data-tip="Đổi font ở bảng bên trái"
-          onClick={() => useStore.setState({ tab: 'text', leftCollapsed: false })}
+          onClick={() => useStore.setState({ tab: 'text', textView: 'font', leftCollapsed: false })}
           className="h-9 max-w-32 shrink truncate rounded-full px-3 text-[13px] font-semibold text-ink hover:bg-sand"
         >
           {fontInfo(item.font).label}
@@ -643,6 +986,83 @@ export function TextToolbar({ item, unit }: { item: TextItem; unit: number }) {
                 </label>
                 <HexInput value={item.color} onChange={(color) => set({ color })} />
               </div>
+            </Popover>
+          )}
+        </div>
+        <div data-text-menu className="relative shrink-0">
+          <IconButton
+            label="Hiệu ứng chữ"
+            aria-expanded={menu === 'effects'}
+            className={cx(menu === 'effects' && 'bg-sand', hasEffects(item) && menu !== 'effects' && 'bg-blush !text-coral-dark')}
+            onClick={() => toggle('effects')}
+          >
+            <Sparkles className="size-4.5" />
+          </IconButton>
+          {menu === 'effects' && (
+            <Popover label="Hiệu ứng chữ" className="scroll-soft max-h-[min(60vh,440px)] w-[272px] space-y-3 overflow-y-auto">
+              <EffectRow
+                label="Viền chữ"
+                on={!!item.outline}
+                onToggle={() => set({ outline: item.outline ? null : { color: contrast(item.color), width: 6 } })}
+                color={item.outline?.color}
+                onColor={(color) => item.outline && set({ outline: { ...item.outline, color } })}
+              >
+                {item.outline && <SliderRow label="Độ dày" value={item.outline.width} {...OUTLINE_RANGE} onChange={(width) => set({ outline: { ...item.outline!, width } })} />}
+              </EffectRow>
+              <EffectRow
+                label="Khối nổi"
+                on={!!item.block}
+                onToggle={() => set({ block: item.block ? null : { color: contrast(item.color), x: 5, y: 5 } })}
+                color={item.block?.color}
+                onColor={(color) => item.block && set({ block: { ...item.block, color } })}
+              >
+                {item.block &&
+                  (() => {
+                    const block = item.block
+                    const depth = round(Math.hypot(block.x, block.y), 1)
+                    const angle = Math.round(((Math.atan2(block.y, block.x) * 180) / Math.PI + 360) % 360)
+                    const place = (d: number, a: number) =>
+                      set({ block: { ...block, x: round(d * Math.cos((a * Math.PI) / 180), 2), y: round(d * Math.sin((a * Math.PI) / 180), 2) } })
+                    return (
+                      <>
+                        <SliderRow label="Độ dày" value={clamp(depth, BLOCK_RANGE.min, BLOCK_RANGE.max)} {...BLOCK_RANGE} onChange={(d) => place(d, angle)} />
+                        <SliderRow label="Hướng" value={angle} min={0} max={359} step={1} onChange={(a) => place(depth, a)} />
+                      </>
+                    )
+                  })()}
+              </EffectRow>
+              <EffectRow
+                label="Phát sáng"
+                on={!!item.glow}
+                onToggle={() => set({ glow: item.glow ? null : { color: item.color, size: 20 } })}
+                color={item.glow?.color}
+                onColor={(color) => item.glow && set({ glow: { ...item.glow, color } })}
+              >
+                {item.glow && <SliderRow label="Độ toả" value={item.glow.size} {...GLOW_RANGE} onChange={(size) => set({ glow: { ...item.glow!, size } })} />}
+              </EffectRow>
+              <EffectRow
+                label="Chuyển màu"
+                on={!!item.gradient}
+                onToggle={() => set({ gradient: item.gradient ? null : { color: '#ffb23e', angle: 180 } })}
+                color={item.gradient?.color}
+                onColor={(color) => item.gradient && set({ gradient: { ...item.gradient, color } })}
+              >
+                {item.gradient && <SliderRow label="Góc" value={item.gradient.angle} min={0} max={359} step={1} onChange={(angle) => set({ gradient: { ...item.gradient!, angle } })} />}
+              </EffectRow>
+              <EffectRow
+                label="Nền sau chữ"
+                on={!!item.plate}
+                onToggle={() => set({ plate: item.plate ? null : { color: contrast(item.color), pad: 30, radius: 20 } })}
+                color={item.plate?.color}
+                onColor={(color) => item.plate && set({ plate: { ...item.plate, color } })}
+              >
+                {item.plate && (
+                  <>
+                    <SliderRow label="Lề quanh chữ" value={item.plate.pad} {...PLATE_PAD_RANGE} onChange={(pad) => set({ plate: { ...item.plate!, pad } })} />
+                    <SliderRow label="Bo góc" value={item.plate.radius} {...PLATE_RADIUS_RANGE} onChange={(radius) => set({ plate: { ...item.plate!, radius } })} />
+                  </>
+                )}
+              </EffectRow>
             </Popover>
           )}
         </div>

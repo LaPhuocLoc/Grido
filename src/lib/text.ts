@@ -37,6 +37,65 @@ export interface TextItem {
   opacity: number
   /** Văn bản dọc: chữ đứng thẳng, xếp từ trên xuống; các cột nối nhau từ phải sang trái. */
   vertical: boolean
+  /** Hiệu ứng chữ; null = tắt. Mọi số đo tính theo % cỡ chữ nên không phụ thuộc độ phân giải xuất. */
+  outline: TextOutline | null
+  block: TextBlock | null
+  glow: TextGlow | null
+  gradient: TextGradient | null
+  plate: TextPlate | null
+  /** Các dòng chữ cùng `group` dính thành một nhóm: kéo, phóng, xoay cùng nhau. */
+  group: string | null
+}
+
+/** Viền ngoài chữ. */
+export interface TextOutline {
+  color: string
+  width: number
+}
+/** Khối nổi: bóng cứng kéo liền từ chữ tới độ lệch (x, y). */
+export interface TextBlock {
+  color: string
+  x: number
+  y: number
+}
+/** Phát sáng quanh chữ; `size` là độ toả. */
+export interface TextGlow {
+  color: string
+  size: number
+}
+/** Chuyển màu từ `color` của chữ sang màu này. Góc theo quy ước CSS: 180 = trên xuống dưới, 90 = trái sang phải. */
+export interface TextGradient {
+  color: string
+  angle: number
+}
+/** Nền bo góc sau hộp chữ; `pad` là lề quanh chữ. */
+export interface TextPlate {
+  color: string
+  pad: number
+  radius: number
+}
+
+export const OUTLINE_RANGE = { min: 1, max: 25, step: 0.5 }
+export const BLOCK_RANGE = { min: 1, max: 30, step: 0.5 }
+export const GLOW_RANGE = { min: 4, max: 60, step: 1 }
+export const PLATE_PAD_RANGE = { min: 0, max: 80, step: 1 }
+export const PLATE_RADIUS_RANGE = { min: 0, max: 100, step: 1 }
+
+/** Dòng chữ có hiệu ứng mà CSS không vẽ khớp canvas được: preview của nó được vẽ bằng chính `drawText`. */
+export const hasEffects = (item: TextItem) => !!(item.outline || item.block || item.glow || item.gradient || item.plate)
+
+/** Hiệu ứng vươn ra ngoài hộp chữ tối đa bao nhiêu px (để canvas xem trước chừa đủ lề). */
+export function effectBleed(item: TextItem, px: number): number {
+  const outline = item.outline?.width ?? 0
+  const reach = Math.max(
+    outline,
+    item.block ? Math.hypot(item.block.x, item.block.y) + outline : 0,
+    item.glow ? item.glow.size * 2.5 + outline : 0,
+    item.plate?.pad ?? 0,
+    item.shadow ? 60 : 0,
+  )
+  // Nét chữ viết tay hay vươn ra ngoài ô chữ của nó, nên luôn chừa thêm.
+  return Math.ceil(px * (0.75 + reach / 100)) + 2
 }
 
 export type TextAlign = 'left' | 'center' | 'right'
@@ -69,6 +128,12 @@ const TEXT_DEFAULTS: Omit<TextItem, 'id'> = {
   anchor: 'middle',
   opacity: 100,
   vertical: false,
+  outline: null,
+  block: null,
+  glow: null,
+  gradient: null,
+  plate: null,
+  group: null,
 }
 
 /** Bản nháp lưu từ phiên bản cũ thiếu các trường kiểu chữ mới → bù giá trị mặc định. */
@@ -259,33 +324,168 @@ export async function drawText(
   px: number,
   wrapWidth: number | null = null,
 ) {
-  const font = `${item.italic ? 'italic ' : ''}${fontWeight(item.bold)} ${px}px ${fontFamily(item.font)}`
-  // Font web chỉ tải khi được dùng; phải chờ xong, nếu không canvas sẽ vẽ bằng font dự phòng.
-  // Tải hỏng (bản web mất mạng giữa chừng) thì dừng hẳn: thà báo lỗi còn hơn xuất ra ảnh sai font.
-  await document.fonts.load(font, item.text).catch(() => {
+  await loadTextFont(item, px)
+  drawTextNow(ctx, item, cx, cy, px, wrapWidth)
+}
+
+/**
+ * Font web chỉ tải khi được dùng; phải chờ xong, nếu không canvas sẽ vẽ bằng font dự phòng.
+ * Tải hỏng (bản web mất mạng giữa chừng) thì dừng hẳn: thà báo lỗi còn hơn xuất ra ảnh sai font.
+ */
+export async function loadTextFont(item: TextItem, px: number) {
+  await document.fonts.load(canvasFont(item, px), item.text).catch(() => {
     throw new Error(`Chưa tải được font "${fontInfo(item.font).label}". Kiểm tra kết nối mạng rồi xuất lại nhé.`)
   })
+}
+
+/** Như `drawText` nhưng vẽ ngay, cho nơi đã chắc font tải xong (canvas xem trước vẽ lại theo từng khung hình). */
+export function drawTextNow(ctx: CanvasRenderingContext2D, item: TextItem, cx: number, cy: number, px: number, wrapWidth: number | null = null) {
+  if (!hasEffects(item) || item.opacity >= 100) return paintText(ctx, item, cx, cy, px, wrapWidth)
+  // Các lượt vẽ hiệu ứng chồng lên nhau: vẽ đặc ra một lớp riêng rồi mới làm mờ cả lớp, để lượt dưới không lộ qua lượt trên.
+  const layer = scratch(ctx)
+  const lctx = layer.getContext('2d')!
+  lctx.setTransform(ctx.getTransform())
+  paintText(lctx, { ...item, opacity: 100 }, cx, cy, px, wrapWidth)
+  ctx.save()
+  ctx.setTransform(1, 0, 0, 1, 0, 0)
+  ctx.globalAlpha *= item.opacity / 100
+  ctx.drawImage(layer, 0, 0)
+  ctx.restore()
+}
+
+/** Hình dạng đã dàn của một khối chữ quanh gốc toạ độ (tâm hộp): kích thước hộp và hàm vẽ nét chữ kèm gạch chân / gạch ngang. */
+interface Shape {
+  w: number
+  h: number
+  /** Vẽ toàn bộ nét chữ lên `c` bằng fillStyle (hoặc strokeStyle khi `stroke`) hiện tại của nó. */
+  draw: (c: CanvasRenderingContext2D, stroke: boolean) => void
+}
+
+const canvasFont = (item: TextItem, px: number) => `${item.italic ? 'italic ' : ''}${fontWeight(item.bold)} ${px}px ${fontFamily(item.font)}`
+
+/** Đặt font, giãn cách, nét viền… cho một context sắp vẽ `item` ở cỡ `px`. */
+function prepare(c: CanvasRenderingContext2D, item: TextItem, px: number) {
+  c.font = canvasFont(item, px)
+  // Phải đặt trước khi đo chữ để bề rộng dòng tính cả giãn cách, như CSS letter-spacing.
+  c.letterSpacing = `${(px * item.spacing) / 1000}px`
+  c.textAlign = 'left'
+  c.textBaseline = 'alphabetic'
+  if (item.outline) {
+    // Nét viền nằm giữa mép chữ: vẽ dày gấp đôi rồi để phần chữ đè lên nửa trong.
+    c.lineWidth = (px * item.outline.width * 2) / 100
+    c.lineJoin = 'round'
+  }
+}
+
+/** Kích thước hộp chữ (px) khi vẽ ở cỡ `px`; font phải tải xong trước. */
+export function measureTextBox(ctx: CanvasRenderingContext2D, item: TextItem, px: number, wrapWidth: number | null = null): { w: number; h: number } {
+  ctx.save()
+  prepare(ctx, item, px)
+  const { w, h } = item.vertical ? verticalShape(ctx, item, px, wrapWidth) : horizontalShape(ctx, item, px, wrapWidth)
+  ctx.restore()
+  return { w, h }
+}
+
+/** Canvas tạm cùng cỡ với canvas đang vẽ. */
+function scratch(ctx: CanvasRenderingContext2D) {
+  const canvas = document.createElement('canvas')
+  canvas.width = ctx.canvas.width
+  canvas.height = ctx.canvas.height
+  return canvas
+}
+
+function paintText(ctx: CanvasRenderingContext2D, item: TextItem, cx: number, cy: number, px: number, wrapWidth: number | null) {
   ctx.save()
   ctx.translate(cx, cy)
   ctx.rotate((item.rotation * Math.PI) / 180)
-  ctx.font = font
-  // Phải đặt trước khi đo chữ để bề rộng dòng tính cả giãn cách, như CSS letter-spacing.
-  ctx.letterSpacing = `${(px * item.spacing) / 1000}px`
+  prepare(ctx, item, px)
   ctx.globalAlpha *= item.opacity / 100
-  ctx.fillStyle = item.color
-  ctx.textAlign = 'left'
-  ctx.textBaseline = 'alphabetic'
-  if (item.vertical) {
-    drawVertical(ctx, item, px, wrapWidth)
+  const shape = item.vertical ? verticalShape(ctx, item, px, wrapWidth) : horizontalShape(ctx, item, px, wrapWidth)
+  const unit = px / 100
+
+  /** Chỉ để lại bóng của nét chữ (kể cả viền): đẩy nét vẽ ra ngoài canvas và kéo bóng ngược lại đúng bấy nhiêu. */
+  const cast = (color: string, blur: number, offsetY = 0) => {
+    const away = ctx.canvas.width + ctx.canvas.height + px * 4
+    ctx.save()
+    ctx.shadowColor = color
+    ctx.shadowBlur = blur
+    ctx.shadowOffsetX = away
+    ctx.shadowOffsetY = offsetY
+    ctx.fillStyle = ctx.strokeStyle = '#000'
+    if (!item.outline) {
+      ctx.setTransform(new DOMMatrix().translate(-away, 0).multiply(ctx.getTransform()))
+      shape.draw(ctx, false)
+    } else {
+      // Viền và chữ đè lên nhau: gộp thành một hình trước, nếu không chỗ đè đổ bóng hai lần.
+      const layer = scratch(ctx)
+      const lctx = layer.getContext('2d')!
+      lctx.setTransform(ctx.getTransform())
+      prepare(lctx, item, px)
+      shape.draw(lctx, true)
+      shape.draw(lctx, false)
+      ctx.setTransform(1, 0, 0, 1, 0, 0)
+      ctx.drawImage(layer, -away, 0)
+    }
     ctx.restore()
-    return
+  }
+  /** Nét chữ kèm viền, tô một màu. */
+  const solid = (color: string) => {
+    ctx.fillStyle = ctx.strokeStyle = color
+    if (item.outline) shape.draw(ctx, true)
+    shape.draw(ctx, false)
+  }
+
+  if (item.plate) {
+    const pad = item.plate.pad * unit
+    ctx.fillStyle = item.plate.color
+    ctx.beginPath()
+    ctx.roundRect(-shape.w / 2 - pad, -shape.h / 2 - pad, shape.w + pad * 2, shape.h + pad * 2, Math.min(item.plate.radius * unit, shape.w / 2 + pad, shape.h / 2 + pad))
+    ctx.fill()
   }
   if (item.shadow) {
     const s = textShadow(px)
-    ctx.shadowColor = s.color
-    ctx.shadowBlur = s.blur
-    ctx.shadowOffsetY = s.offsetY
+    cast(s.color, s.blur, s.offsetY)
   }
+  if (item.glow) {
+    // Hai lượt: một lượt toả rộng, một lượt sát chữ cho quầng sáng có lõi.
+    cast(item.glow.color, item.glow.size * unit)
+    cast(item.glow.color, (item.glow.size * unit) / 2.5)
+  }
+  if (item.block) {
+    const dx = item.block.x * unit
+    const dy = item.block.y * unit
+    const steps = Math.max(1, Math.ceil(Math.max(Math.abs(dx), Math.abs(dy))))
+    for (let i = steps; i >= 1; i--) {
+      ctx.save()
+      ctx.translate((dx * i) / steps, (dy * i) / steps)
+      solid(item.block.color)
+      ctx.restore()
+    }
+  }
+  if (item.outline) {
+    ctx.strokeStyle = item.outline.color
+    shape.draw(ctx, true)
+  }
+  ctx.fillStyle = item.gradient ? gradientFill(ctx, item.color, item.gradient, shape.w, shape.h) : item.color
+  shape.draw(ctx, false)
+  ctx.restore()
+}
+
+/** Dải chuyển màu phủ vừa hộp chữ w × h (tâm ở gốc toạ độ), hướng theo quy ước góc của CSS linear-gradient. */
+function gradientFill(ctx: CanvasRenderingContext2D, from: string, gradient: TextGradient, w: number, h: number) {
+  const rad = (gradient.angle * Math.PI) / 180
+  const half = (Math.abs(w * Math.sin(rad)) + Math.abs(h * Math.cos(rad))) / 2
+  const fill = ctx.createLinearGradient(-Math.sin(rad) * half, Math.cos(rad) * half, Math.sin(rad) * half, -Math.cos(rad) * half)
+  fill.addColorStop(0, from)
+  fill.addColorStop(1, gradient.color)
+  return fill
+}
+
+const put = (c: CanvasRenderingContext2D, stroke: boolean, text: string, x: number, y: number) => (stroke ? c.strokeText(text, x, y) : c.fillText(text, x, y))
+const bar = (c: CanvasRenderingContext2D, stroke: boolean, x: number, y: number, w: number, h: number) => (stroke ? c.strokeRect(x, y, w, h) : c.fillRect(x, y, w, h))
+
+/** Dàn chữ ngang. `ctx` đã có sẵn font và giãn cách. */
+function horizontalShape(ctx: CanvasRenderingContext2D, item: TextItem, px: number, wrapWidth: number | null): Shape {
   const measure = (s: string) => ctx.measureText(s).width
   const lines = wrapLines(item.text, wrapWidth, measure)
   const widths = lines.map(measure)
@@ -296,14 +496,18 @@ export async function drawText(
   const baselineShift = (m.fontBoundingBoxAscent - m.fontBoundingBoxDescent) / 2
   const top = -(lines.length * lineHeight) / 2
   const thickness = px * DECORATION.thickness
-  lines.forEach((line, i) => {
-    const x = lineStart(item.align, boxWidth, widths[i])
-    const baseline = top + i * lineHeight + lineHeight / 2 + baselineShift
-    ctx.fillText(line, x, baseline)
-    if (item.underline) ctx.fillRect(x, baseline + px * DECORATION.underline, widths[i], thickness)
-    if (item.strike) ctx.fillRect(x, baseline - px * DECORATION.strike - thickness / 2, widths[i], thickness)
-  })
-  ctx.restore()
+  return {
+    w: boxWidth,
+    h: lines.length * lineHeight,
+    draw: (c, stroke) =>
+      lines.forEach((line, i) => {
+        const x = lineStart(item.align, boxWidth, widths[i])
+        const baseline = top + i * lineHeight + lineHeight / 2 + baselineShift
+        put(c, stroke, line, x, baseline)
+        if (item.underline) bar(c, stroke, x, baseline + px * DECORATION.underline, widths[i], thickness)
+        if (item.strike) bar(c, stroke, x, baseline - px * DECORATION.strike - thickness / 2, widths[i], thickness)
+      }),
+  }
 }
 
 /** Ký tự mà font CJK thay bằng dạng xoay 90° khi viết dọc (dấu trường âm, ngoặc, gạch nối, ba chấm). */
@@ -381,7 +585,7 @@ interface Glyph {
  * Canvas không biết viết dọc, nên nhờ chính trình duyệt dàn chữ: dựng một khối ẩn với đúng CSS của preview
  * rồi đọc vị trí từng chữ. Nhờ vậy sang cột, căn lề, font dự phòng… khớp với những gì thấy trên màn hình.
  */
-function measureVertical(item: TextItem, px: number, wrap: number | null): Glyph[] {
+function measureVertical(item: TextItem, px: number, wrap: number | null): { glyphs: Glyph[]; w: number; h: number } {
   const host = document.createElement('div')
   Object.assign(host.style, textLayoutStyle(item, px, wrap), { position: 'fixed', left: '0', top: '0', visibility: 'hidden', pointerEvents: 'none' })
   host.textContent = item.text
@@ -406,15 +610,13 @@ function measureVertical(item: TextItem, px: number, wrap: number | null): Glyph
       glyphs.push({ char: segment, x: box.right - (column + 0.5) * pitch - cx, top: rect.top - cy, advance: rect.height })
     }
   host.remove()
-  return glyphs
+  return { glyphs, w: box.width, h: box.height }
 }
 
-/** Vẽ khối chữ dọc quanh gốc toạ độ hiện tại (tâm hộp chữ). `ctx` đã có sẵn font, màu, độ trong suốt. */
-function drawVertical(ctx: CanvasRenderingContext2D, item: TextItem, px: number, wrap: number | null) {
-  const glyphs = measureVertical(item, px, wrap)
+/** Dàn chữ dọc quanh gốc toạ độ (tâm hộp chữ). `ctx` đã có sẵn font và giãn cách. */
+function verticalShape(ctx: CanvasRenderingContext2D, item: TextItem, px: number, wrap: number | null): Shape {
+  const { glyphs, w, h } = measureVertical(item, px, wrap)
   const spacing = (px * item.spacing) / 1000
-  // Từng chữ được đặt riêng theo vị trí đã đo, giãn cách đã nằm trong đó.
-  ctx.letterSpacing = '0px'
   const m = ctx.measureText('Hg')
   const ascent = m.fontBoundingBoxAscent
   const descent = m.fontBoundingBoxDescent
@@ -423,60 +625,50 @@ function drawVertical(ctx: CanvasRenderingContext2D, item: TextItem, px: number,
   const thickness = px * DECORATION.thickness
   const shifts = new Map<string, number>()
 
-  const paint = () => {
+  const draw = (c: CanvasRenderingContext2D, stroke: boolean) => {
+    c.save()
+    // Từng chữ được đặt riêng theo vị trí đã đo, giãn cách đã nằm trong đó.
+    c.letterSpacing = '0px'
     for (const g of glyphs) {
       // Khoảng trắng không có nét để vẽ, nhưng vẫn chiếm chỗ trong cột nên gạch chân / gạch ngang chạy qua nó (như CSS).
       if (!g.char.trim()) continue
-      const w = ctx.measureText(g.char).width
+      const gw = c.measureText(g.char).width
       const cell = g.advance - spacing
-      const x = g.x + fallbackShift(ctx, g.char, shifts)
+      const x = g.x + fallbackShift(c, g.char, shifts)
       if (SIDEWAYS.test(g.char)) {
-        ctx.save()
-        ctx.translate(x, g.top + cell / 2)
-        ctx.rotate(Math.PI / 2)
-        ctx.fillText(g.char, -w / 2, centred)
-        ctx.restore()
+        c.save()
+        c.translate(x, g.top + cell / 2)
+        c.rotate(Math.PI / 2)
+        put(c, stroke, g.char, -gw / 2, centred)
+        c.restore()
         continue
       }
       // Font không có số đo cho viết dọc (hầu hết font Latin): ô chữ cao bằng ascent + descent, baseline cách mép trên một ascent.
       // Font CJK có số đo riêng: ô chữ vuông 1em, vùng chữ nằm giữa ô.
       const baseline = Math.abs(cell - (ascent + descent)) < Math.max(1.5, px * 0.04) ? ascent : cell / 2 + centred
-      if (CORNER.test(g.char)) ctx.fillText(g.char, x - w / 2 + cell * 0.56, g.top + baseline - cell * 0.56)
-      else ctx.fillText(g.char, x - w / 2, g.top + baseline)
+      if (CORNER.test(g.char)) put(c, stroke, g.char, x - gw / 2 + cell * 0.56, g.top + baseline - cell * 0.56)
+      else put(c, stroke, g.char, x - gw / 2, g.top + baseline)
     }
-    if (!item.underline && !item.strike) return
-    // Gạch chân / gạch ngang chạy dọc theo từng cột.
-    const columns = new Map<number, { top: number; bottom: number }>()
-    for (const g of glyphs) {
-      const key = Math.round(g.x * 100) / 100
-      const col = columns.get(key)
-      // Tính cả giãn cách sau chữ cuối, như nét gạch của CSS.
-      const end = g.top + g.advance
-      if (col) {
-        col.top = Math.min(col.top, g.top)
-        col.bottom = Math.max(col.bottom, end)
-      } else columns.set(key, { top: g.top, bottom: end })
+    if (item.underline || item.strike) {
+      // Gạch chân / gạch ngang chạy dọc theo từng cột.
+      const columns = new Map<number, { top: number; bottom: number }>()
+      for (const g of glyphs) {
+        const key = Math.round(g.x * 100) / 100
+        const col = columns.get(key)
+        // Tính cả giãn cách sau chữ cuối, như nét gạch của CSS.
+        const end = g.top + g.advance
+        if (col) {
+          col.top = Math.min(col.top, g.top)
+          col.bottom = Math.max(col.bottom, end)
+        } else columns.set(key, { top: g.top, bottom: end })
+      }
+      for (const [x, col] of columns) {
+        if (item.strike) bar(c, stroke, x - thickness / 2, col.top, thickness, col.bottom - col.top)
+        // Chữ đứng thẳng trong cột dọc: trình duyệt kẻ gạch chân sát mép trái của cột, không cộng thêm khoảng hở như chữ ngang.
+        if (item.underline) bar(c, stroke, x - (ascent + descent) / 2 - thickness, col.top, thickness, col.bottom - col.top)
+      }
     }
-    for (const [x, col] of columns) {
-      if (item.strike) ctx.fillRect(x - thickness / 2, col.top, thickness, col.bottom - col.top)
-      // Chữ đứng thẳng trong cột dọc: trình duyệt kẻ gạch chân sát mép trái của cột, không cộng thêm khoảng hở như chữ ngang.
-      if (item.underline) ctx.fillRect(x - (ascent + descent) / 2 - thickness, col.top, thickness, col.bottom - col.top)
-    }
+    c.restore()
   }
-
-  if (item.shadow) {
-    // Vẽ riêng lớp bóng trước rồi mới tới chữ: các chữ đứng sát nhau, nếu vẽ lần lượt thì bóng chữ dưới đè lên chữ trên.
-    // Mẹo: đẩy nét vẽ ra ngoài canvas và kéo bóng ngược lại đúng bấy nhiêu, nên chỉ còn bóng rơi vào ảnh.
-    const s = textShadow(px)
-    const away = ctx.canvas.width + ctx.canvas.height + px * 4
-    ctx.save()
-    ctx.setTransform(new DOMMatrix().translate(-away, 0).multiply(ctx.getTransform()))
-    ctx.shadowColor = s.color
-    ctx.shadowBlur = s.blur
-    ctx.shadowOffsetX = away
-    ctx.shadowOffsetY = s.offsetY
-    paint()
-    ctx.restore()
-  }
-  paint()
+  return { w, h, draw }
 }

@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { anchorShift, drawText, fontInfo, isSystemFont, systemFont, lineStart, normalizeText, snapAngle, textLayoutStyle, wrapLines, type TextItem } from '../src/lib/text'
+import { anchorShift, drawText, effectBleed, fontInfo, hasEffects, isSystemFont, systemFont, lineStart, normalizeText, snapAngle, textLayoutStyle, wrapLines, type TextItem } from '../src/lib/text'
 
 afterEach(() => vi.unstubAllGlobals())
 
@@ -56,6 +56,12 @@ describe('normalizeText', () => {
       anchor: 'middle',
       opacity: 100,
       vertical: false,
+      outline: null,
+      block: null,
+      glow: null,
+      gradient: null,
+      plate: null,
+      group: null,
     })
   })
 
@@ -171,6 +177,92 @@ describe('drawText', () => {
     expect(calls[0]).toMatchObject({ spacing: '10px', alpha: 0.4 })
     // Dòng 2 ký tự rộng 2 × (10 + 10) = 40px nên bắt đầu ở -20 khi căn giữa.
     expect(calls[0].x).toBe(-20)
+  })
+})
+
+describe('text effects', () => {
+  /** Canvas giả ghi lại từng lượt vẽ chữ kèm màu và độ dời tại thời điểm vẽ. */
+  function recorder() {
+    const ops: { op: string; style: unknown; dx: number; dy: number; lineWidth: number }[] = []
+    const stack: { dx: number; dy: number }[] = []
+    const ctx = {
+      canvas: { width: 1000, height: 1000 },
+      globalAlpha: 1,
+      letterSpacing: '0px',
+      fillStyle: '' as unknown,
+      strokeStyle: '' as unknown,
+      lineWidth: 1,
+      dx: 0,
+      dy: 0,
+      save: () => stack.push({ dx: ctx.dx, dy: ctx.dy }),
+      restore: () => Object.assign(ctx, stack.pop()),
+      translate(x: number, y: number) {
+        ctx.dx += x
+        ctx.dy += y
+      },
+      rotate() {},
+      beginPath() {},
+      roundRect: (x: number, y: number, w: number, h: number, r: number) => ops.push({ op: `plate ${x} ${y} ${w} ${h} ${r}`, style: null, dx: ctx.dx, dy: ctx.dy, lineWidth: 0 }),
+      fill: () => ops.push({ op: 'fillPath', style: ctx.fillStyle, dx: ctx.dx, dy: ctx.dy, lineWidth: 0 }),
+      createLinearGradient: (x0: number, y0: number, x1: number, y1: number) => {
+        const stops: [number, string][] = []
+        return { line: [x0, y0, x1, y1].map((v) => Math.round(v) + 0), stops, addColorStop: (at: number, color: string) => stops.push([at, color]) }
+      },
+      measureText: (s: string) => ({ width: s.length * 10, fontBoundingBoxAscent: 8, fontBoundingBoxDescent: 2 }),
+      fillText: () => ops.push({ op: 'fill', style: ctx.fillStyle, dx: ctx.dx, dy: ctx.dy, lineWidth: ctx.lineWidth }),
+      strokeText: () => ops.push({ op: 'stroke', style: ctx.strokeStyle, dx: ctx.dx, dy: ctx.dy, lineWidth: ctx.lineWidth }),
+    }
+    return { ctx: ctx as unknown as CanvasRenderingContext2D, ops }
+  }
+  const item = (extra: Partial<TextItem>) => normalizeText({ id: 't', text: 'abcd', shadow: false, color: '#ffffff', ...extra })
+  const draw = async (extra: Partial<TextItem>, px = 100) => {
+    vi.stubGlobal('document', { fonts: { load: async () => [] } })
+    const { ctx, ops } = recorder()
+    await drawText(ctx, item(extra), 0, 0, px)
+    return ops
+  }
+
+  it('a caption without effects is a single fill in its own colour', async () => {
+    expect(hasEffects(item({}))).toBe(false)
+    expect((await draw({})).map((o) => [o.op, o.style])).toEqual([['fill', '#ffffff']])
+  })
+
+  it('an outline is stroked at twice its width underneath the fill, so only the outer half shows', async () => {
+    const ops = await draw({ outline: { color: '#ff0000', width: 5 } })
+    expect(ops.map((o) => [o.op, o.style, o.lineWidth])).toEqual([
+      ['stroke', '#ff0000', 10],
+      ['fill', '#ffffff', 10],
+    ])
+  })
+
+  it('a block is the outlined shape repeated from its far offset back to the text, one pixel apart at most', async () => {
+    const ops = await draw({ block: { color: '#222222', x: 3, y: 4 } }, 100)
+    const copies = ops.slice(0, -1)
+    expect(copies).toHaveLength(4)
+    expect(copies.every((o) => o.op === 'fill' && o.style === '#222222')).toBe(true)
+    expect(copies[0]).toMatchObject({ dx: 3, dy: 4 })
+    expect(copies[3]).toMatchObject({ dx: 0.75, dy: 1 })
+    expect(ops.at(-1)).toMatchObject({ op: 'fill', style: '#ffffff', dx: 0, dy: 0 })
+  })
+
+  it('a plate is a rounded box around the text box with the given padding, drawn first', async () => {
+    // Hộp chữ 40 × 125 (4 ký tự × 10px, một dòng cao 1.25 × 100px); lề 20% cỡ chữ = 20px.
+    const ops = await draw({ plate: { color: '#000000', pad: 20, radius: 10 } })
+    expect(ops.map((o) => o.op)).toEqual(['plate -40 -82.5 80 165 10', 'fillPath', 'fill'])
+    expect(ops[1].style).toBe('#000000')
+  })
+
+  it('a gradient runs from the text colour to the second colour along the CSS angle', async () => {
+    const [fill] = await draw({ gradient: { color: '#0000ff', angle: 90 } })
+    expect(fill.style).toMatchObject({ line: [-20, 0, 20, 0], stops: [[0, '#ffffff'], [1, '#0000ff']] })
+    const [down] = await draw({ lineHeight: 1, gradient: { color: '#0000ff', angle: 180 } })
+    expect((down.style as { line: number[] }).line).toEqual([0, -50, 0, 50])
+  })
+
+  it('reserves room around the box for whatever reaches furthest', () => {
+    expect(effectBleed(item({}), 100)).toBe(77)
+    expect(effectBleed(item({ outline: { color: '#000', width: 10 } }), 100)).toBe(87)
+    expect(effectBleed(item({ outline: { color: '#000', width: 10 }, block: { color: '#000', x: 30, y: 40 } }), 100)).toBe(137)
   })
 })
 

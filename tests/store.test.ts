@@ -263,6 +263,104 @@ describe('text', () => {
     expect(get()).toMatchObject({ activeText: copy.id, editingText: null })
   })
 
+  describe('templates and groups', () => {
+    const template = {
+      font: 'sans',
+      aspect: 2,
+      bg: '#ffffff',
+      items: [
+        { text: 'Tiêu đề', x: 0.5, y: 0.3, size: 30 },
+        { text: 'dòng phụ', x: 0.5, y: 0.8, size: 10 },
+      ],
+    }
+
+    it('inserts a template as one group in the middle of the canvas and selects it without typing mode', () => {
+      get().toggleSelect('p1')
+      get().insertTemplate(template)
+      const [title, sub] = get().texts
+      expect(get().texts).toHaveLength(2)
+      expect(title.group).toBeTruthy()
+      expect(sub.group).toBe(title.group)
+      expect(title.x).toBe(0.5)
+      expect(title.y).toBeLessThan(0.5)
+      expect(sub.y).toBeGreaterThan(0.5)
+      expect(get()).toMatchObject({ activeText: title.id, editingText: null, tab: 'text' })
+    })
+
+    it('a one-line template is a plain caption, not a group', () => {
+      get().toggleSelect('p1')
+      get().insertTemplate({ ...template, items: template.items.slice(0, 1) })
+      expect(get().texts[0].group).toBeNull()
+    })
+
+    it('trying another template replaces the one just inserted, but keeps it once it has been edited', () => {
+      get().toggleSelect('p1')
+      get().insertTemplate(template)
+      get().insertTemplate({ ...template, items: [{ text: 'Khác', x: 0.5, y: 0.5, size: 20 }] })
+      expect(get().texts.map((t) => t.text)).toEqual(['Khác'])
+
+      get().updateText(get().texts[0].id, { text: 'Của tôi' })
+      get().insertTemplate(template)
+      expect(get().texts.map((t) => t.text)).toEqual(['Của tôi', 'Tiêu đề', 'dòng phụ'])
+    })
+
+    it('deletes and duplicates the whole group, and undo brings a deleted group back in one step', () => {
+      get().toggleSelect('p1')
+      pause()
+      get().insertTemplate(template)
+      pause()
+      const [title, sub] = get().texts
+      get().duplicateText(sub.id)
+      expect(get().texts).toHaveLength(4)
+      const copies = get().texts.slice(2)
+      expect(copies[0].group).toBe(copies[1].group)
+      expect(copies[0].group).not.toBe(title.group)
+      // Bản sao của đúng dòng vừa bấm được chọn.
+      expect(get().activeText).toBe(copies[1].id)
+
+      pause()
+      get().removeText(title.id)
+      expect(get().texts.map((t) => t.id)).toEqual(copies.map((t) => t.id))
+      get().undo()
+      expect(get().texts).toHaveLength(4)
+    })
+
+    it('removes just one line when asked to, leaving the rest of the group', () => {
+      get().toggleSelect('p1')
+      get().insertTemplate(template)
+      const [title, sub] = get().texts
+      get().removeText(sub.id, true)
+      expect(get().texts.map((t) => t.id)).toEqual([title.id])
+    })
+
+    it('ungrouping makes the lines independent again', () => {
+      get().toggleSelect('p1')
+      get().insertTemplate(template)
+      const [title, sub] = get().texts
+      get().ungroupTexts(title.group!)
+      expect(get().texts.map((t) => t.group)).toEqual([null, null])
+      get().removeText(title.id)
+      expect(get().texts.map((t) => t.id)).toEqual([sub.id])
+    })
+
+    it('applies a group move to all lines as a single undo step, and live values never enter the history', () => {
+      get().toggleSelect('p1')
+      pause()
+      get().insertTemplate(template)
+      pause()
+      const before = get().texts.map((t) => t.x)
+      const steps = get().past.length
+      mod.useStore.setState({ liveTexts: Object.fromEntries(get().texts.map((t) => [t.id, { x: 0.9 }])) })
+      expect(get().past).toHaveLength(steps)
+      get().updateTexts(get().liveTexts!)
+      mod.useStore.setState({ liveTexts: null })
+      expect(get().texts.map((t) => t.x)).toEqual([0.9, 0.9])
+      expect(get().past).toHaveLength(steps + 1)
+      get().undo()
+      expect(get().texts.map((t) => t.x)).toEqual(before)
+    })
+  })
+
   it('upgrades captions from a draft saved before the style fields existed', async () => {
     const old = { id: 't1', text: 'Đà Lạt', x: 0.5, y: 0.5, size: 8, color: '#ffffff', font: 'round', bold: true, shadow: true }
     localStorage.setItem('grido-settings', JSON.stringify({ state: { texts: [old] }, version: 0 }))
@@ -281,6 +379,12 @@ describe('text', () => {
         anchor: 'middle',
         opacity: 100,
         vertical: false,
+        outline: null,
+        block: null,
+        glow: null,
+        gradient: null,
+        plate: null,
+        group: null,
       },
     ])
   })
