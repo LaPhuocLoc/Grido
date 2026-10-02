@@ -7,7 +7,7 @@ import { placeImage } from '../lib/geometry'
 import { collageLayout } from '../lib/imaging/exportCollage'
 import { textLayoutStyle } from '../lib/text'
 import { buildSpec } from '../lib/useCollage'
-import { canvasSize, useStore, type Design, type Snapshot } from '../store'
+import { canvasSize, isKeeper, useStore, type Design, type Snapshot } from '../store'
 import { imageStyle } from './Stage'
 import { Button, cx } from './ui'
 
@@ -134,7 +134,14 @@ function DesignCard({ design, photos, current }: { design: Design; photos: Photo
         )}
         style={{ height: THUMB_H + 20 }}
       >
-        <DesignThumb snapshot={snapshot} photos={photos} />
+        {count ? (
+          <DesignThumb snapshot={snapshot} photos={photos} />
+        ) : (
+          // Đã bỏ hết ảnh: thiết kế vẫn còn (khung, viền, chữ), chỉ chờ chọn ảnh khác.
+          <span className="grid place-items-center rounded-[3px] border border-dashed border-edge px-2 text-center text-[11px] font-medium leading-snug text-muted" style={{ width: THUMB_W * 0.62, height: THUMB_H }}>
+            Chưa có ảnh
+          </span>
+        )}
       </button>
       {current && (
         <span className="pointer-events-none absolute left-2 top-2 flex items-center gap-1 rounded-full bg-coral px-2 py-0.5 text-[10px] font-bold text-white shadow">
@@ -178,7 +185,7 @@ function DesignCard({ design, photos, current }: { design: Design; photos: Photo
           </p>
         )}
         <p className="truncate text-[11px] text-muted">
-          {frameLabel(snapshot.presetId, size.width, size.height)} · {count} ảnh
+          {frameLabel(snapshot.presetId, size.width, size.height)} · {count ? `${count} ảnh` : 'chưa có ảnh'}
         </p>
       </div>
     </div>
@@ -193,8 +200,8 @@ export function DesignsPanel() {
   const { newDesign } = useStore.getState()
   const [query, setQuery] = useState('')
 
-  // Thiết kế đã bị bỏ hết ảnh không còn gì để mở lại nên không liệt kê.
-  const listed = useMemo(() => designs.filter((d) => d.snapshot.tree && d.snapshot.selected.length), [designs])
+  // Thiết kế vừa bị bỏ hết ảnh vẫn có mặt (còn chữ hoặc tên): người dùng phải thấy nó vẫn còn đó. Cái trống trơn thì không.
+  const listed = useMemo(() => designs.filter(isKeeper), [designs])
   const q = plain(query.trim())
   const shown = q ? listed.filter((d) => plain(designTitle(d.name, d.snapshot.texts)).includes(q)) : listed
 
@@ -238,7 +245,8 @@ export function DesignsPanel() {
 
       {listed.length > 0 && (
         <p className="text-center text-[11px] leading-relaxed text-muted">
-          Mọi thay đổi được lưu tự động. Tên lấy theo chữ trên ảnh, bấm đúp vào tên để tự đặt.
+          Mọi thay đổi được lưu tự động. Bỏ hết ảnh không làm mất thiết kế; muốn làm cái khác thì bấm Thiết kế mới. Tên lấy theo chữ trên ảnh,
+          bấm đúp vào tên để tự đặt.
         </p>
       )}
     </div>

@@ -378,6 +378,17 @@ describe('albums', () => {
 })
 
 describe('importing photos', () => {
+  it('brings a large batch in completely, newest first, straight into the chosen album', async () => {
+    const album = get().createAlbum('Sado')
+    const names = Array.from({ length: 40 }, (_, i) => `shot${String(i).padStart(2, '0')}`)
+    await get().importFiles(names.map((n) => droppedFile(`D:\\shoot\\${n}.jpg`)), album)
+    expect(get().photos).toHaveLength(14 + 40)
+    expect(get().imports).toEqual([])
+    const added = get().photos.slice(0, 40)
+    expect(added.map((p) => p.name).sort()).toEqual(names)
+    expect(added.every((p) => get().photoAlbum[p.id] === album)).toBe(true)
+  })
+
   it('adds dropped image files to the front of the library', async () => {
     await get().importFiles([droppedFile('D:\\shoot\\new1.jpg'), droppedFile('D:\\shoot\\new2.png', 'image/png')])
     expect(get().photos.slice(0, 2).map((p) => p.name).sort()).toEqual(['new1', 'new2'])
@@ -586,11 +597,65 @@ describe('designs', () => {
     expect(get().designs).toMatchObject([{ id, name: 'Kỷ yếu', snapshot: { selected: ['p1'] } }])
   })
 
-  it('forgets an emptied design once the user moves on', () => {
+  it('keeps the design open after every photo is taken out, and carries on with it when photos come back', () => {
     get().toggleSelect('p1')
+    caption('Đà Lạt')
+    const id = get().currentDesignId!
+    get().clearSelection()
+    expect(get()).toMatchObject({ currentDesignId: id, tree: null })
+    expect(get().designs).toMatchObject([{ id, snapshot: { selected: [] } }])
+
+    get().toggleSelect('p2')
+    expect(get().currentDesignId).toBe(id)
+    expect(get().designs).toHaveLength(1)
+    expect(get().texts.map((t) => t.text)).toEqual(['Đà Lạt'])
+  })
+
+  it('starts clean after "new design" even when the open design had lost its photos, and keeps that design for its text', () => {
+    get().toggleSelect('p1')
+    caption('Đà Lạt')
+    const id = get().currentDesignId!
     get().clearSelection()
     get().newDesign()
-    expect(get().designs).toEqual([])
+    expect(get()).toMatchObject({ currentDesignId: null, texts: [] })
+    expect(get().designs).toMatchObject([{ id, snapshot: { selected: [] } }])
+
+    get().toggleSelect('p2')
+    expect(get().currentDesignId).not.toBe(id)
+    expect(get().texts).toEqual([])
+    expect(titles()).toEqual(['p2', ''])
+
+    // Mở lại thiết kế cũ: chữ còn nguyên, chọn ảnh là ghép tiếp.
+    get().openDesign(id)
+    expect(get().texts.map((t) => t.text)).toEqual(['Đà Lạt'])
+  })
+
+  it('forgets a design with neither photos nor text once the user moves on', () => {
+    get().toggleSelect('p1')
+    get().clearSelection()
+    // Với người dùng đây là khung trống, không phải "một thiết kế chưa có ảnh".
+    expect(mod.currentDesign(get())).toBeNull()
+    get().newDesign()
+    expect(get()).toMatchObject({ designs: [], currentDesignId: null })
+  })
+
+  it('treats an emptied design as still open only while it has text or a name of its own', () => {
+    get().toggleSelect('p1')
+    const id = get().currentDesignId!
+    get().renameDesign(id, 'Kỷ yếu')
+    get().clearSelection()
+    expect(mod.currentDesign(get())?.id).toBe(id)
+    get().newDesign()
+    expect(get().designs.map((d) => d.name)).toEqual(['Kỷ yếu'])
+  })
+
+  it('says where the design went when a new one is started, and offers the way back', () => {
+    get().toggleSelect('p1')
+    const id = get().currentDesignId!
+    get().newDesign()
+    expect(get().toasts).toMatchObject([{ kind: 'success', action: { label: 'Mở lại' } }])
+    get().toasts[0].action!.run()
+    expect(get()).toMatchObject({ currentDesignId: id, selected: ['p1'] })
   })
 
   it('renames, falls back to the automatic name when cleared, and duplicates under a free name', () => {

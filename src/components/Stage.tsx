@@ -1,15 +1,15 @@
-import { Dices, FlipHorizontal2, ImageMinus, Maximize, Move, Redo2, RotateCcw, RotateCw, Shuffle, Undo2 } from 'lucide-react'
+import { Dices, FlipHorizontal2, ImageMinus, ImagePlus, Maximize, Move, Redo2, RotateCcw, RotateCw, Shuffle, Undo2 } from 'lucide-react'
 import { useEffect, useMemo, useRef, useState, type CSSProperties, type PointerEvent as ReactPointerEvent } from 'react'
 import { flushSync } from 'react-dom'
 import { useShallow } from 'zustand/react/shallow'
 import { fileUrl, thumbUrl, useUrlVersion } from '../lib/desktop'
 import { clamp, DEFAULT_ADJUST, isSideways, MAX_ZOOM, placeImage, type CellAdjust, type Rotation } from '../lib/geometry'
-import { collageLayout } from '../lib/imaging/exportCollage'
+import { collageLayout, type CollageSpec } from '../lib/imaging/exportCollage'
 import { MIN_SHARE, moveDivider } from '../lib/layout/compute'
 import type { Divider, LayoutNode, Rect } from '../lib/layout/types'
 import { buildSpec } from '../lib/useCollage'
 import { clampPan, clampViewZoom, MAX_VIEW_ZOOM, MIN_VIEW_ZOOM, zoomByWheel } from '../lib/view'
-import { canvasSize, useStore } from '../store'
+import { canvasSize, currentDesign, useStore } from '../store'
 import { TextLayer, TextToolbar } from './TextLayer'
 import { Button, cx, IconButton } from './ui'
 
@@ -83,6 +83,8 @@ export function Stage() {
   const editingText = useStore((s) => s.editingText)
   const canUndo = useStore((s) => s.past.length > 0)
   const canRedo = useStore((s) => s.future.length > 0)
+  // Thiết kế đang mở nhưng đã bỏ hết ảnh: vẫn vẽ khung với nền và chữ của nó, để người dùng thấy thiết kế còn nguyên.
+  const openEmpty = useStore((s) => !s.tree && currentDesign(s) !== null)
   const { setAdjust, setActiveCell, setActiveText, swapCells, setTree, shuffle, randomLayout, toggleSelect, undo, redo } =
     useStore.getState()
   const { selected, tree } = source
@@ -124,12 +126,14 @@ export function Stage() {
   const k = fitK * viewZoom
   const pan = { x: clampPan(rawPan.x, size.width * k, box.w), y: clampPan(rawPan.y, size.height * k, box.h) }
   const overflowing = size.width * k > box.w || size.height * k > box.h
-  const spec = useMemo(() => {
+  const spec = useMemo((): CollageSpec | null => {
     const base = buildSpec(liveTree ? { ...source, tree: liveTree } : source)
     if (base && live) base.cells = base.cells.map((c) => (c.photo.id === live.id ? { ...c, adjust: live.adjust } : c))
-    return base
-  }, [source, live, liveTree])
-  const layout = useMemo(() => (spec ? collageLayout(spec) : null), [spec])
+    if (base || !openEmpty) return base
+    const { width, height } = canvasSize(source)
+    return { width, height, bg: source.bg, margin: 0, gap: 0, radius: 0, tree: { kind: 'cell' }, cells: [], texts: source.texts }
+  }, [source, live, liveTree, openEmpty])
+  const layout = useMemo(() => (!spec ? null : spec.cells.length ? collageLayout(spec) : { cells: [], dividers: [] }), [spec])
 
   // Hiệu ứng trượt chỉ bật cho thay đổi rời rạc (đổi bố cục, trộn, đổi chỗ, đổi khung, xoay, lật, undo).
   // Kéo thả và slider phải bám tay tức thì nên không được có transition.
@@ -426,7 +430,7 @@ export function Stage() {
             </span>
           )}
         </div>
-        {spec && (
+        {spec && tree && (
           <div className="pointer-events-auto flex gap-1.5 lg:gap-2">
             <Button
               onClick={shuffle}
@@ -474,6 +478,16 @@ export function Stage() {
               style={{ background: spec.bg }}
               onPointerDown={(e) => e.target === e.currentTarget && deselect()}
             >
+              {openEmpty && (
+                // Chỗ của ảnh: nằm dưới chữ, không bắt chuột để vẫn bấm / kéo được chữ trên khung.
+                <div className="pointer-events-none absolute inset-[4%] grid place-items-center rounded-2xl border-2 border-dashed border-white/45 text-center mix-blend-difference">
+                  <div className="px-4 text-white/80">
+                    <ImagePlus className="mx-auto size-8" />
+                    <p className="mt-2 text-sm font-semibold">Chưa có ảnh</p>
+                    <p className="mt-0.5 text-xs">Chọn ảnh trong thư viện để ghép tiếp</p>
+                  </div>
+                </div>
+              )}
               {order.map((i) => {
                 const rect = layout.cells[i]
                 const cell = spec.cells[i]
@@ -720,7 +734,9 @@ export function Stage() {
       ) : (
         spec && (
           <p className="pointer-events-none absolute inset-x-0 bottom-3 hidden text-center text-xs text-muted lg:block">
-            Kéo ảnh để căn khung · thả sang ô khác để đổi chỗ · bấm ảnh rồi kéo nút ở góc để phóng to · kéo đường viền để đổi kích thước ô
+            {openEmpty
+              ? 'Thiết kế vẫn đang mở: khung, viền và chữ được giữ nguyên · chọn ảnh để ghép tiếp · bấm Tạo ở góc trái để làm thiết kế mới'
+              : 'Kéo ảnh để căn khung · thả sang ô khác để đổi chỗ · bấm ảnh rồi kéo nút ở góc để phóng to · kéo đường viền để đổi kích thước ô'}
           </p>
         )
       )}

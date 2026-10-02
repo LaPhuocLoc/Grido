@@ -8,9 +8,10 @@ export const cx = (...parts: (string | false | null | undefined)[]) => parts.fil
 
 export function Logo({ size = 28 }: { size?: number }) {
   return (
-    <span className="inline-flex items-center gap-2.5 select-none">
+    <span className="inline-flex shrink-0 items-center gap-2.5 select-none">
       <img src="/logo.png" width={size} height={size} alt="" draggable={false} />
-      <span className="font-display text-[1.35em] font-bold tracking-tight text-ink">Tiệm Ghép Ảnh</span>
+      {/* Cửa sổ rất hẹp: chỉ còn biểu tượng, nhường chỗ cho tên thiết kế và các nút. */}
+      <span className="hidden whitespace-nowrap font-display text-[1.35em] font-bold tracking-tight text-ink sm:inline">Tiệm Ghép Ảnh</span>
     </span>
   )
 }

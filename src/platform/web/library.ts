@@ -242,14 +242,20 @@ export async function createLibrary() {
     const dropped = [...data.items].filter((item) => item.kind === 'file').map((item) => ({ handle: droppedHandle(item), file: item.getAsFile() }))
     const found: Found[] = []
     const loose: File[] = []
+    let refused = 0
     for (const item of dropped) {
       const handle = await item.handle.catch(() => null)
       if (handle && isDirectory(handle)) found.push(...(await folderFiles(handle)))
       else if (handle && isFile(handle)) found.push(await place(handle))
-      else if (item.file) loose.push(item.file)
+      else if (item.file?.type.startsWith('image/')) loose.push(item.file)
+      // Không có handle mà cũng không phải ảnh: thư mục bị trình duyệt từ chối (Desktop, Tài liệu, Tải xuống, thư mục hệ thống).
+      else refused++
     }
     const fromDisk = await stageFound(found)
-    return { ...fromDisk, candidates: [...fromDisk.candidates, ...stageLoose(loose).candidates] }
+    const result = { ...fromDisk, candidates: [...fromDisk.candidates, ...stageLoose(loose).candidates] }
+    if (refused && !result.candidates.length && !result.duplicates && !result.relinked)
+      throw new Error('Trình duyệt không cho trang đọc nguyên thư mục này (Desktop, Tài liệu, Tải xuống và thư mục hệ thống). Hãy thả một thư mục con, hoặc chọn các ảnh bên trong.')
+    return result
   }
 
   // ---- Thêm / xoá ---------------------------------------------------------------------------------------------------

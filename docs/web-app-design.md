@@ -251,3 +251,33 @@ Giai đoạn 1 là phần rủi ro thấp nhưng quyết định chất lượng
    giữ cờ `web: false` để gỡ nhanh khi có yêu cầu.
 3. **Trình duyệt:** chỉ Chrome/Edge desktop. Safari, Firefox, mobile nhận màn hình hướng dẫn dùng Chrome. Mức B hoãn.
 4. **Repo:** chung một repo với bản Electron.
+
+---
+
+## 9. Tình trạng thực hiện (cập nhật 2026-10-02)
+
+Đã làm và đang chạy tại https://tiemghepanh.io.vn (Netlify, không phải Cloudflare như mục 3 đề xuất ban đầu):
+
+- Lớp nền tảng `src/platform` (Electron + web), thư viện web bằng file handle + IndexedDB + OPFS.
+- Trạng thái ảnh khoá / mất file, cấp lại quyền, nối lại ảnh bị dời chỗ, tự dựng lại bản xem trước khi file gốc đổi.
+- Sao lưu / khôi phục, xem dung lượng, dọn file thừa, trang Giới thiệu & quyền riêng tư.
+- PWA (cài được, mở được khi mất mạng), font có hash trong địa chỉ, kiểm tra bản mới qua `version.json`.
+- Khoá một tab, cảnh báo khi đóng tab giữa chừng, đánh số phiên bản dữ liệu lưu, một worker cho máy ít RAM.
+- CI tự deploy khi push `main`; `npm run test:e2e:web` chạy Chrome thật với file thật.
+
+Khác với thiết kế ban đầu:
+
+- `Photo.missing` + `Photo.locked` thay cho trường `access` ba giá trị (ít phải sửa code hiện có hơn).
+- Địa chỉ ảnh không cần tạo lười theo vùng nhìn hay LRU: đo với 1500 ảnh thì mở lại trang ~1 giây, cuộn không rớt khung hình.
+- Test đầu-cuối dùng CDP trực tiếp thay cho Playwright (không thêm phụ thuộc).
+
+Số đo (Chrome, 1500 ảnh 640×480): nhập 25 giây (~60 ảnh/giây) sau khi giới hạn số ô giữ chỗ và gom ảnh theo đợt (trước đó 110 giây);
+mở lại trang hiện đủ ô ảnh sau ~0,3 giây và đủ thumbnail sau ~1 giây.
+
+Chưa làm, có chủ ý:
+
+- Mức B (Safari / Firefox) và mobile: hoãn theo quyết định ở mục 8. Kéo theo: hồ sơ màu sRGB dạng hằng số, dò WebP và trần canvas
+  theo trình duyệt (chỉ cần cho các engine đó).
+- Nhắc khi đang ở chế độ ẩn danh: trình duyệt không cho trang biết chắc điều này; thay bằng dòng cảnh báo trong "Dữ liệu & sao lưu".
+- So sánh tốc độ với bản desktop trên ảnh 24 MP (ngưỡng 10% ở mục 6): chưa đo.
+- Bấm vào hộp hỏi quyền của Chrome: không tự động hoá được, phải thử tay.

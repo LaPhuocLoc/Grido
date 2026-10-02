@@ -266,6 +266,10 @@ export function TextLayer({
         contentEditable={editing ? 'plaintext-only' : undefined}
         suppressContentEditableWarning
         spellCheck={false}
+        // Bản web: extension sửa chính tả (Grammarly…) chèn phần tử lạ vào vùng gõ, làm lệch chữ trên ảnh.
+        data-gramm="false"
+        data-gramm_editor="false"
+        data-enable-grammarly="false"
         role={editing ? 'textbox' : undefined}
         aria-label={editing ? 'Nội dung chữ' : undefined}
         onPointerDown={(e) => {

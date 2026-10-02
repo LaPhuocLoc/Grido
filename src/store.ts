@@ -279,8 +279,27 @@ const hasCollage = (s: Pick<State, 'tree' | 'selected'>) => !!s.tree && s.select
 /** Khung trống cho thiết kế mới; viền, màu nền và khung ảnh giữ theo thiết kế vừa làm. */
 const BLANK = { selected: [], layoutId: null, tree: null, adjust: {}, texts: [], activeCell: null, activeText: null, editingText: null }
 
-/** Thiết kế đã bị bỏ hết ảnh thì không còn gì để mở lại → dọn khỏi danh sách (trừ cái đang mở, vì còn có thể hoàn tác). */
-const withoutEmpty = (designs: Design[], keep: string | null) => designs.filter((d) => d.id === keep || hasCollage(d.snapshot))
+/**
+ * Thiết kế còn thứ đáng giữ: có ảnh, hoặc đã bỏ hết ảnh nhưng còn chữ (khung, viền, chữ vẫn nguyên, chỉ chờ chọn ảnh khác).
+ * Bỏ hết ảnh không làm mất thiết kế: nó vẫn đang mở cho tới khi người dùng tạo / mở thiết kế khác hoặc tự tay xoá.
+ */
+const hasContent = (snap: Pick<Snapshot, 'tree' | 'selected' | 'texts'>) => hasCollage(snap) || snap.texts.some((t) => t.text.trim())
+
+/** Thiết kế đáng được liệt kê và giữ lại: còn ảnh, còn chữ, hoặc đã được người dùng tự đặt tên. */
+export const isKeeper = (d: Design) => hasContent(d.snapshot) || !!d.name
+
+/**
+ * Thiết kế đang mở, theo cách người dùng nhìn thấy. Vừa chọn một ảnh rồi bỏ ngay thì trên khung không còn gì cả:
+ * với người dùng đó là khung trống chứ không phải "một thiết kế chưa có ảnh", nên trả về null. (Bên trong thiết kế
+ * ấy vẫn được giữ để Hoàn tác đưa nó trở lại đúng chỗ cũ.)
+ */
+export function currentDesign(s: Pick<State, 'currentDesignId' | 'designs' | 'tree' | 'selected' | 'texts'>): Design | null {
+  const design = s.currentDesignId ? s.designs.find((d) => d.id === s.currentDesignId) : undefined
+  return design && (hasContent(s) || !!design.name) ? design : null
+}
+
+/** Thiết kế trống trơn (không ảnh, không chữ, không tên) thì không còn gì để mở lại → dọn khỏi danh sách khi người dùng rời nó. */
+const withoutEmpty = (designs: Design[], keep: string | null) => designs.filter((d) => d.id === keep || isKeeper(d))
 
 /** Bỏ ảnh không còn trong thư viện khỏi một thiết kế đã lưu; số ảnh đổi thì lấy bố cục đầu tiên của số ảnh mới. */
 function pruneSnapshot(snap: Snapshot, alive: (id: string) => boolean): Snapshot {
@@ -553,9 +572,22 @@ export const useStore = create<State>()(
 
       newDesign: () => {
         const s = get()
-        // Khung đang trống sẵn thì chỉ cần đưa người dùng tới chỗ chọn ảnh.
-        if (!s.currentDesignId && !hasCollage(s)) return set({ tab: 'library' })
-        load({ ...BLANK, currentDesignId: null, designs: withoutEmpty(s.designs, null), tab: 'library' })
+        // Khung đang trống sẵn thì chỉ cần đưa người dùng tới chỗ chọn ảnh (và nói rõ, kẻo bấm mà tưởng không có gì xảy ra).
+        const put = currentDesign(s)
+        if (!put) {
+          // Có thể còn sót một thiết kế trống trơn bên dưới (vừa chọn ảnh rồi bỏ): dọn luôn.
+          if (s.currentDesignId) load({ ...BLANK, currentDesignId: null, designs: withoutEmpty(s.designs, null) })
+          set({ tab: 'library', leftCollapsed: false })
+          return s.toast('Khung đang trống sẵn. Chọn ảnh trong thư viện để bắt đầu thiết kế mới.')
+        }
+        const designs = withoutEmpty(s.designs, null)
+        load({ ...BLANK, currentDesignId: null, designs, tab: 'library', leftCollapsed: false })
+        // Nói rõ thiết kế vừa rời khỏi khung đã đi đâu, kèm đường quay lại.
+        if (put && designs.includes(put))
+          s.toast(`Đã cất “${designTitle(put.name, put.snapshot.texts)}” vào mục Thiết kế. Chọn ảnh để bắt đầu thiết kế mới.`, 'success', {
+            label: 'Mở lại',
+            run: () => get().openDesign(put.id),
+          })
       },
 
       openDesign: (id) => {
@@ -691,6 +723,10 @@ export const useStore = create<State>()(
     {
       name: 'grido-settings',
       storage: lazyStorage(),
+      // Số hiệu cấu trúc dữ liệu lưu. Đổi cấu trúc theo cách `merge` bên dưới không tự xử lý được thì tăng số này và
+      // chuyển dữ liệu cũ trong `migrate`. Hiện mọi bản cũ (kể cả bản chưa có số hiệu) đều đọc được nguyên trạng.
+      version: 1,
+      migrate: (saved) => saved as Persisted,
       // Lưu cả cài đặt lẫn bản nháp đang ghép, để lần sau mở app làm tiếp được ngay.
       partialize: (s): Persisted => ({
         ...snapshot(s),
@@ -759,6 +795,10 @@ useStore.subscribe((s, prev) => {
   saveDesign(s)
 })
 
+/** Nhập nhiều hơn chừng này ảnh một lượt thì ảnh xong được đưa vào thư viện theo đợt, mỗi đợt cách nhau IMPORT_BATCH_MS. */
+const IMPORT_BATCH_FROM = 12
+const IMPORT_BATCH_MS = 250
+
 /** Tạo bản xem trước + thumbnail cho từng file đã được main process nhận rồi đưa vào thư viện. */
 /** `albumId`: album nhận ảnh mới; bỏ trống thì ảnh nằm ở "Chưa phân loại". */
 async function importStaged({ candidates, duplicates, relinked = 0 }: StageResult, fromDialog: boolean, albumId?: string): Promise<void> {
@@ -779,18 +819,40 @@ async function importStaged({ candidates, duplicates, relinked = 0 }: StageResul
     imports: [...s.imports, ...items.map(({ candidate, key }) => ({ key, name: candidate.name, status: 'processing' as const, albumId }))],
   }))
 
+  // Ảnh xong được đưa vào thư viện theo từng đợt ngắn chứ không từng ảnh một: mỗi lần thêm ảnh vào đầu danh sách là
+  // cả lưới phải vẽ lại, nên nhập cả nghìn ảnh mà ghi từng ảnh thì càng về sau càng chậm.
+  let ready: { photo: Photo; key: number }[] = []
+  let timer: ReturnType<typeof setTimeout> | undefined
+  const flush = () => {
+    clearTimeout(timer)
+    timer = undefined
+    if (!ready.length) return
+    const batch = ready
+    ready = []
+    const keys = new Set(batch.map((b) => b.key))
+    useStore.setState((s) => {
+      // Album có thể đã bị xoá trong lúc ảnh đang được chuẩn bị.
+      const album = albumId && s.albums.some((a) => a.id === albumId) ? albumId : null
+      return {
+        // Ảnh xong sau đứng trước, như khi thêm từng ảnh một.
+        photos: [...batch.map((b) => b.photo).reverse(), ...s.photos],
+        imports: s.imports.filter((u) => !keys.has(u.key)),
+        ...(album ? { photoAlbum: { ...s.photoAlbum, ...Object.fromEntries(batch.map((b) => [b.photo.id, album])) } } : {}),
+      }
+    })
+  }
+
   const queue = [...items]
   const work = async () => {
     for (let item = queue.shift(); item; item = queue.shift()) {
       const { key } = item
       try {
+        // Phải chờ xong rồi mới đụng tới `ready`: trong lúc chờ, mảng này có thể đã được ghi vào thư viện và thay bằng mảng mới.
         const photo = await importOne(item.candidate)
-        useStore.setState((s) => ({
-          photos: [photo, ...s.photos],
-          imports: s.imports.filter((u) => u.key !== key),
-          // Album có thể đã bị xoá trong lúc ảnh đang được chuẩn bị.
-          ...(albumId && s.albums.some((a) => a.id === albumId) ? { photoAlbum: { ...s.photoAlbum, [photo.id]: albumId } } : {}),
-        }))
+        ready.push({ photo, key })
+        // Vài ảnh thì hiện ngay; nhập hàng loạt thì gom lại.
+        if (items.length <= IMPORT_BATCH_FROM) flush()
+        else timer ??= setTimeout(flush, IMPORT_BATCH_MS)
       } catch (err) {
         useStore.setState((s) => ({
           imports: s.imports.map((u) => (u.key === key ? { ...u, status: 'error', error: (err as Error).message } : u)),
@@ -800,6 +862,7 @@ async function importStaged({ candidates, duplicates, relinked = 0 }: StageResul
   }
   // Mỗi worker xử lý một ảnh; nhiều hơn nữa cũng chỉ xếp hàng chờ.
   await Promise.all(Array.from({ length: POOL_SIZE }, work))
+  flush()
 }
 
 async function importOne({ token }: ImportCandidate): Promise<Photo> {

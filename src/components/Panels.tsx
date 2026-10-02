@@ -17,7 +17,7 @@ import {
   type Platform,
 } from '../lib/presets'
 import { buildSpec, exportToFile, useExportProgress } from '../lib/useCollage'
-import { canvasSize, originalCanvasOf, pctToPx, useStore, type ExportFormat, type ExportSharpen } from '../store'
+import { canvasSize, originalCanvasOf, pctToPx, currentDesign, useStore, type ExportFormat, type ExportSharpen } from '../store'
 import { FontPicker } from './FontPicker'
 import { PresetArt } from './PresetArt'
 import { Button, cx, Section, Segmented, Slider } from './ui'
@@ -484,7 +484,8 @@ export function StylePanel() {
 export function TextPanel() {
   const texts = useStore((s) => s.texts)
   const activeText = useStore((s) => s.activeText)
-  const hasCollage = useStore((s) => !!s.tree)
+  // Thiết kế đang mở mà đã bỏ hết ảnh vẫn có khung để đặt chữ.
+  const hasCollage = useStore((s) => !!s.tree || currentDesign(s) !== null)
   const { addText, updateText, setPreviewFont } = useStore.getState()
   const item = texts.find((t) => t.id === activeText)
 

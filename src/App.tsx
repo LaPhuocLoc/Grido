@@ -9,8 +9,11 @@ import {
   FolderHeart,
   ImagePlus,
   Images,
+  ImageOff,
+  Info,
   LayoutGrid,
   LoaderCircle,
+  Plus,
   RefreshCw,
   RotateCw,
   Settings,
@@ -21,6 +24,7 @@ import {
 import { useEffect, useLayoutEffect, useRef, useState, useSyncExternalStore } from 'react'
 import { createPortal } from 'react-dom'
 import type { UpdateState } from '../shared/types'
+import { AboutDialog } from './components/AboutDialog'
 import { DataDialog } from './components/DataDialog'
 import { DesignsPanel } from './components/Designs'
 import { Library } from './components/Library'
@@ -31,7 +35,7 @@ import { Stage } from './components/Stage'
 import { Button, cx, IconButton, Logo, ThemeToggle, Toasts, Tooltip } from './components/ui'
 import { desktop } from './lib/desktop'
 import { exportToFile, useExportProgress } from './lib/useCollage'
-import { PANEL_WIDTH, PANEL_WIDTH_WIDE, useStore, type Tab } from './store'
+import { currentDesign, PANEL_WIDTH, PANEL_WIDTH_WIDE, useStore, type Tab } from './store'
 
 const TABS: { id: Tab; label: string; icon: LucideIcon }[] = [
   { id: 'designs', label: 'Thiết kế', icon: FolderHeart },
@@ -246,6 +250,19 @@ function Editor() {
 function Rail({ active, onSelect }: { active: Tab | null; onSelect: (tab: Tab) => void }) {
   return (
     <nav aria-label="Công cụ" className="scroll-soft flex min-h-0 flex-col gap-1 overflow-y-auto border-r border-line bg-card px-1 py-2.5">
+      {/* Luôn ở đầu dải: bắt đầu thiết kế mới từ bất kỳ mục nào, không phải quay về mục Thiết kế. */}
+      <button
+        type="button"
+        aria-label="Tạo thiết kế mới"
+        data-tip="Tạo thiết kế mới. Thiết kế đang mở đã được lưu, mở lại ở mục Thiết kế"
+        onClick={() => useStore.getState().newDesign()}
+        className="group mb-1 flex w-full shrink-0 flex-col items-center gap-1 rounded-xl py-1.5 text-[11px] font-semibold text-soft transition-colors hover:text-ink focus-visible:-outline-offset-2"
+      >
+        <span className="grid size-9 place-items-center rounded-full bg-coral text-white shadow-sm transition-transform duration-200 ease-glide group-hover:scale-110 group-active:scale-95">
+          <Plus className="size-5" />
+        </span>
+        Tạo
+      </button>
       {TABS.map(({ id, label, icon: Icon }) => {
         const current = active === id
         return (
@@ -469,11 +486,15 @@ function UpdateDialog({ version, current, onConfirm, onCancel }: { version: stri
  */
 function TitleBar() {
   const hasCollage = useStore((s) => !!s.tree)
-  // Tên thiết kế đang mở; chuỗi rỗng khi khung còn trống.
-  const design = useStore((s) => (s.tree && s.currentDesignId ? designTitle(s.designs.find((d) => d.id === s.currentDesignId)?.name ?? null, s.texts) : ''))
+  // Tên thiết kế đang mở; chuỗi rỗng khi chưa có thiết kế nào trên khung. Thiết kế vừa bị bỏ hết ảnh vẫn đang mở.
+  const design = useStore((s) => {
+    const open = currentDesign(s)
+    return open ? designTitle(open.name, s.texts) : ''
+  })
   const progress = useExportProgress((s) => s.progress)
   const [menu, setMenu] = useState(false)
   const [dataOpen, setDataOpen] = useState(false)
+  const [aboutOpen, setAboutOpen] = useState(false)
   const [version, setVersion] = useState('')
   const { state: update, check, asking, confirm, dismiss } = useUpdates()
 
@@ -490,24 +511,33 @@ function TitleBar() {
 
   return (
     <header className="titlebar relative z-30 flex h-12 shrink-0 items-center justify-between border-b border-line bg-card">
-      <div className="flex min-w-0 items-center gap-3">
+      <div className="flex min-w-0 items-center gap-1.5 sm:gap-3">
         <Logo size={22} />
         {design && (
           <button
             type="button"
             data-tip="Thiết kế đang mở · tự động lưu. Bấm để xem tất cả thiết kế"
             onClick={() => useStore.setState({ tab: 'designs', leftCollapsed: false })}
-            className="no-drag flex h-8 min-w-0 animate-fade items-center gap-2 rounded-full px-3 text-[13px] font-semibold text-soft transition-colors hover:bg-sand hover:text-ink"
+            className="no-drag flex h-8 min-w-0 animate-fade items-center gap-2 rounded-full px-2 text-[13px] font-semibold text-soft transition-colors hover:bg-sand hover:text-ink sm:px-3"
           >
             <span className="truncate">{design}</span>
-            <span className="flex shrink-0 items-center gap-1 text-[11px] font-medium text-muted">
-              <Check className="size-3" />
-              Đã lưu
+            <span className="hidden shrink-0 items-center gap-1 text-[11px] font-medium text-muted md:flex">
+              {hasCollage ? <Check className="size-3" /> : <ImageOff className="size-3" />}
+              {hasCollage ? 'Đã lưu' : 'Chưa có ảnh'}
             </span>
           </button>
         )}
+        {/* Cửa sổ hẹp không có dải biểu tượng bên trái, nên nút tạo thiết kế mới nằm tạm ở đây. */}
+        <button
+          type="button"
+          aria-label="Tạo thiết kế mới"
+          onClick={() => useStore.getState().newDesign()}
+          className="no-drag grid size-8 shrink-0 place-items-center rounded-full bg-coral text-white transition active:scale-95 lg:hidden"
+        >
+          <Plus className="size-4" />
+        </button>
       </div>
-      <div className="no-drag flex items-center gap-2">
+      <div className="no-drag flex shrink-0 items-center gap-1 sm:gap-2">
         {update.status === 'downloading' && (
           <span className="relative flex h-8 animate-pop items-center overflow-hidden rounded-full bg-sand px-3 text-[12.5px] font-semibold tabular-nums text-soft">
             <span className="absolute inset-y-0 left-0 bg-blush transition-[width] duration-500" style={{ width: `${update.percent}%` }} />
@@ -571,17 +601,30 @@ function TitleBar() {
                   </button>
                 ) : (
                   desktop.data && (
-                    <button
-                      type="button"
-                      className={item}
-                      onClick={() => {
-                        setMenu(false)
-                        setDataOpen(true)
-                      }}
-                    >
-                      <DatabaseBackup className="size-4" />
-                      Dữ liệu & sao lưu
-                    </button>
+                    <>
+                      <button
+                        type="button"
+                        className={item}
+                        onClick={() => {
+                          setMenu(false)
+                          setDataOpen(true)
+                        }}
+                      >
+                        <DatabaseBackup className="size-4" />
+                        Dữ liệu & sao lưu
+                      </button>
+                      <button
+                        type="button"
+                        className={item}
+                        onClick={() => {
+                          setMenu(false)
+                          setAboutOpen(true)
+                        }}
+                      >
+                        <Info className="size-4" />
+                        Giới thiệu & quyền riêng tư
+                      </button>
+                    </>
                   )
                 )}
               </div>
@@ -594,6 +637,7 @@ function TitleBar() {
         </Button>
       </div>
       {dataOpen && <DataDialog onClose={() => setDataOpen(false)} />}
+      {aboutOpen && <AboutDialog version={version} onClose={() => setAboutOpen(false)} />}
       {asking && update.status === 'available' && (
         <UpdateDialog version={update.version} current={version} onConfirm={confirm} onCancel={dismiss} />
       )}

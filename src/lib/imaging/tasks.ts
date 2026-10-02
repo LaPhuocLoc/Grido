@@ -12,7 +12,9 @@ interface Job {
   reject: (e: Error) => void
 }
 
-export const POOL_SIZE = Math.max(1, Math.min(3, (navigator.hardwareConcurrency || 4) - 1))
+// Máy ít RAM (trình duyệt báo ≤ 4 GB) chỉ chạy một worker, kẻo vài ảnh lớn giải mã cùng lúc làm tab bị trình duyệt đóng.
+const lowMemory = ((navigator as Navigator & { deviceMemory?: number }).deviceMemory ?? 8) <= 4
+export const POOL_SIZE = lowMemory ? 1 : Math.max(1, Math.min(3, (navigator.hardwareConcurrency || 4) - 1))
 const idle: Worker[] = []
 const queue: Job[] = []
 let spawned = 0

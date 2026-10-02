@@ -17,6 +17,8 @@ const ANIMATED_TILES = 24
  * nằm ngoài vùng nhìn. Đánh dấu theo khối thay vì theo từng ô, vì theo dõi vài nghìn ô riêng lẻ làm cuộn giật.
  */
 const CHUNK = 36
+/** Số ô giữ chỗ tối đa cho ảnh đang được nhập. */
+const MAX_SHIMMERS = 12
 /** Chiều cao ước lượng của một hàng ô (ô ~84px + khe 8px) ở bố cục 3 cột, dùng khi khối chưa từng được vẽ. */
 const ROW_HEIGHT = 92
 /** Vùng thả "tạo album mới từ những ảnh đang kéo". */
@@ -616,8 +618,9 @@ export function Library() {
     <div className="space-y-2">
       {Array.from({ length: Math.max(1, Math.ceil(list.length / CHUNK)) }, (_, chunk) => {
         const slice = list.slice(chunk * CHUNK, (chunk + 1) * CHUNK)
-        // Ảnh đang được chuẩn bị giữ sẵn chỗ ở đầu lưới, xong cái nào hiện cái đó.
-        const shimmers = chunk === 0 ? waiting : []
+        // Ảnh đang được chuẩn bị giữ sẵn chỗ ở đầu lưới, xong cái nào hiện cái đó. Chỉ vài ô: nhập cả nghìn ảnh mà vẽ
+        // cả nghìn ô nhấp nháy thì chính việc vẽ làm chậm việc nhập (con số đầy đủ đã có ở dòng "Đang thêm N…").
+        const shimmers = chunk === 0 ? waiting.slice(0, MAX_SHIMMERS) : []
         const rows = Math.ceil((slice.length + shimmers.length) / columns)
         return (
           <ul key={chunk} className={cx(GRID, 'tile-chunk')} style={{ containIntrinsicSize: `auto ${rows * ROW_HEIGHT - 8}px` }}>
