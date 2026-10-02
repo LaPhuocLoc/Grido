@@ -57,3 +57,9 @@
   to = "https://tiemghepanh.io.vn/:splat"
   status = 301
   force = true
+
+# Netlify không đoán được kiểu của file .webmanifest.
+[[headers]]
+  for = "/manifest.webmanifest"
+  [headers.values]
+    Content-Type = "application/manifest+json; charset=utf-8"
