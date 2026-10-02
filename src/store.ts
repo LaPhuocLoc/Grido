@@ -991,6 +991,12 @@ async function refreshStale(): Promise<void> {
 }
 
 /** Phần state được lưu lại giữa các phiên: thiết kế, album, bố cục đã lưu, cài đặt. Dùng cho file sao lưu. */
+// Không còn dòng chữ nào đang chọn (bỏ chọn, undo, mở thiết kế khác…): quên luôn các dòng chọn chung và dòng chỉnh riêng,
+// kẻo lần sau bấm lại một dòng thì cả cụm cũ tự được chọn theo.
+useStore.subscribe((s) => {
+  if (s.activeText === null && (s.pickedTexts.length || s.soloText !== null)) useStore.setState({ pickedTexts: [], soloText: null })
+})
+
 /**
  * Những dòng chữ đi cùng dòng `id` khi thao tác (kéo, phóng, xoá, đổi kiểu…): các dòng đang được chọn chung nếu `id` nằm
  * trong đó, không thì cả nhóm của nó, không thì chỉ mình nó.

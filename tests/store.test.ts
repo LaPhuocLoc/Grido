@@ -395,6 +395,20 @@ describe('text', () => {
       expect(get().texts.map((t) => t.id)).toEqual([a.id, b.id, c.id])
     })
 
+    it('forgets the picked captions once nothing is selected, so undo cannot leave a stale selection behind', () => {
+      get().toggleSelect('p1')
+      get().addText()
+      get().addText()
+      const [a, b] = get().texts
+      pause()
+      get().pickTexts([a.id, b.id])
+      get().updateTexts({ [a.id]: { x: 0.9 }, [b.id]: { x: 0.9 } })
+      get().undo()
+      expect(get()).toMatchObject({ activeText: null, pickedTexts: [], soloText: null })
+      get().setActiveText(a.id)
+      expect(mod.selectionOf(get(), a.id)).toEqual([a.id])
+    })
+
     it('style changes go to the whole group unless one line is being edited on its own', () => {
       get().toggleSelect('p1')
       get().insertTemplate(template)
