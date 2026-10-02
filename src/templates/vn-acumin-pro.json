@@ -1,0 +1,9 @@
+{
+  "font": "vn-acumin-pro",
+  "aspect": 1.5,
+  "bg": "#e9e9e9",
+  "items": [
+    {"text":"MÙA THU","x":0.5042,"y":0.445,"size":19.17,"color":"#1e1e1e","font":"vn-acumin-pro","shadow":false},
+    {"text":"HÀ NỘI","x":0.5014,"y":0.5867,"size":13.1,"color":"#1e1e1e","font":"vn-acumin-pro","bold":false,"shadow":false}
+  ]
+}

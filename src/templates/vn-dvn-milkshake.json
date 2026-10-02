@@ -1,0 +1,9 @@
+{
+  "font": "vn-dvn-milkshake",
+  "aspect": 1.5029,
+  "bg": "#000001",
+  "items": [
+    {"text":"Hoàng hôn","x":0.5115,"y":0.4647,"size":21.17,"color":"#fefefe","font":"vn-dvn-milkshake","bold":false,"shadow":false},
+    {"text":"trên phố","x":0.5316,"y":0.6261,"size":6.68,"color":"#e5e4ee","font":"sans","shadow":false}
+  ]
+}

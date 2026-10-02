@@ -1,0 +1,9 @@
+{
+  "font": "vn-svn-bruselo-script",
+  "aspect": 1.0654,
+  "bg": "#070200",
+  "items": [
+    {"text":"Em Say","x":0.5542,"y":0.3557,"size":29.66,"color":"#ffd013","font":"vn-svn-bruselo-script","bold":false,"shadow":false},
+    {"text":"Rượu Cay","x":0.4771,"y":0.5812,"size":33.32,"color":"#ffcf13","font":"vn-svn-bruselo-script","bold":false,"shadow":false}
+  ]
+}

@@ -1,0 +1,9 @@
+{
+  "font": "vn-svn-adam-gorry",
+  "aspect": 1.0654,
+  "bg": "#ffeae9",
+  "items": [
+    {"text":"VÒNG QUAY","x":0.5,"y":0.393,"size":14.02,"color":"#bb0104","font":"vn-svn-adam-gorry","bold":false,"shadow":false,"lineHeight":1.15},
+    {"text":"MẶT TRỜI","x":0.5,"y":0.5856,"size":18.74,"color":"#bb0004","font":"vn-svn-adam-gorry","bold":false,"shadow":false,"lineHeight":1.15}
+  ]
+}

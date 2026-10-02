@@ -1,0 +1,9 @@
+{
+  "font": "vn-svn-corki",
+  "aspect": 1.0654,
+  "bg": "#010c17",
+  "items": [
+    {"text":"WHISKY","x":0.5003,"y":0.4176,"size":27.95,"color":"#fecb00","font":"vn-svn-corki","bold":false,"shadow":false},
+    {"text":"nốt một ly này thôi nhé!","x":0.5094,"y":0.6311,"size":10.87,"color":"#faca06","font":"vn-svn-corki","bold":false,"shadow":false}
+  ]
+}

@@ -1,0 +1,9 @@
+{
+  "font": "vn-fahkwang",
+  "aspect": 1.5,
+  "bg": "#fefdf7",
+  "items": [
+    {"text":"Bình minh","x":0.4983,"y":0.4115,"size":17.59,"color":"#1b1918","font":"vn-fahkwang","shadow":false},
+    {"text":"trên biển","x":0.5003,"y":0.5742,"size":12.88,"color":"#332a31","font":"vn-fahkwang","bold":false,"shadow":false}
+  ]
+}

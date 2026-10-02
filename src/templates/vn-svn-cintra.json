@@ -1,0 +1,9 @@
+{
+  "font": "vn-svn-cintra",
+  "aspect": 1.0654,
+  "bg": "#030677",
+  "items": [
+    {"text":"BÙNG NỔ THÁNG 10","x":0.4993,"y":0.4251,"size":8.29,"color":"#fefefd","font":"vn-svn-cintra","bold":false,"shadow":false},
+    {"text":"SĂN DEAL CỰC ĐÃ","x":0.4993,"y":0.5496,"size":11.69,"color":"#fefefe","font":"vn-svn-cintra","bold":false,"shadow":false}
+  ]
+}

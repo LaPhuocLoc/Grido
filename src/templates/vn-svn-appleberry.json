@@ -1,0 +1,10 @@
+{
+  "font": "vn-svn-appleberry",
+  "aspect": 1.0654,
+  "bg": "#fffaec",
+  "items": [
+    {"text":"đi theo","x":0.4524,"y":0.268,"size":20.56,"color":"#964906","font":"vn-svn-appleberry","bold":false,"shadow":false,"align":"left","lineHeight":1.1},
+    {"text":"bóng","x":0.3635,"y":0.4494,"size":20.81,"color":"#964906","font":"vn-svn-appleberry","bold":false,"shadow":false,"align":"left","lineHeight":1.1},
+    {"text":"mặt trời","x":0.5,"y":0.6514,"size":21.19,"color":"#964906","font":"vn-svn-appleberry","bold":false,"shadow":false,"align":"left","lineHeight":1.1}
+  ]
+}

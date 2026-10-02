@@ -1,0 +1,9 @@
+{
+  "font": "vn-svn-arch",
+  "aspect": 1.0654,
+  "bg": "#120e25",
+  "items": [
+    {"text":"GALAXY","x":0.4972,"y":0.4442,"size":20.21,"color":"#00bbfe","font":"vn-svn-arch","bold":false,"shadow":false},
+    {"text":"RẠP CHIẾU PHIM","x":0.4993,"y":0.6243,"size":10.03,"color":"#00bafe","font":"vn-svn-arch","bold":false,"shadow":false}
+  ]
+}

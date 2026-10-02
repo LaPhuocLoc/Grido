@@ -1,0 +1,8 @@
+{
+  "font": "vn-hy-cherga",
+  "aspect": 1.0654,
+  "bg": "#152970",
+  "items": [
+    {"text":"PHÔ MAI\nTRỨNG MUỐI","x":0.5052,"y":0.4745,"size":17.95,"color":"#fea502","font":"vn-hy-cherga","bold":false,"shadow":false,"lineHeight":1.06}
+  ]
+}

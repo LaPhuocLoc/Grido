@@ -1,0 +1,9 @@
+{
+  "font": "vn-dvn-tahu",
+  "aspect": 1.5029,
+  "bg": "#25262b",
+  "items": [
+    {"text":"Đà Lạt!","x":0.5052,"y":0.4928,"size":41.39,"color":"#fefefd","font":"vn-dvn-tahu","bold":false,"shadow":false},
+    {"text":"tháng mười hai","x":0.535,"y":0.685,"size":7.2,"font":"serif","bold":false,"shadow":false}
+  ]
+}

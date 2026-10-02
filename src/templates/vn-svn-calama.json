@@ -1,0 +1,9 @@
+{
+  "font": "vn-svn-calama",
+  "aspect": 1.0654,
+  "bg": "#47120b",
+  "items": [
+    {"text":"CẦN KIM CƯƠNG\nLÀM CÁI Đ** GÌ","x":0.5014,"y":0.4608,"size":18.56,"color":"#ffbb00","font":"vn-svn-calama","bold":false,"shadow":false,"lineHeight":0.99},
+    {"text":"THÍCH THÌ BÊ CẢ KHAY!","x":0.5083,"y":0.7049,"size":13.07,"color":"#feba00","font":"vn-svn-calama","bold":false,"shadow":false}
+  ]
+}

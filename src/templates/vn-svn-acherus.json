@@ -1,0 +1,8 @@
+{
+  "font": "vn-svn-acherus",
+  "aspect": 1.0654,
+  "bg": "#f0ffd4",
+  "items": [
+    {"text":"Buồn ơi\nchào mi","x":0.5003,"y":0.5007,"size":14.56,"color":"#007618","font":"vn-svn-acherus","bold":false,"shadow":false,"lineHeight":1.3}
+  ]
+}

@@ -1,0 +1,9 @@
+{
+  "font": "vn-svn-alek",
+  "aspect": 1.0654,
+  "bg": "#f3ffd9",
+  "items": [
+    {"text":"Bèo nước","x":0.5,"y":0.4376,"size":23.67,"color":"#5d6722","font":"vn-svn-alek","shadow":false,"lineHeight":0.79},
+    {"text":"tương phùng","x":0.5,"y":0.6038,"size":23.67,"color":"#5d6722","font":"vn-svn-alek","shadow":false,"lineHeight":0.79}
+  ]
+}

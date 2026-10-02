@@ -1,0 +1,9 @@
+{
+  "font": "vn-svn-athena",
+  "aspect": 1.0654,
+  "bg": "#123c18",
+  "items": [
+    {"text":"TỰ DO LÀ","x":0.5445,"y":0.3551,"size":19.94,"font":"vn-svn-athena","bold":false,"shadow":false,"lineHeight":1.55},
+    {"text":"TỰ GIÁC","x":0.5042,"y":0.5739,"size":20.44,"font":"vn-svn-athena","bold":false,"shadow":false,"lineHeight":1.55}
+  ]
+}

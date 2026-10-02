@@ -1,0 +1,10 @@
+{
+  "font": "vn-svn-beloved",
+  "aspect": 1.0654,
+  "bg": "#fdfbff",
+  "items": [
+    {"text":"Chào em","x":0.3971,"y":0.4041,"size":17.83,"color":"#5526c2","font":"vn-svn-beloved","bold":false,"shadow":false},
+    {"text":"cô gái tháng","x":0.4954,"y":0.5857,"size":18.86,"color":"#5526c2","font":"vn-svn-beloved","bold":false,"shadow":false},
+    {"text":"4","x":0.7618,"y":0.3964,"size":37.45,"color":"#5526c2","font":"vn-svn-beloved","bold":false,"shadow":false}
+  ]
+}

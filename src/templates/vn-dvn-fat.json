@@ -1,0 +1,9 @@
+{
+  "font": "vn-dvn-fat",
+  "aspect": 1.5,
+  "bg": "#d77710",
+  "items": [
+    {"text":"Béo","x":0.4903,"y":0.4235,"size":47.57,"font":"vn-dvn-fat","bold":false,"shadow":false},
+    {"text":"mà dễ thương","x":0.4993,"y":0.7087,"size":16.12,"font":"vn-dvn-fat","bold":false,"shadow":false}
+  ]
+}

@@ -1,0 +1,8 @@
+{
+  "font": "vn-svn-astronout",
+  "aspect": 1.0654,
+  "bg": "#e2ffe3",
+  "items": [
+    {"text":"bên khung cửa sổ","x":0.5,"y":0.5,"size":38.22,"color":"#007032","font":"vn-svn-astronout","bold":false,"shadow":false}
+  ]
+}

@@ -1,0 +1,9 @@
+{
+  "font": "vn-brutal-font-pro",
+  "aspect": 1,
+  "bg": "#f4ede5",
+  "items": [
+    {"text":"Kẻ Cắp\nGặp Bà Già","x":0.5062,"y":0.4522,"size":14.9,"color":"#9a4e34","font":"vn-brutal-font-pro","bold":false,"shadow":false,"lineHeight":1.09},
+    {"text":"Hoàng Thùy Linh","x":0.4861,"y":0.6349,"size":4.29,"color":"#b68a77","font":"sans","bold":false,"shadow":false,"spacing":200}
+  ]
+}

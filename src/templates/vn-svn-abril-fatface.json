@@ -1,0 +1,9 @@
+{
+  "font": "vn-svn-abril-fatface",
+  "aspect": 1.0654,
+  "bg": "#720000",
+  "items": [
+    {"text":"999","x":0.5014,"y":0.3989,"size":26.46,"font":"vn-svn-abril-fatface","bold":false,"shadow":false},
+    {"text":"Đóa Hoa Hồng","x":0.4993,"y":0.6095,"size":12.13,"font":"vn-svn-abril-fatface","bold":false,"shadow":false}
+  ]
+}

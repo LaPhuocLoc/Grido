@@ -1,0 +1,9 @@
+{
+  "font": "vn-dvn-photograph",
+  "aspect": 1.5422,
+  "bg": "#fcfcfb",
+  "items": [
+    {"text":"Hoa cỏ may","x":0.5237,"y":0.3777,"size":27.47,"color":"#5c653d","font":"vn-dvn-photograph","bold":false,"shadow":false},
+    {"text":"Mùa nhớ","x":0.5403,"y":0.6004,"size":27.47,"color":"#5b643c","font":"vn-dvn-photograph","bold":false,"shadow":false}
+  ]
+}

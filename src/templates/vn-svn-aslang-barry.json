@@ -1,0 +1,9 @@
+{
+  "font": "vn-svn-aslang-barry",
+  "aspect": 1.0654,
+  "bg": "#ffcb82",
+  "items": [
+    {"text":"Truyện cổ tích","x":0.5,"y":0.44,"size":17,"color":"#672c0c","font":"vn-svn-aslang-barry","bold":false,"shadow":false},
+    {"text":"Tấm Cám","x":0.5,"y":0.62,"size":24,"color":"#672c0c","font":"vn-svn-aslang-barry","bold":false,"shadow":false}
+  ]
+}

@@ -1,0 +1,9 @@
+{
+  "font": "vn-svn-carington",
+  "aspect": 1.0654,
+  "bg": "#030316",
+  "items": [
+    {"text":"Whisky","x":0.4931,"y":0.408,"size":26.78,"color":"#fed900","font":"vn-svn-carington","bold":false,"shadow":false},
+    {"text":"và hoa hồng","x":0.4781,"y":0.6008,"size":13.06,"color":"#fed800","font":"vn-svn-carington","bold":false,"shadow":false}
+  ]
+}

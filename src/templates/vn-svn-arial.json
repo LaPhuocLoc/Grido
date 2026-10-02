@@ -1,0 +1,9 @@
+{
+  "font": "vn-svn-arial",
+  "aspect": 1.0654,
+  "bg": "#ffffff",
+  "items": [
+    {"text":"Nói ít thôi","x":0.4355,"y":0.4076,"size":14.56,"color":"#000000","font":"vn-svn-arial","shadow":false,"italic":true,"lineHeight":1.29},
+    {"text":"Làm việc đi","x":0.4931,"y":0.5939,"size":14.56,"color":"#000000","font":"vn-svn-arial","shadow":false,"italic":true,"lineHeight":1.29}
+  ]
+}

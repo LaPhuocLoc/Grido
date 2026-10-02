@@ -1,0 +1,9 @@
+{
+  "font": "vn-hoshiko-satsuki",
+  "aspect": 1,
+  "bg": "#f4ede5",
+  "items": [
+    {"text":"Thiếu Niên","x":0.4972,"y":0.4074,"size":13.5,"color":"#9a4e34","font":"vn-hoshiko-satsuki","bold":false,"shadow":false},
+    {"text":"Ca Hành","x":0.5083,"y":0.564,"size":12.93,"color":"#9a4e34","font":"vn-hoshiko-satsuki","bold":false,"shadow":false}
+  ]
+}

@@ -80,7 +80,11 @@ const templateDev = (): Plugin => ({
         try {
           const template = JSON.parse(body) as { font?: string; items?: unknown[] }
           if (!template.font || !/^[a-z0-9-]+$/.test(template.font) || !Array.isArray(template.items)) throw new Error('bad template')
-          writeFileSync(here(`./src/templates/${template.font}.json`), JSON.stringify(template, null, 2) + '\n')
+          // Mỗi dòng chữ một hàng cho dễ đọc, dễ sửa tay.
+          const { items, ...head } = template
+          const lines = items.map((item) => '    ' + JSON.stringify(item))
+          const text = JSON.stringify(head, null, 2).replace(/\n\}$/, `,\n  "items": [\n${lines.join(',\n')}\n  ]\n}\n`)
+          writeFileSync(here(`./src/templates/${template.font}.json`), text)
           res.end('ok')
         } catch {
           res.statusCode = 400

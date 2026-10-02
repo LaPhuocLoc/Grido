@@ -1,0 +1,10 @@
+{
+  "font": "vn-didoska",
+  "aspect": 1,
+  "bg": "#f3ebe3",
+  "items": [
+    {"text":"Bắc","x":0.5162,"y":0.3465,"size":27.87,"color":"#994e34","font":"vn-didoska","bold":false,"shadow":false},
+    {"text":"kim","x":0.5309,"y":0.5206,"size":27.69,"color":"#994e34","font":"vn-didoska","bold":false,"shadow":false},
+    {"text":"thang","x":0.5002,"y":0.6823,"size":27.87,"color":"#9a4e34","font":"vn-didoska","bold":false,"shadow":false}
+  ]
+}

@@ -1,0 +1,9 @@
+{
+  "font": "vn-svn-blenda-script",
+  "aspect": 1.0654,
+  "bg": "#7f7f7f",
+  "items": [
+    {"text":"Nguyễn Trần","x":0.4061,"y":0.4176,"size":12.85,"font":"vn-svn-blenda-script","bold":false,"shadow":false},
+    {"text":"Hoàng Hà","x":0.6236,"y":0.5454,"size":13.18,"font":"vn-svn-blenda-script","bold":false,"shadow":false}
+  ]
+}

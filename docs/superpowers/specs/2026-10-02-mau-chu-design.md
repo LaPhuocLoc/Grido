@@ -74,11 +74,19 @@ Mẫu nạp bằng một chunk riêng (`import.meta.glob` eager trong `src/templ
 ## Đợt C — tạo mẫu
 
 `scripts/template-lab.mjs` mở trang lab bằng Chrome headless (CDP, như `e2e-web.mjs`) và chụp ảnh so sánh ra file.
-Với mỗi font: agent xem thumb gốc (`fontvn/thumbs`), viết JSON, chụp, so, sửa, lặp tới khi không cải thiện được nữa.
+
+Việc "render rồi so rồi sửa" được làm bằng số chứ không bằng mắt: `src/dev/fit.ts` (chỉ ở bản dev) nhận một mẫu nháp (nội
+dung chữ, font, màu và vị trí áng chừng) rồi với từng dòng chữ tìm vị trí, cỡ, khoảng cách dòng, giãn chữ, góc xoay, độ đậm
+sao cho nét chữ vẽ bằng `drawText` chồng khít nhất lên vùng cùng màu trong ảnh gốc; sau đó lấy lại màu chữ và màu nền từ
+chính ảnh gốc. Dòng to canh trước và "nhận" phần ảnh của nó để dòng nhỏ cùng màu không bị hút về. Khối nhiều dòng không khớp
+thì tách từng dòng ra canh riêng (ảnh gốc hay đặt các dòng so le). Agent xem ảnh chụp và chỉ sửa tay những chỗ canh sai.
+
 Font một nét chỉ có một độ đậm thì mẫu đặt `bold: false` để trình duyệt không tự làm đậm giả.
 
-Chọn font: thumb là câu ngắn có bố cục; bỏ thumb là đoạn văn dài và thumb sống nhờ minh hoạ. Thumb ghi "Tên font + Việt
-hoá" thì thay bằng câu mẫu khác.
+Chọn font: thumb là câu ngắn có bố cục; bỏ thumb là đoạn văn dài, thumb sống nhờ minh hoạ, và thumb dùng mặt chữ / kiểu
+chữ thay thế mà app không có. Thumb ghi "Tên font + Việt hoá" thì canh theo chữ đó rồi thay bằng câu mẫu khác (`then`).
+
+Kết quả đợt đầu: 136 mẫu.
 
 ## Kiểm thử
 

@@ -1,0 +1,9 @@
+{
+  "font": "vn-svn-cattleya-script",
+  "aspect": 1.0654,
+  "bg": "#00225a",
+  "items": [
+    {"text":"Phù thủy","x":0.5052,"y":0.3775,"size":27.24,"font":"vn-svn-cattleya-script","bold":false,"shadow":false},
+    {"text":"xứ Waverly","x":0.5014,"y":0.5978,"size":15.66,"color":"#fefefd","font":"vn-svn-cattleya-script","bold":false,"shadow":false}
+  ]
+}

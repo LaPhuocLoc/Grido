@@ -1,0 +1,10 @@
+{
+  "font": "vn-svn-poky-s",
+  "aspect": 1.0654,
+  "bg": "#fde3fe",
+  "items": [
+    {"text":"sửa file ự?","x":0.5799,"y":0.2792,"size":16.07,"color":"#fe01a2","font":"vn-svn-poky-s","bold":false,"shadow":false,"rotation":-2,"outline":{"color":"#ffffff","width":5},"block":{"color":"#ffa3d6","x":2,"y":6}},
+    {"text":"có cái","x":0.4169,"y":0.4831,"size":20.43,"color":"#fe35b4","font":"vn-svn-poky-s","bold":false,"shadow":false,"rotation":-7,"outline":{"color":"#ffffff","width":5},"block":{"color":"#ffa3d6","x":2,"y":6}},
+    {"text":"con cua","x":0.4394,"y":0.6648,"size":21.63,"color":"#fe45ba","font":"vn-svn-poky-s","bold":false,"shadow":false,"rotation":-2,"outline":{"color":"#ffffff","width":5},"block":{"color":"#ffa3d6","x":2,"y":6}}
+  ]
+}

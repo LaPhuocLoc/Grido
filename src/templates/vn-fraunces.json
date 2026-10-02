@@ -1,0 +1,9 @@
+{
+  "font": "vn-fraunces",
+  "aspect": 1.5,
+  "bg": "#010d25",
+  "items": [
+    {"text":"Trầm hương","x":0.4993,"y":0.3885,"size":23.31,"color":"#f3d9a4","font":"vn-fraunces","shadow":false,"gradient":{"color":"#c9933f","angle":90}},
+    {"text":"xứ Huế","x":0.5,"y":0.625,"size":16,"color":"#f8f1d9","font":"vn-fraunces","bold":false,"shadow":false}
+  ]
+}

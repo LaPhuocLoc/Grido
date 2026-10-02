@@ -1,0 +1,9 @@
+{
+  "font": "vn-svn-bali-script",
+  "aspect": 1.0654,
+  "bg": "#fffbef",
+  "items": [
+    {"text":"Mặt trời","x":0.4872,"y":0.4216,"size":25.22,"color":"#d33100","font":"vn-svn-bali-script","bold":false,"shadow":false},
+    {"text":"trong tim em!","x":0.5062,"y":0.5931,"size":19.4,"color":"#d33100","font":"vn-svn-bali-script","bold":false,"shadow":false}
+  ]
+}

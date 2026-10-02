@@ -1,0 +1,9 @@
+{
+  "font": "vn-dvn-cinzel-decorative",
+  "aspect": 1.5,
+  "bg": "#d7e9fe",
+  "items": [
+    {"text":"CỐ ĐÔ","x":0.4781,"y":0.3819,"size":27.59,"color":"#1f3fb5","font":"vn-dvn-cinzel-decorative","shadow":false,"gradient":{"color":"#0d1b5e","angle":90}},
+    {"text":"VIỆT NAM","x":0.4972,"y":0.6737,"size":14.62,"color":"#1e2b48","font":"vn-dvn-cinzel-decorative","shadow":false}
+  ]
+}

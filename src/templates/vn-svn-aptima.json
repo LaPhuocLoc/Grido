@@ -1,0 +1,9 @@
+{
+  "font": "vn-svn-aptima",
+  "aspect": 1.0654,
+  "bg": "#eae9ef",
+  "items": [
+    {"text":"Mây trên","x":0.4944,"y":0.4059,"size":14.62,"color":"#7065ff","font":"vn-svn-aptima","shadow":false,"italic":true,"lineHeight":1.21},
+    {"text":"phố Huế","x":0.4816,"y":0.5942,"size":15.19,"color":"#7065ff","font":"vn-svn-aptima","shadow":false,"italic":true,"lineHeight":1.21}
+  ]
+}

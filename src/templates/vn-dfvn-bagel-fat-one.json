@@ -1,0 +1,9 @@
+{
+  "font": "vn-dfvn-bagel-fat-one",
+  "aspect": 1.5,
+  "bg": "#4238c8",
+  "items": [
+    {"text":"BÁNH MÌ\nSÀI GÒN","x":0.4972,"y":0.386,"size":23.95,"color":"#ffd43a","font":"vn-dfvn-bagel-fat-one","bold":false,"shadow":false,"lineHeight":1,"outline":{"color":"#3b1d6e","width":5},"block":{"color":"#3b1d6e","x":0,"y":7},"gradient":{"color":"#ff9a1f","angle":180}},
+    {"text":"ngon số 1","x":0.4983,"y":0.7231,"size":20.37,"color":"#ffd43a","font":"vn-dfvn-bagel-fat-one","bold":false,"shadow":false,"outline":{"color":"#3b1d6e","width":5},"block":{"color":"#3b1d6e","x":0,"y":7},"gradient":{"color":"#ff9a1f","angle":180}}
+  ]
+}

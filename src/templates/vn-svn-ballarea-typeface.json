@@ -1,0 +1,10 @@
+{
+  "font": "vn-svn-ballarea-typeface",
+  "aspect": 1.0654,
+  "bg": "#ffffff",
+  "items": [
+    {"text":"lạc trong mơ","x":0.4931,"y":0.3278,"size":15.52,"color":"#536c00","font":"vn-svn-ballarea-typeface","bold":false,"shadow":false,"lineHeight":1.1},
+    {"text":"tôi cất bước đi","x":0.508,"y":0.4948,"size":15.42,"color":"#526c00","font":"vn-svn-ballarea-typeface","bold":false,"shadow":false,"lineHeight":1.1},
+    {"text":"giữa khu rừng","x":0.508,"y":0.6603,"size":15.52,"color":"#526c00","font":"vn-svn-ballarea-typeface","bold":false,"shadow":false,"lineHeight":1.1}
+  ]
+}

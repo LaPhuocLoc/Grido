@@ -1,0 +1,9 @@
+{
+  "font": "vn-svn-androgyne",
+  "aspect": 1.0654,
+  "bg": "#fefed8",
+  "items": [
+    {"text":"Chạnh lòng","x":0.5242,"y":0.424,"size":15.68,"color":"#6a7d00","font":"vn-svn-androgyne","bold":false,"shadow":false,"rotation":-3},
+    {"text":"Thương Cô","x":0.4482,"y":0.5765,"size":15.68,"color":"#6a7d00","font":"vn-svn-androgyne","bold":false,"shadow":false,"rotation":-3}
+  ]
+}

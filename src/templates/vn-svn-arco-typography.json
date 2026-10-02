@@ -1,0 +1,10 @@
+{
+  "font": "vn-svn-arco-typography",
+  "aspect": 1.0654,
+  "bg": "#efe9eb",
+  "items": [
+    {"text":"BẬT","x":0.366,"y":0.3455,"size":15.19,"color":"#ff3d84","font":"vn-svn-arco-typography","bold":false,"shadow":false},
+    {"text":"TÌNH YÊU","x":0.5042,"y":0.5207,"size":15.29,"color":"#ff3d84","font":"vn-svn-arco-typography","bold":false,"shadow":false},
+    {"text":"LÊN","x":0.5771,"y":0.7146,"size":15.29,"color":"#ff3d84","font":"vn-svn-arco-typography","bold":false,"shadow":false}
+  ]
+}

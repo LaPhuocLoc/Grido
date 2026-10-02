@@ -1,0 +1,8 @@
+{
+  "font": "vn-catherine",
+  "aspect": 1,
+  "bg": "#f3ede5",
+  "items": [
+    {"text":"Mừng ngày\nQuốc tế\nPhụ nữ 8/3","x":0.483,"y":0.4896,"size":11.53,"color":"#9a4e34","font":"vn-catherine","bold":false,"shadow":false,"lineHeight":1.35}
+  ]
+}

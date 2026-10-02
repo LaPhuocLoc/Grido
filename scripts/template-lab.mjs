@@ -11,8 +11,13 @@ import { fileURLToPath } from 'node:url'
 import { createServer } from 'vite'
 
 const root = path.dirname(path.dirname(fileURLToPath(import.meta.url)))
-const [out, ...ids] = process.argv.slice(2)
-if (!out || !ids.length) throw new Error('Cách dùng: node scripts/template-lab.mjs <ảnh ra.png> <id font>…')
+const args = process.argv.slice(2)
+// --fit: tự canh từng mẫu cho khớp ảnh gốc trước khi chụp (ghi đè file mẫu); xem src/dev/fit.ts.
+const fit = args.includes('--fit')
+// --compact: chỉ ảnh gốc và mẫu, xếp nhiều cột, để soát nhanh nhiều mẫu.
+const compact = args.includes('--compact')
+const [out, ...ids] = args.filter((a) => !a.startsWith('--'))
+if (!out || !ids.length) throw new Error('Cách dùng: node scripts/template-lab.mjs [--fit] <ảnh ra.png> <id font>…')
 const PORT = 5188
 const DEBUG_PORT = 9455
 
@@ -27,7 +32,8 @@ if (!browser) throw new Error('Không tìm thấy Chrome / Edge. Đặt biến m
 
 const wait = (ms) => new Promise((r) => setTimeout(r, ms))
 const profile = mkdtempSync(path.join(os.tmpdir(), 'tga-lab-'))
-const server = await createServer({ root, logLevel: 'error', server: { port: PORT, strictPort: true } })
+// Không theo dõi file: lúc tự canh, file mẫu bị ghi đè mà trang không được phép tải lại giữa chừng.
+const server = await createServer({ root, logLevel: 'error', server: { port: PORT, strictPort: true, hmr: false, watch: null } })
 await server.listen()
 const chrome = spawn(browser, [`--remote-debugging-port=${DEBUG_PORT}`, `--user-data-dir=${profile}`, '--headless=new', '--window-size=1420,900', '--hide-scrollbars', '--no-first-run', 'about:blank'], { stdio: 'ignore' })
 try {
@@ -57,9 +63,9 @@ try {
       ws.send(JSON.stringify({ id: me, method, params }))
     })
   await send('Page.enable')
-  await send('Page.navigate', { url: `http://localhost:${PORT}/?lab=${ids.join(',')}` })
+  await send('Page.navigate', { url: `http://localhost:${PORT}/?lab=${ids.join(',')}${fit ? '&fit=1' : ''}${compact ? '&compact=1' : ''}` })
   // Chờ mọi mẫu vẽ xong (font tải qua mạng nội bộ) và ảnh gốc hiện đủ.
-  for (let i = 0; i < 240; i++) {
+  for (let i = 0; i < 2400; i++) {
     const { result } = await send('Runtime.evaluate', {
       expression: `window.__labDone === ${ids.length} && [...document.images].every((i) => i.complete)`,
       returnByValue: true,
@@ -76,6 +82,10 @@ try {
   })
   writeFileSync(out, Buffer.from(shot.data, 'base64'))
   console.log(`${out}: ${ids.length} mẫu`)
+  if (fit) {
+    const { result } = await send('Runtime.evaluate', { expression: 'JSON.stringify(window.__labReport ?? [])', returnByValue: true })
+    for (const r of JSON.parse(result.value)) console.log(`  ${r.font}: ${r.scores.join(' ')}`)
+  }
   ws.close()
 } finally {
   chrome.kill()

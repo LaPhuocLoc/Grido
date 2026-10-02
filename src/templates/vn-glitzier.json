@@ -1,0 +1,10 @@
+{
+  "font": "vn-glitzier",
+  "aspect": 1,
+  "bg": "#f4ede5",
+  "items": [
+    {"text":"Hoàng Vũ","x":0.5002,"y":0.369,"size":13.33,"color":"#9f5d46","font":"vn-glitzier","bold":false,"shadow":false},
+    {"text":"&","x":0.5316,"y":0.5194,"size":10.2,"color":"#a3644d","font":"vn-glitzier","bold":false,"shadow":false},
+    {"text":"Thanh Thuỷ","x":0.5006,"y":0.6303,"size":13.33,"color":"#9f5c44","font":"vn-glitzier","bold":false,"shadow":false}
+  ]
+}

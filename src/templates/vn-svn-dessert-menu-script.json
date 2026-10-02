@@ -1,0 +1,8 @@
+{
+  "font": "vn-svn-dessert-menu-script",
+  "aspect": 1.0654,
+  "bg": "#060857",
+  "items": [
+    {"text":"Hoa Bằng Lăng","x":0.5003,"y":0.5015,"size":12.11,"color":"#d8dafe","font":"vn-svn-dessert-menu-script","bold":false,"shadow":false}
+  ]
+}

@@ -1,9 +1,9 @@
 {
   "font": "vn-storm-fighter",
-  "aspect": 1.5,
-  "bg": "#f6efe9",
+  "aspect": 1,
+  "bg": "#f4ede5",
   "items": [
-    { "text": "Nước Mắt\nCá Sấu", "x": 0.5, "y": 0.43, "size": 21, "color": "#b5533c", "font": "vn-storm-fighter", "bold": false, "shadow": false, "lineHeight": 1.15 },
-    { "text": "HIEUTHUHAI", "x": 0.5, "y": 0.74, "size": 5, "color": "#6b5248", "font": "sans", "bold": false, "shadow": false, "spacing": 300 }
+    {"text":"Nước Mắt\nCá Sấu","x":0.5031,"y":0.4752,"size":17.98,"color":"#9a4e34","font":"vn-storm-fighter","bold":false,"shadow":false,"lineHeight":1},
+    {"text":"HIEUTHUHAI","x":0.5212,"y":0.6842,"size":5.19,"color":"#a96e58","font":"sans","bold":false,"shadow":false,"spacing":300}
   ]
 }

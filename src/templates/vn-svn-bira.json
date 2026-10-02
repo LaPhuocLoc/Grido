@@ -1,0 +1,8 @@
+{
+  "font": "vn-svn-bira",
+  "aspect": 1.0654,
+  "bg": "#152615",
+  "items": [
+    {"text":"Trồng cây\nvà nuôi cá","x":0.5003,"y":0.5007,"size":14.56,"color":"#fefefd","font":"vn-svn-bira","bold":false,"shadow":false,"lineHeight":1.05}
+  ]
+}

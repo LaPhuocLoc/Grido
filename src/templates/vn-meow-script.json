@@ -1,0 +1,9 @@
+{
+  "font": "vn-meow-script",
+  "aspect": 1.5,
+  "bg": "#eceae6",
+  "items": [
+    {"text":"Mèo con","x":0.4906,"y":0.435,"size":17.26,"color":"#272623","font":"vn-meow-script","bold":false,"shadow":false},
+    {"text":"ngủ ngoan","x":0.4636,"y":0.6071,"size":17.26,"color":"#282724","font":"vn-meow-script","bold":false,"shadow":false}
+  ]
+}

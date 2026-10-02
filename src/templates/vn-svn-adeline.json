@@ -1,0 +1,9 @@
+{
+  "font": "vn-svn-adeline",
+  "aspect": 1.0654,
+  "bg": "#000000",
+  "items": [
+    {"text":"Con đường","x":0.5,"y":0.4158,"size":18.62,"color":"#fea088","font":"vn-svn-adeline","bold":false,"shadow":false,"lineHeight":0.89},
+    {"text":"Ma quái","x":0.5152,"y":0.5708,"size":18.74,"color":"#fea088","font":"vn-svn-adeline","bold":false,"shadow":false,"lineHeight":0.89}
+  ]
+}

@@ -1,0 +1,9 @@
+{
+  "font": "vn-dvn-parasi",
+  "aspect": 1.5,
+  "bg": "#1c1306",
+  "items": [
+    {"text":"Lụa là","x":0.5,"y":0.37,"size":40,"color":"#d9c27a","font":"vn-dvn-parasi","bold":false,"shadow":false,"gradient":{"color":"#8f7636","angle":180}},
+    {"text":"Hà Đông","x":0.5,"y":0.645,"size":25,"color":"#f7e289","font":"vn-dvn-parasi","bold":false,"shadow":false}
+  ]
+}

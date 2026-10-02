@@ -1,0 +1,9 @@
+{
+  "font": "vn-lexend",
+  "aspect": 1.5,
+  "bg": "#292929",
+  "items": [
+    {"text":"Xin chào","x":0.4972,"y":0.381,"size":27.34,"font":"vn-lexend","shadow":false},
+    {"text":"ngày mới","x":0.4972,"y":0.6142,"size":17.18,"color":"#fdfdfd","font":"vn-lexend","bold":false,"shadow":false}
+  ]
+}

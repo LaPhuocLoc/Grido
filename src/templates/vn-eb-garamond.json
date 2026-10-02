@@ -1,0 +1,9 @@
+{
+  "font": "vn-eb-garamond",
+  "aspect": 1.5029,
+  "bg": "#121a2a",
+  "items": [
+    {"text":"Chuyện cũ","x":0.4993,"y":0.4175,"size":18.03,"color":"#fdfdfc","font":"vn-eb-garamond","shadow":false},
+    {"text":"Sài Gòn","x":0.4993,"y":0.5973,"size":17.5,"color":"#fbfcfb","font":"vn-eb-garamond","shadow":false}
+  ]
+}

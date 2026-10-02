@@ -1,0 +1,9 @@
+{
+  "font": "vn-dvn-dune-rise",
+  "aspect": 1.5,
+  "bg": "#29282a",
+  "items": [
+    {"text":"MIỀN CÁT","x":0.5042,"y":0.4512,"size":14.01,"color":"#f6f5f5","font":"vn-dvn-dune-rise","bold":false,"shadow":false,"spacing":75},
+    {"text":"NINH THUẬN","x":0.5,"y":0.595,"size":5.6,"font":"vn-dvn-dune-rise","bold":false,"shadow":false,"spacing":250}
+  ]
+}

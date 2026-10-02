@@ -1,0 +1,9 @@
+{
+  "font": "vn-svn-amperzand",
+  "aspect": 1.0654,
+  "bg": "#331f04",
+  "items": [
+    {"text":"Cổ điển","x":0.3876,"y":0.4185,"size":15.94,"color":"#fec97d","font":"vn-svn-amperzand","bold":false,"shadow":false},
+    {"text":"Tôn trọng","x":0.5376,"y":0.582,"size":16.05,"color":"#fec97d","font":"vn-svn-amperzand","bold":false,"shadow":false}
+  ]
+}

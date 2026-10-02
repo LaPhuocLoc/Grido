@@ -1,0 +1,10 @@
+{
+  "font": "vn-svn-banana-chip-muffins",
+  "aspect": 1.0654,
+  "bg": "#3d2f15",
+  "items": [
+    {"text":"Con mèo","x":0.5,"y":0.3,"size":14.51,"color":"#fcf3cf","font":"vn-svn-banana-chip-muffins","bold":false,"shadow":false,"lineHeight":1.22},
+    {"text":"kêu gâu gâu","x":0.5,"y":0.4586,"size":14.6,"color":"#fef5d1","font":"vn-svn-banana-chip-muffins","bold":false,"shadow":false,"lineHeight":1.22},
+    {"text":"nhảy híp hốp","x":0.5,"y":0.6311,"size":14.51,"color":"#fcf3cf","font":"vn-svn-banana-chip-muffins","bold":false,"shadow":false,"lineHeight":1.22}
+  ]
+}

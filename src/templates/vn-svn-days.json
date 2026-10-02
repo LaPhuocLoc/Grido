@@ -1,0 +1,8 @@
+{
+  "font": "vn-svn-days",
+  "aspect": 1.0654,
+  "bg": "#88c6fe",
+  "items": [
+    {"text":"SALE TO\nNỬA GIÁ","x":0.475,"y":0.4734,"size":19.11,"color":"#fcfef5","font":"vn-svn-days","bold":false,"shadow":false,"outline":{"color":"#1f4fe0","width":5},"block":{"color":"#1f4fe0","x":1,"y":4},"rotation":-4}
+  ]
+}

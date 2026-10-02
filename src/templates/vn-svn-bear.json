@@ -1,0 +1,9 @@
+{
+  "font": "vn-svn-bear",
+  "aspect": 1.0654,
+  "bg": "#fbfef3",
+  "items": [
+    {"text":"Hành Trình","x":0.4715,"y":0.411,"size":17.07,"color":"#345b3c","font":"vn-svn-bear","bold":false,"shadow":false,"lineHeight":0.79},
+    {"text":"của Alexander","x":0.4805,"y":0.5602,"size":19.08,"color":"#345b3c","font":"vn-svn-bear","bold":false,"shadow":false,"lineHeight":0.79}
+  ]
+}

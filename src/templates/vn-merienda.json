@@ -1,0 +1,9 @@
+{
+  "font": "vn-merienda",
+  "aspect": 1.5,
+  "bg": "#0e3866",
+  "items": [
+    {"text":"GIÓ BIỂN","x":0.4993,"y":0.381,"size":22.33,"color":"#fdfefe","font":"vn-merienda","shadow":false},
+    {"text":"Quy Nhơn","x":0.5014,"y":0.6206,"size":15.93,"color":"#fbfdfd","font":"vn-merienda","bold":false,"shadow":false}
+  ]
+}

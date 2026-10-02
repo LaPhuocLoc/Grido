@@ -1,0 +1,8 @@
+{
+  "font": "vn-milven",
+  "aspect": 1,
+  "bg": "#f3ede5",
+  "items": [
+    {"text":"Mơ khách\nđường xa","x":0.4993,"y":0.5007,"size":15.74,"color":"#9a4e34","font":"vn-milven","bold":false,"shadow":false,"lineHeight":1.05}
+  ]
+}

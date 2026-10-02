@@ -1,0 +1,9 @@
+{
+  "font": "vn-svn-dancing-script",
+  "aspect": 1.0654,
+  "bg": "#070605",
+  "items": [
+    {"text":"Ấm Tình","x":0.5244,"y":0.4045,"size":17.41,"color":"#fcb42e","font":"vn-svn-dancing-script","bold":false,"shadow":false,"lineHeight":0.99},
+    {"text":"Đồng Hương","x":0.4931,"y":0.5813,"size":17.41,"color":"#fcb42e","font":"vn-svn-dancing-script","bold":false,"shadow":false,"lineHeight":0.99}
+  ]
+}

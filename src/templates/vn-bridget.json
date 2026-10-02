@@ -1,0 +1,8 @@
+{
+  "font": "vn-bridget",
+  "aspect": 1,
+  "bg": "#f4ede5",
+  "items": [
+    {"text":"Ai đem\ncon Sáo\nsang sông","x":0.4861,"y":0.4806,"size":11.65,"color":"#9a5036","font":"vn-bridget","bold":false,"shadow":false,"lineHeight":1}
+  ]
+}

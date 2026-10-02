@@ -1,0 +1,8 @@
+{
+  "font": "vn-iciel-andes-rounded",
+  "aspect": 1.0654,
+  "bg": "#4a75ba",
+  "items": [
+    {"text":"Tôi thích cậu\nnhiều lắm đấy!","x":0.5,"y":0.4,"size":13.5,"color":"#e9d7cd","font":"vn-iciel-andes-rounded","bold":false,"shadow":false,"lineHeight":1.3}
+  ]
+}

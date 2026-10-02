@@ -1,0 +1,8 @@
+{
+  "font": "vn-hy-agolic",
+  "aspect": 1.0654,
+  "bg": "#a41511",
+  "items": [
+    {"text":"Hoà Bình\nĐẹp Lắm","x":0.5014,"y":0.4342,"size":19.6,"color":"#fdcf03","font":"vn-hy-agolic","bold":false,"shadow":false,"align":"left","lineHeight":1.02}
+  ]
+}

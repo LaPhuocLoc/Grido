@@ -1,0 +1,8 @@
+{
+  "font": "vn-svn-avaline-script",
+  "aspect": 1.0654,
+  "bg": "#2f8e3d",
+  "items": [
+    {"text":"cây nhà\nlá vườn","x":0.4872,"y":0.5266,"size":22.14,"font":"vn-svn-avaline-script","bold":false,"shadow":false,"lineHeight":1.05}
+  ]
+}

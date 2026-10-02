@@ -1,0 +1,9 @@
+{
+  "font": "vn-lf-tisk",
+  "aspect": 1,
+  "bg": "#f3ede5",
+  "items": [
+    {"text":"Thiên trường","x":0.4993,"y":0.3719,"size":25.58,"color":"#9a4e34","font":"vn-lf-tisk","bold":false,"shadow":false},
+    {"text":"Địa cửu","x":0.5003,"y":0.57,"size":25.42,"color":"#9a4e34","font":"vn-lf-tisk","bold":false,"shadow":false}
+  ]
+}

@@ -1,0 +1,9 @@
+{
+  "font": "vn-dvn-loveya-script",
+  "aspect": 1.5,
+  "bg": "#eae9fa",
+  "items": [
+    {"text":"Thương thương","x":0.4872,"y":0.4208,"size":29.48,"color":"#f81a7e","font":"vn-dvn-loveya-script","bold":false,"shadow":false},
+    {"text":"NHỚ NHỚ","x":0.5014,"y":0.6542,"size":10.31,"color":"#e11c4c","font":"serif","bold":false,"shadow":false,"spacing":80}
+  ]
+}

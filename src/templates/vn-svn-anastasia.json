@@ -1,0 +1,8 @@
+{
+  "font": "vn-svn-anastasia",
+  "aspect": 1.0654,
+  "bg": "#effdff",
+  "items": [
+    {"text":"Giọt sương\nrơi đêm","x":0.4941,"y":0.5444,"size":19.94,"color":"#0051ba","font":"vn-svn-anastasia","bold":false,"shadow":false,"lineHeight":1.01}
+  ]
+}

@@ -1,0 +1,9 @@
+{
+  "font": "vn-svn-aleo",
+  "aspect": 1.0654,
+  "bg": "#fff8de",
+  "items": [
+    {"text":"TRỐNG ĐỒNG","x":0.4864,"y":0.4426,"size":12.74,"color":"#e25001","font":"vn-svn-aleo","bold":false,"shadow":false,"lineHeight":1.26},
+    {"text":"ĐÔNG DƯƠNG","x":0.4975,"y":0.5907,"size":12.74,"color":"#e25001","font":"vn-svn-aleo","bold":false,"shadow":false,"lineHeight":1.26}
+  ]
+}

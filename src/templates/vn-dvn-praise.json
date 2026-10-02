@@ -1,0 +1,9 @@
+{
+  "font": "vn-dvn-praise",
+  "aspect": 1.5,
+  "bg": "#180417",
+  "items": [
+    {"text":"Praise","x":0.491,"y":0.4154,"size":53.26,"color":"#fff27a","font":"vn-dvn-praise","bold":false,"shadow":false,"glow":{"color":"#ff7a00","size":16},"gradient":{"color":"#ffb81e","angle":180}},
+    {"text":"Việt hóa","x":0.5,"y":0.685,"size":17,"color":"#ffb14a","font":"round","bold":false,"shadow":false,"spacing":40,"glow":{"color":"#ff5a00","size":35}}
+  ]
+}

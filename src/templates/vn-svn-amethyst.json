@@ -1,0 +1,9 @@
+{
+  "font": "vn-svn-amethyst",
+  "aspect": 1.0654,
+  "bg": "#e3ffc0",
+  "items": [
+    {"text":"Vườn","x":0.4716,"y":0.3875,"size":32.89,"color":"#2c7437","font":"vn-svn-amethyst","bold":false,"shadow":false},
+    {"text":"nhà làm","x":0.4931,"y":0.6071,"size":28.35,"color":"#2c7437","font":"vn-svn-amethyst","bold":false,"shadow":false}
+  ]
+}

@@ -1,0 +1,9 @@
+{
+  "font": "vn-iciel-bambola",
+  "aspect": 1.0654,
+  "bg": "#fff7d7",
+  "items": [
+    {"text":"Bật mood","x":0.4772,"y":0.3639,"size":25.82,"color":"#08408c","font":"vn-iciel-bambola","bold":false,"shadow":false,"rotation":-1,"outline":{"color":"#ffffff","width":4}},
+    {"text":"mát lành","x":0.4669,"y":0.5588,"size":20.37,"color":"#0f448d","font":"vn-iciel-bambola","bold":false,"shadow":false,"rotation":-2,"outline":{"color":"#ffffff","width":4}}
+  ]
+}

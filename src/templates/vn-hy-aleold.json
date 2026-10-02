@@ -1,0 +1,8 @@
+{
+  "font": "vn-hy-aleold",
+  "aspect": 1.0654,
+  "bg": "#040802",
+  "items": [
+    {"text":"mùa\nmưa\nngâu","x":0.5,"y":0.44,"size":22,"color":"#c3e8b2","font":"vn-hy-aleold","bold":false,"shadow":false,"lineHeight":1.0}
+  ]
+}

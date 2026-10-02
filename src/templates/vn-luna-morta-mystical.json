@@ -1,0 +1,8 @@
+{
+  "font": "vn-luna-morta-mystical",
+  "aspect": 1,
+  "bg": "#f3ede5",
+  "items": [
+    {"text":"Một Mai\nRời Xa","x":0.5003,"y":0.4972,"size":17.05,"color":"#9a4e34","font":"vn-luna-morta-mystical","bold":false,"shadow":false,"lineHeight":0.95}
+  ]
+}

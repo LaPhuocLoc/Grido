@@ -1,0 +1,10 @@
+{
+  "font": "vn-aniyah",
+  "aspect": 1,
+  "bg": "#f4ede5",
+  "items": [
+    {"text":"Vũ Đức Thiện","x":0.5073,"y":0.3621,"size":6.68,"color":"#a15f48","font":"vn-aniyah","bold":false,"shadow":false},
+    {"text":"&","x":0.5083,"y":0.4861,"size":6.92,"color":"#a2624c","font":"vn-aniyah","bold":false,"shadow":false},
+    {"text":"Võ Quỳnh Anh","x":0.5073,"y":0.6122,"size":6.68,"color":"#9f5c44","font":"vn-aniyah","bold":false,"shadow":false}
+  ]
+}

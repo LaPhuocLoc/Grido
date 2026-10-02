@@ -1,0 +1,9 @@
+{
+  "font": "vn-geist",
+  "aspect": 1.5,
+  "bg": "#dcd9d4",
+  "items": [
+    {"text":"Tối giản","x":0.4628,"y":0.3904,"size":34.97,"color":"#1f1e20","font":"vn-geist","shadow":false},
+    {"text":"là đẹp","x":0.4115,"y":0.6312,"size":18.56,"color":"#201e1f","font":"vn-geist","bold":false,"shadow":false}
+  ]
+}

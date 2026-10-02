@@ -1,0 +1,9 @@
+{
+  "font": "vn-anek-latin",
+  "aspect": 1.5,
+  "bg": "#040203",
+  "items": [
+    {"text":"Anek Latin","x":0.5031,"y":0.3652,"size":23.46,"color":"#fefefe","font":"vn-anek-latin","shadow":false},
+    {"text":"tiếng Việt","x":0.5042,"y":0.5846,"size":23.14,"color":"#fcfefe","font":"vn-anek-latin","bold":false,"shadow":false}
+  ]
+}

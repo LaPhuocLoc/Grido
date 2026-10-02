@@ -1,0 +1,10 @@
+{
+  "font": "vn-jambie",
+  "aspect": 1,
+  "bg": "#f4ede5",
+  "items": [
+    {"text":"Thời","x":0.5083,"y":0.2653,"size":21.45,"color":"#9a4e34","font":"vn-jambie","bold":false,"shadow":false},
+    {"text":"Thanh Xuân","x":0.5115,"y":0.466,"size":15.86,"color":"#9a4e34","font":"vn-jambie","bold":false,"shadow":false},
+    {"text":"sẽ Qua","x":0.4839,"y":0.6403,"size":15.29,"color":"#9a4e34","font":"vn-jambie","bold":false,"shadow":false}
+  ]
+}

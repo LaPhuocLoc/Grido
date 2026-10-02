@@ -1,0 +1,9 @@
+{
+  "font": "vn-google-sans-flex-9pt",
+  "aspect": 1.5,
+  "bg": "#041936",
+  "items": [
+    {"text":"Cuối tuần vui vẻ","x":0.4972,"y":0.4617,"size":11.32,"color":"#fcfefe","font":"vn-google-sans-flex-9pt","shadow":false},
+    {"text":"nhé bạn","x":0.5003,"y":0.6242,"size":10.9,"color":"#f1f5f7","font":"vn-google-sans-flex-9pt","bold":false,"shadow":false}
+  ]
+}

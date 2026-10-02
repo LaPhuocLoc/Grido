@@ -1,0 +1,9 @@
+{
+  "font": "vn-svn-kimberley",
+  "aspect": 1.0691,
+  "bg": "#bf2428",
+  "items": [
+    {"text":"BIG HERO","x":0.5069,"y":0.4065,"size":18.29,"font":"vn-svn-kimberley","bold":false,"shadow":false},
+    {"text":"\"Khi tâm trạng không tốt, con người cần\ngia đình và bạn bè, đặc biệt là những cái ôm\"","x":0.5069,"y":0.5888,"size":3.32,"color":"#fdf0ef","font":"vn-svn-kimberley","bold":false,"shadow":false,"lineHeight":1.45}
+  ]
+}

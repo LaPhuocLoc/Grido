@@ -1,0 +1,8 @@
+{
+  "font": "vn-lnth-manis-banget",
+  "aspect": 1.5,
+  "bg": "#d7d7d9",
+  "items": [
+    {"text":"Em Ơi\nCứ Yêu Như\nChưa Từng","x":0.4931,"y":0.4585,"size":22.33,"color":"#223527","font":"vn-lnth-manis-banget","bold":false,"shadow":false,"lineHeight":0.99}
+  ]
+}

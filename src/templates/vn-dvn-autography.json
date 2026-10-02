@@ -1,0 +1,9 @@
+{
+  "font": "vn-dvn-autography",
+  "aspect": 1.5,
+  "bg": "#04142a",
+  "items": [
+    {"text":"Thanh xuân","x":0.5042,"y":0.4248,"size":25.25,"color":"#f4f3f6","font":"vn-dvn-autography","bold":false,"shadow":false},
+    {"text":"của tôi","x":0.4639,"y":0.695,"size":25.41,"color":"#f2f6f6","font":"vn-dvn-autography","bold":false,"shadow":false}
+  ]
+}

@@ -1,0 +1,10 @@
+{
+  "font": "vn-dfvn-indulge-script",
+  "aspect": 1.4993,
+  "bg": "#87b6da",
+  "items": [
+    {"text":"Trăm năm","x":0.5458,"y":0.3762,"size":30.15,"color":"#f7f9f9","font":"vn-dfvn-indulge-script","bold":false,"shadow":false},
+    {"text":"gắn bó, một lời","x":0.42,"y":0.545,"size":7.5,"color":"#f0f1f2","font":"vn-dfvn-indulge-script","bold":false,"shadow":false},
+    {"text":"hẹn ước","x":0.5003,"y":0.7233,"size":31.06,"color":"#f7f8f9","font":"vn-dfvn-indulge-script","bold":false,"shadow":false}
+  ]
+}

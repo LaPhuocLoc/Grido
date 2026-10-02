@@ -1,0 +1,8 @@
+{
+  "font": "vn-svn-amsi-cond",
+  "aspect": 1.0654,
+  "bg": "#ffffff",
+  "items": [
+    {"text":"Kính chào\nQuý độc giả","x":0.491,"y":0.5015,"size":15.58,"color":"#000000","font":"vn-svn-amsi-cond","bold":false,"shadow":false,"italic":true,"lineHeight":1.07}
+  ]
+}

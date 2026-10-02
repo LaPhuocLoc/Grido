@@ -1,0 +1,9 @@
+{
+  "font": "vn-hy-aleght",
+  "aspect": 1.0654,
+  "bg": "#4169c0",
+  "items": [
+    {"text":"LÀNG GỐM","x":0.5003,"y":0.3734,"size":16.27,"color":"#fcfcfb","font":"vn-hy-aleght","bold":false,"shadow":false},
+    {"text":"Bát Tràng","x":0.4993,"y":0.5456,"size":13.47,"color":"#bccff6","font":"vn-hy-aleght","bold":false,"shadow":false}
+  ]
+}

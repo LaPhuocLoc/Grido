@@ -1,0 +1,9 @@
+{
+  "font": "vn-svn-avengeance",
+  "aspect": 1.0654,
+  "bg": "#ffffff",
+  "items": [
+    {"text":"BIỆT ĐỘI","x":0.5396,"y":0.3676,"size":12.06,"color":"#831919","font":"vn-svn-avengeance","bold":false,"shadow":false},
+    {"text":"AVENGER","x":0.4972,"y":0.6194,"size":16.03,"color":"#831919","font":"vn-svn-avengeance","bold":false,"shadow":false}
+  ]
+}

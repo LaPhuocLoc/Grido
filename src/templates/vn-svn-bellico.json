@@ -1,0 +1,8 @@
+{
+  "font": "vn-svn-bellico",
+  "aspect": 1.0654,
+  "bg": "#ffffff",
+  "items": [
+    {"text":"Tôi yêu\nViệt Nam","x":0.4851,"y":0.517,"size":22.99,"color":"#d50d0d","font":"vn-svn-bellico","bold":false,"shadow":false,"lineHeight":1.15}
+  ]
+}

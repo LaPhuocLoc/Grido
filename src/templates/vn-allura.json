@@ -1,0 +1,9 @@
+{
+  "font": "vn-allura",
+  "aspect": 1.5,
+  "bg": "#f5ece5",
+  "items": [
+    {"text":"Thương","x":0.4913,"y":0.3944,"size":28.95,"color":"#89735c","font":"vn-allura","bold":false,"shadow":false},
+    {"text":"một người","x":0.4903,"y":0.6248,"size":28.95,"color":"#88715a","font":"vn-allura","bold":false,"shadow":false}
+  ]
+}

@@ -1,0 +1,9 @@
+{
+  "font": "vn-anybody",
+  "aspect": 1.5,
+  "bg": "#011248",
+  "items": [
+    {"text":"Rực rỡ","x":0.4993,"y":0.3912,"size":22.76,"color":"#fefffe","font":"vn-anybody","shadow":false},
+    {"text":"tháng năm","x":0.5014,"y":0.6275,"size":18.81,"color":"#fcfdfd","font":"vn-anybody","bold":false,"shadow":false}
+  ]
+}

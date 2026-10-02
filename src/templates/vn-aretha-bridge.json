@@ -1,0 +1,8 @@
+{
+  "font": "vn-aretha-bridge",
+  "aspect": 1,
+  "bg": "#f3ede5",
+  "items": [
+    {"text":"Gặp gỡ\nlà Nhân\nDuyên","x":0.4903,"y":0.4639,"size":13.84,"color":"#9d533a","font":"vn-aretha-bridge","bold":false,"shadow":false,"lineHeight":1.07}
+  ]
+}

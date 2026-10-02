@@ -1,0 +1,9 @@
+{
+  "font": "vn-svn-angely",
+  "aspect": 1.0654,
+  "bg": "#eeffef",
+  "items": [
+    {"text":"Truyện cổ","x":0.49,"y":0.3769,"size":25.66,"color":"#008d25","font":"vn-svn-angely","bold":false,"shadow":false,"lineHeight":1},
+    {"text":"Andersen","x":0.5171,"y":0.6143,"size":25.66,"color":"#008d25","font":"vn-svn-angely","bold":false,"shadow":false,"lineHeight":1}
+  ]
+}

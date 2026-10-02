@@ -1,0 +1,8 @@
+{
+  "font": "vn-svn-amsi-narw",
+  "aspect": 1.0654,
+  "bg": "#ffffff",
+  "items": [
+    {"text":"BẢN BÁO CÁO","x":0.4993,"y":0.4734,"size":14.92,"color":"#000000","font":"vn-svn-amsi-narw","shadow":false}
+  ]
+}

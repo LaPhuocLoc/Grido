@@ -1,0 +1,9 @@
+{
+  "font": "vn-svn-amsdam",
+  "aspect": 1.0654,
+  "bg": "#9e714a",
+  "items": [
+    {"text":"KRISS","x":0.5028,"y":0.4486,"size":17.98,"color":"#fedea2","font":"vn-svn-amsdam","bold":false,"shadow":false},
+    {"text":"Công viên","x":0.5017,"y":0.638,"size":13.8,"color":"#fedea2","font":"vn-svn-amsdam","bold":false,"shadow":false}
+  ]
+}

@@ -1,0 +1,9 @@
+{
+  "font": "vn-svn-batman-forever-alternate",
+  "aspect": 1.0654,
+  "bg": "#ffffff",
+  "items": [
+    {"text":"DÒNG MÁU","x":0.5059,"y":0.418,"size":10.49,"color":"#a60002","font":"vn-svn-batman-forever-alternate","bold":false,"shadow":false,"lineHeight":1.34},
+    {"text":"CHIẾN BINH","x":0.5059,"y":0.5612,"size":12.46,"color":"#a60002","font":"vn-svn-batman-forever-alternate","bold":false,"shadow":false,"lineHeight":1.34}
+  ]
+}

@@ -1,0 +1,9 @@
+{
+  "font": "vn-svn-bistro-script",
+  "aspect": 1.0654,
+  "bg": "#0a1603",
+  "items": [
+    {"text":"Cậu bé","x":0.501,"y":0.3926,"size":27.66,"color":"#f6fee6","font":"vn-svn-bistro-script","bold":false,"shadow":false,"lineHeight":0.82},
+    {"text":"chăn trâu","x":0.4889,"y":0.6208,"size":28.01,"color":"#f6fee6","font":"vn-svn-bistro-script","bold":false,"shadow":false,"lineHeight":0.82}
+  ]
+}

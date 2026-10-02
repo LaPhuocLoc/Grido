@@ -1,0 +1,9 @@
+{
+  "font": "vn-harmonyos-sans",
+  "aspect": 1.5,
+  "bg": "#00061c",
+  "items": [
+    {"text":"Công nghệ số","x":0.4972,"y":0.407,"size":15.13,"color":"#fefefe","font":"vn-harmonyos-sans","shadow":false},
+    {"text":"2026","x":0.4913,"y":0.5973,"size":12.17,"color":"#fdfefd","font":"vn-harmonyos-sans","bold":true,"shadow":false}
+  ]
+}

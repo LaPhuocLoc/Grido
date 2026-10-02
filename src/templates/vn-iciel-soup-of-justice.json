@@ -1,0 +1,9 @@
+{
+  "font": "vn-iciel-soup-of-justice",
+  "aspect": 1.0654,
+  "bg": "#2c4418",
+  "items": [
+    {"text":"CƠM TẤM","x":0.4963,"y":0.4097,"size":22.14,"color":"#f3e7bd","font":"vn-iciel-soup-of-justice","bold":false,"shadow":false},
+    {"text":"SƯỜN NƯỚNG","x":0.4984,"y":0.5864,"size":15.87,"color":"#ffc400","font":"vn-iciel-soup-of-justice","bold":false,"shadow":false}
+  ]
+}

@@ -1,0 +1,9 @@
+{
+  "font": "vn-svn-channel",
+  "aspect": 1.0654,
+  "bg": "#070607",
+  "items": [
+    {"text":"Kiếm Sĩ","x":0.4972,"y":0.463,"size":20.89,"color":"#fe0004","font":"vn-svn-channel","bold":false,"shadow":false},
+    {"text":"Samurai","x":0.6347,"y":0.6051,"size":11.96,"color":"#fe0003","font":"vn-svn-channel","bold":false,"shadow":false}
+  ]
+}

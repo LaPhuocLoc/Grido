@@ -1,0 +1,8 @@
+{
+  "font": "vn-cezanne",
+  "aspect": 1,
+  "bg": "#f4ede5",
+  "items": [
+    {"text":"CHÚNG TA\nSAU NÀY","x":0.4972,"y":0.5062,"size":14.53,"color":"#9b4f36","font":"vn-cezanne","bold":false,"shadow":false,"lineHeight":1.2}
+  ]
+}

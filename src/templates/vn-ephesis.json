@@ -1,0 +1,9 @@
+{
+  "font": "vn-ephesis",
+  "aspect": 1.5029,
+  "bg": "#e7e6e3",
+  "items": [
+    {"text":"Dịu dàng","x":0.4931,"y":0.3775,"size":41.59,"color":"#171816","font":"vn-ephesis","bold":false,"shadow":false},
+    {"text":"mùa thu","x":0.5226,"y":0.6587,"size":26.11,"color":"#1c1d1a","font":"vn-ephesis","bold":false,"shadow":false}
+  ]
+}

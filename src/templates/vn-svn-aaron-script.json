@@ -1,0 +1,9 @@
+{
+  "font": "vn-svn-aaron-script",
+  "aspect": 1.0654,
+  "bg": "#eeefe9",
+  "items": [
+    {"text":"Nét chữ","x":0.4272,"y":0.4412,"size":18.63,"color":"#94332c","font":"vn-svn-aaron-script","bold":false,"shadow":false},
+    {"text":"nết người","x":0.5864,"y":0.5855,"size":18.75,"color":"#94332c","font":"vn-svn-aaron-script","bold":false,"shadow":false}
+  ]
+}

@@ -1,0 +1,9 @@
+{
+  "font": "vn-iciel-amerigraf",
+  "aspect": 1.0654,
+  "bg": "#010000",
+  "items": [
+    {"text":"Truy Tìm","x":0.4983,"y":0.3653,"size":9.9,"color":"#ec0000","font":"vn-iciel-amerigraf","bold":false,"shadow":false},
+    {"text":"Rồng Thiêng","x":0.5024,"y":0.5401,"size":14.23,"color":"#de0000","font":"vn-iciel-amerigraf","bold":false,"shadow":false}
+  ]
+}

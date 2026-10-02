@@ -1,0 +1,8 @@
+{
+  "font": "vn-svn-bulgary",
+  "aspect": 1.0654,
+  "bg": "#006019",
+  "items": [
+    {"text":"Bống Bống\nBang Bang","x":0.4941,"y":0.5,"size":19.94,"color":"#fee969","font":"vn-svn-bulgary","bold":false,"shadow":false,"lineHeight":1.25}
+  ]
+}

@@ -1,0 +1,9 @@
+{
+  "font": "vn-svn-az-cupcakes",
+  "aspect": 1.0654,
+  "bg": "#1c1409",
+  "items": [
+    {"text":"Kiếm Sĩ","x":0.4101,"y":0.3928,"size":18.75,"color":"#fe0000","font":"vn-svn-az-cupcakes","bold":false,"shadow":false,"lineHeight":0.93},
+    {"text":"cuối cùng","x":0.4879,"y":0.6013,"size":20.19,"color":"#fe0000","font":"vn-svn-az-cupcakes","bold":false,"shadow":false,"lineHeight":0.93}
+  ]
+}

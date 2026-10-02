@@ -1,0 +1,9 @@
+{
+  "font": "vn-dvn-retrowarp",
+  "aspect": 1.5,
+  "bg": "#1e1e1e",
+  "items": [
+    {"text":"Hà Nội\n90s","x":0.4993,"y":0.4173,"size":32.81,"color":"#eddb99","font":"vn-dvn-retrowarp","bold":false,"shadow":false,"lineHeight":0.8,"block":{"color":"#e8547a","x":3,"y":6}},
+    {"text":"Một thời để nhớ","x":0.4931,"y":0.7417,"size":7.82,"color":"#fdfdfd","font":"serif","shadow":false}
+  ]
+}

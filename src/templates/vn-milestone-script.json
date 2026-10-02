@@ -1,0 +1,9 @@
+{
+  "font": "vn-milestone-script",
+  "aspect": 1.4971,
+  "bg": "#142d3b",
+  "items": [
+    {"text":"Cột mốc","x":0.4892,"y":0.4212,"size":30.04,"color":"#d1a926","font":"vn-milestone-script","bold":false,"shadow":false,"block":{"color":"#1c2b33","x":2,"y":4}},
+    {"text":"đáng nhớ","x":0.5247,"y":0.6879,"size":15.33,"color":"#f7fbfb","font":"vn-milestone-script","bold":false,"shadow":false}
+  ]
+}

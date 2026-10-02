@@ -1,0 +1,9 @@
+{
+  "font": "vn-svn-cookie",
+  "aspect": 1.0654,
+  "bg": "#e54826",
+  "items": [
+    {"text":"Khởi Nguồn","x":0.5,"y":0.36,"size":14.5,"color":"#ffe52e","font":"vn-svn-cookie","bold":false,"shadow":false},
+    {"text":"Chất Việt","x":0.5,"y":0.57,"size":26,"color":"#ffe52e","font":"vn-svn-cookie","bold":false,"shadow":false}
+  ]
+}

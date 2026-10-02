@@ -1,0 +1,9 @@
+{
+  "font": "vn-dvn-colus",
+  "aspect": 1.5,
+  "bg": "#fdfaf7",
+  "items": [
+    {"text":"SA PA","x":0.5125,"y":0.384,"size":33.87,"color":"#0c1e32","font":"vn-dvn-colus","bold":false,"shadow":false},
+    {"text":"TÂY BẮC","x":0.5253,"y":0.654,"size":20.25,"color":"#0c1e32","font":"vn-dvn-colus","bold":false,"shadow":false}
+  ]
+}

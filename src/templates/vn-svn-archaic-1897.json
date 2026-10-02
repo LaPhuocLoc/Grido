@@ -1,0 +1,9 @@
+{
+  "font": "vn-svn-archaic-1897",
+  "aspect": 1.0654,
+  "bg": "#1b0d0d",
+  "items": [
+    {"text":"CHIẾN BINH","x":0.4993,"y":0.4105,"size":14.55,"color":"#fe0000","font":"vn-svn-archaic-1897","bold":false,"shadow":false},
+    {"text":"SPARTA","x":0.4993,"y":0.6497,"size":22.63,"color":"#fe0000","font":"vn-svn-archaic-1897","bold":false,"shadow":false}
+  ]
+}

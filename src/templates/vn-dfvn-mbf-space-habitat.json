@@ -1,0 +1,8 @@
+{
+  "font": "vn-dfvn-mbf-space-habitat",
+  "aspect": 1.4993,
+  "bg": "#f39887",
+  "items": [
+    {"text":"BAY VÀO\nVŨ TRỤ","x":0.476,"y":0.5177,"size":22.2,"color":"#fdfdfd","font":"vn-dfvn-mbf-space-habitat","bold":false,"shadow":false,"lineHeight":1.14}
+  ]
+}

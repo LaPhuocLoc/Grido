@@ -1,0 +1,9 @@
+{
+  "font": "vn-montserrat",
+  "aspect": 1.5,
+  "bg": "#0726a5",
+  "items": [
+    {"text":"SĂN SALE","x":0.4962,"y":0.4208,"size":14.23,"color":"#fdfefe","font":"vn-montserrat","shadow":false},
+    {"text":"CUỐI NĂM","x":0.5003,"y":0.5771,"size":14.3,"color":"#f6f8fd","font":"vn-montserrat","bold":false,"shadow":false}
+  ]
+}
