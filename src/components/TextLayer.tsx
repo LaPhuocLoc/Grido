@@ -288,7 +288,7 @@ export function TextLayer({
   const rad = (item.rotation * Math.PI) / 180
   // Nửa chiều cao của hình chữ nhật bao quanh hộp chữ đã xoay — để đặt nút nhân bản / xoá ngay phía trên.
   const halfH = (Math.abs(box.w * Math.sin(rad)) + Math.abs(box.h * Math.cos(rad))) / 2
-  const barAbove = cyPx - halfH - 60 > -52
+  const barAbove = cyPx - halfH - 60 > -8
   const dot =
     'pointer-events-auto absolute size-3.5 -translate-x-1/2 -translate-y-1/2 touch-none rounded-full bg-white shadow-[0_1px_4px_rgb(0_0_0/0.4)] ring-2 ring-coral transition-transform hover:scale-125'
   const pill = cx(
@@ -671,7 +671,7 @@ function GroupFrame({
   if (!rect || !members.length) return null
   const w = rect.right - rect.left
   const h = rect.bottom - rect.top
-  const barAbove = rect.top - 60 > -52
+  const barAbove = rect.top - 60 > -8
   const dot =
     'pointer-events-auto absolute size-3.5 -translate-x-1/2 -translate-y-1/2 touch-none rounded-full bg-white shadow-[0_1px_4px_rgb(0_0_0/0.4)] ring-2 ring-coral transition-transform hover:scale-125'
   return (
@@ -825,7 +825,7 @@ function Toggle({ label, on, onClick, children }: { label: string; on: boolean; 
   )
 }
 
-/** Bảng nổi phía trên một nút của thanh công cụ chữ. */
+/** Bảng nổi phía dưới một nút của thanh công cụ chữ. */
 function Popover({ label, className, children }: { label: string; className?: string; children: ReactNode }) {
   return (
     <div
@@ -833,7 +833,7 @@ function Popover({ label, className, children }: { label: string; className?: st
       aria-label={label}
       // Thanh công cụ chặn mousedown để không cướp focus của dòng chữ; trong bảng này thì phải cho kéo thanh trượt, gõ số.
       onMouseDown={(e) => e.stopPropagation()}
-      className={cx('absolute bottom-full left-1/2 mb-3 -translate-x-1/2 animate-pop rounded-2xl bg-card p-3.5 shadow-lift ring-1 ring-black/5', className)}
+      className={cx('absolute left-1/2 top-full mt-3 -translate-x-1/2 animate-pop rounded-2xl bg-card p-3.5 shadow-lift ring-1 ring-black/5', className)}
     >
       {children}
     </div>
@@ -953,7 +953,7 @@ const contrast = (hex: string) => {
 
 type Menu = 'color' | 'effects' | 'spacing' | 'opacity'
 
-/** Thanh công cụ ở đáy khung ghép cho dòng chữ đang chọn. `unit`: số px ảnh xuất ứng với 1% cỡ chữ. */
+/** Thanh công cụ phía trên khung ghép (ngay dưới hàng nút trên cùng) cho dòng chữ đang chọn. `unit`: số px ảnh xuất ứng với 1% cỡ chữ. */
 export function TextToolbar({ item, unit }: { item: TextItem; unit: number }) {
   // Dòng chữ nằm trong nhóm: chỉnh ở đây là chỉnh cả nhóm; bấm lần nữa vào một dòng thì chỉ chỉnh dòng đó.
   const count = useStore((s) => styleTargets(s, item.id).length)
@@ -978,7 +978,7 @@ export function TextToolbar({ item, unit }: { item: TextItem; unit: number }) {
 
   return (
     <div
-      className="absolute inset-x-0 bottom-2.5 z-30 flex justify-center px-2.5"
+      className="absolute inset-x-0 top-[52px] z-30 flex justify-center px-2.5"
       // Bấm nút trên thanh này không được lấy focus khỏi dòng chữ đang gõ dở.
       onMouseDown={(e) => e.preventDefault()}
     >

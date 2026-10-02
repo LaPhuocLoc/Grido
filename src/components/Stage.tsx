@@ -406,6 +406,40 @@ export function Stage() {
   // Ô đang hiện khung kích thước thật của ảnh: ô đang kéo, không thì ô đang chọn.
   const frameCell = liveCell >= 0 && layout?.cells[liveCell] ? liveCell : dragging === null ? activeIndex : null
 
+  const zoomControl = (
+    <span className="flex items-center rounded-full bg-card pl-3 shadow-sm">
+      <input
+        type="range"
+        aria-label="Thu phóng khung làm việc"
+        data-tip="Thu phóng khung làm việc (Ctrl + lăn chuột)"
+        className="hidden w-20 lg:block"
+        min={MIN_VIEW_ZOOM}
+        max={MAX_VIEW_ZOOM}
+        step={0.05}
+        value={viewZoom}
+        style={{ '--fill': `${((viewZoom - MIN_VIEW_ZOOM) / (MAX_VIEW_ZOOM - MIN_VIEW_ZOOM)) * 100}%` } as CSSProperties}
+        onChange={(e) => {
+          settle()
+          setViewZoom(clampViewZoom(Number(e.target.value)))
+        }}
+      />
+      <span className="w-11 text-center text-xs font-semibold tabular-nums text-soft lg:ml-1.5" data-tip="Tỉ lệ so với kích thước ảnh xuất">
+        {Math.round(k * 100)}%
+      </span>
+      <IconButton
+        label="Vừa khung"
+        disabled={viewZoom === 1 && pan.x === 0 && pan.y === 0}
+        onClick={() => {
+          bump()
+          setViewZoom(1)
+          setPan({ x: 0, y: 0 })
+        }}
+      >
+        <Maximize className="size-4" />
+      </IconButton>
+    </span>
+  )
+
   return (
     // isolate: các lớp z-index của khung ghép chỉ so với nhau, không trèo lên menu của thanh tiêu đề.
     <div ref={root} className="relative isolate flex h-full min-h-0 flex-col overflow-hidden stage-bg">
@@ -436,39 +470,8 @@ export function Stage() {
               <Redo2 className="size-4" />
             </IconButton>
           </span>
-          {spec && (
-            <span className="flex items-center rounded-full bg-card pl-3 shadow-sm">
-              <input
-                type="range"
-                aria-label="Thu phóng khung làm việc"
-                data-tip="Thu phóng khung làm việc (Ctrl + lăn chuột)"
-                className="hidden w-20 lg:block"
-                min={MIN_VIEW_ZOOM}
-                max={MAX_VIEW_ZOOM}
-                step={0.05}
-                value={viewZoom}
-                style={{ '--fill': `${((viewZoom - MIN_VIEW_ZOOM) / (MAX_VIEW_ZOOM - MIN_VIEW_ZOOM)) * 100}%` } as CSSProperties}
-                onChange={(e) => {
-                  settle()
-                  setViewZoom(clampViewZoom(Number(e.target.value)))
-                }}
-              />
-              <span className="w-11 text-center text-xs font-semibold tabular-nums text-soft lg:ml-1.5" data-tip="Tỉ lệ so với kích thước ảnh xuất">
-                {Math.round(k * 100)}%
-              </span>
-              <IconButton
-                label="Vừa khung"
-                disabled={viewZoom === 1 && pan.x === 0 && pan.y === 0}
-                onClick={() => {
-                  bump()
-                  setViewZoom(1)
-                  setPan({ x: 0, y: 0 })
-                }}
-              >
-                <Maximize className="size-4" />
-              </IconButton>
-            </span>
-          )}
+          {/* Màn hình hẹp: thanh thu phóng nằm ở đây; màn hình rộng thì ở góc dưới bên phải khung làm việc. */}
+          {spec && <span className="lg:hidden">{zoomControl}</span>}
         </div>
         {spec && tree && (
           <div className="pointer-events-auto flex gap-1.5 lg:gap-2">
@@ -498,9 +501,11 @@ export function Stage() {
       <div
         ref={wrap}
         className={cx(
-          'relative mt-14 grid min-h-0 flex-1 place-items-center',
+          'relative grid min-h-0 flex-1 place-items-center',
+          // Thanh công cụ chữ nằm ngay dưới hàng nút trên cùng: chỉ chừa chỗ cho nó khi đang chọn chữ.
+          activeItem ? 'mt-[108px]' : 'mt-14',
           // Chỉ chừa chỗ cho thanh công cụ ảnh khi nó đang hiện, để khung ghép được to nhất có thể trên mobile.
-          active || activeItem ? 'mb-16' : 'mb-3 lg:mb-12',
+          active ? 'mb-16' : 'mb-3 lg:mb-12',
         )}
         onPointerDown={(e) => e.target === e.currentTarget && startMarquee(e)}
         onPointerMove={moveMarquee}
@@ -792,7 +797,7 @@ export function Stage() {
         <TextToolbar item={activeItem} unit={Math.min(size.width, size.height) / 100} />
       ) : (
         spec && (
-          <p className="pointer-events-none absolute inset-x-0 bottom-3 hidden text-center text-xs text-muted lg:block">
+          <p className="pointer-events-none absolute bottom-3 left-56 right-56 hidden text-center text-xs text-muted lg:block">
             {openEmpty
               ? 'Thiết kế vẫn đang mở: khung, viền và chữ được giữ nguyên · chọn ảnh để ghép tiếp · bấm Tạo ở góc trái để làm thiết kế mới'
               : spec.texts.length > 1
@@ -801,6 +806,7 @@ export function Stage() {
           </p>
         )
       )}
+      {spec && <div className="absolute bottom-2.5 right-2.5 z-30 hidden lg:block">{zoomControl}</div>}
     </div>
   )
 }
