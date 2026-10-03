@@ -1,4 +1,31 @@
-import { Dices, FlipHorizontal2, ImageMinus, ImagePlus, Maximize, Move, Redo2, RotateCcw, RotateCw, Shuffle, Undo2 } from 'lucide-react'
+import {
+  ArrowLeftRight,
+  ChevronRight,
+  Dices,
+  Download,
+  FlipHorizontal2,
+  ImageMinus,
+  ImagePlus,
+  Images,
+  LayoutGrid,
+  LoaderCircle,
+  Maximize,
+  MousePointerClick,
+  Move,
+  Redo2,
+  RotateCcw,
+  RotateCw,
+  Shuffle,
+  Sparkles,
+  SquareCheck,
+  SquareDashedMousePointer,
+  Type,
+  Undo2,
+  UnfoldHorizontal,
+  X,
+  ZoomIn,
+  type LucideIcon,
+} from 'lucide-react'
 import { useEffect, useMemo, useRef, useState, type CSSProperties, type PointerEvent as ReactPointerEvent } from 'react'
 import { flushSync } from 'react-dom'
 import { useShallow } from 'zustand/react/shallow'
@@ -7,6 +34,7 @@ import { clamp, DEFAULT_ADJUST, isSideways, MAX_ZOOM, placeImage, type CellAdjus
 import { collageLayout, type CollageSpec } from '../lib/imaging/exportCollage'
 import { MIN_SHARE, moveDivider } from '../lib/layout/compute'
 import type { Divider, LayoutNode, Rect } from '../lib/layout/types'
+import { nextHint, type Hint } from '../lib/onboarding'
 import { buildSpec } from '../lib/useCollage'
 import { clampPan, clampViewZoom, MAX_VIEW_ZOOM, MIN_VIEW_ZOOM, zoomByWheel } from '../lib/view'
 import { canvasSize, currentDesign, useStore } from '../store'
@@ -85,7 +113,8 @@ export function Stage() {
   const canRedo = useStore((s) => s.future.length > 0)
   // Thiết kế đang mở nhưng đã bỏ hết ảnh: vẫn vẽ khung với nền và chữ của nó, để người dùng thấy thiết kế còn nguyên.
   const openEmpty = useStore((s) => !s.tree && currentDesign(s) !== null)
-  const { setAdjust, setActiveCell, setActiveText, swapCells, setTree, shuffle, randomLayout, toggleSelect, undo, redo } =
+  const hintsSeen = useStore((s) => s.hintsSeen)
+  const { setAdjust, setActiveCell, setActiveText, swapCells, setTree, shuffle, randomLayout, toggleSelect, undo, redo, markHint } =
     useStore.getState()
   const { selected, tree } = source
   const size = canvasSize(source)
@@ -269,8 +298,11 @@ export function Stage() {
     drag.current = null
     setDragging(null)
     if (!d) return
-    if (swapTarget !== null) swapCells(d.cell, swapTarget)
-    else if (!d.moved) setActiveCell(activeCell === d.cell ? null : d.cell)
+    if (swapTarget !== null) {
+      swapCells(d.cell, swapTarget)
+      markHint('swap')
+    } else if (!d.moved) setActiveCell(activeCell === d.cell ? null : d.cell)
+    else markHint('pan')
     endLive(d.moved && swapTarget === null)
     setGuides([])
     setSwapTarget(null)
@@ -297,6 +329,7 @@ export function Stage() {
   }
   const onZoomUp = () => {
     endLive(zoomDrag.current !== null)
+    if (zoomDrag.current) markHint('zoom')
     zoomDrag.current = null
   }
 
@@ -323,6 +356,7 @@ export function Stage() {
     settle()
     const { photo, adjust: a } = spec.cells[cell]
     setAdjust(photo.id, { zoom: clamp(a.zoom * Math.exp(-e.deltaY * 0.0015), 1, MAX_ZOOM) })
+    markHint('zoom')
   }
   useEffect(() => {
     const el = root.current!
@@ -372,6 +406,7 @@ export function Stage() {
     marqueeStart.current = null
     if (!marquee) return
     useStore.getState().pickTexts(touching(marquee).map((hit) => hit.id))
+    markHint('marquee')
     setMarquee(null)
     setMarqueeHits([])
   }
@@ -405,6 +440,18 @@ export function Stage() {
   const activeIndex = active && layout?.cells[activeCell!] ? activeCell! : null
   // Ô đang hiện khung kích thước thật của ảnh: ô đang kéo, không thì ô đang chọn.
   const frameCell = liveCell >= 0 && layout?.cells[liveCell] ? liveCell : dragging === null ? activeIndex : null
+
+  // Gợi ý thao tác cho người mới: mỗi lần một cái, làm được rồi thì thôi.
+  const hint =
+    spec && layout
+      ? nextHint({
+          cells: spec.cells.length,
+          // Các dòng trong cùng một nhóm vốn đã đi chung, không cần khoanh vùng.
+          texts: new Set(spec.texts.map((t) => t.group ?? t.id)).size,
+          canPan: spec.cells.some((_, i) => !!layout.cells[i] && frames(i).overflows),
+          seen: hintsSeen,
+        })
+      : null
 
   const zoomControl = (
     <span className="flex items-center rounded-full bg-card pl-3 shadow-sm">
@@ -483,7 +530,7 @@ export function Stage() {
               className="h-9 px-3 text-[13px]"
             >
               <Shuffle className="size-4" />
-              <span className="hidden 2xl:inline">Trộn ảnh</span>
+              <span className="hidden xl:inline">Trộn ảnh</span>
             </Button>
             <Button
               onClick={randomLayout}
@@ -492,7 +539,7 @@ export function Stage() {
               className="h-9 px-3 text-[13px]"
             >
               <Dices className="size-4" />
-              <span className="hidden 2xl:inline">Bố cục ngẫu nhiên</span>
+              <span className="hidden xl:inline">Bố cục ngẫu nhiên</span>
             </Button>
           </div>
         )}
@@ -624,7 +671,10 @@ export function Stage() {
                         setGuides(lines)
                       })
                     }
-                    onCommit={setTree}
+                    onCommit={(next) => {
+                      setTree(next)
+                      markHint('resize')
+                    }}
                   />
                 ))}
               {spec.texts.map((item) => (
@@ -796,15 +846,7 @@ export function Stage() {
       ) : activeItem ? (
         <TextToolbar item={activeItem} unit={Math.min(size.width, size.height) / 100} />
       ) : (
-        spec && (
-          <p className="pointer-events-none absolute bottom-3 left-56 right-56 hidden text-center text-xs text-muted lg:block">
-            {openEmpty
-              ? 'Thiết kế vẫn đang mở: khung, viền và chữ được giữ nguyên · bấm ảnh trong thư viện để mở, hoặc tích nhiều ảnh rồi Ghép · bấm Tạo ở góc trái để làm thiết kế mới'
-              : spec.texts.length > 1
-                ? 'Kéo ảnh để căn khung · thả sang ô khác để đổi chỗ · kéo từ chỗ trống ngoài khung (hoặc giữ Shift rồi kéo trên ảnh) để khoanh vùng chọn nhiều dòng chữ'
-                : 'Kéo ảnh để căn khung · thả sang ô khác để đổi chỗ · bấm ảnh rồi kéo nút ở góc để phóng to · kéo đường viền để đổi kích thước ô'}
-          </p>
-        )
+        hint && <HintChip hint={hint} onClose={() => markHint(hint)} />
       )}
       {spec && <div className="absolute bottom-2.5 right-2.5 z-30 hidden lg:block">{zoomControl}</div>}
     </div>
@@ -942,21 +984,118 @@ function DividerHandle({
   )
 }
 
-function EmptyStage() {
+const HINT_UI: Record<Hint, { icon: LucideIcon; label: string }> = {
+  pan: { icon: Move, label: 'Kéo ảnh để căn trong ô' },
+  zoom: { icon: ZoomIn, label: 'Lăn chuột trên ảnh để phóng to' },
+  swap: { icon: ArrowLeftRight, label: 'Kéo ảnh sang ô khác để đổi chỗ' },
+  resize: { icon: UnfoldHorizontal, label: 'Kéo đường viền giữa hai ô để đổi cỡ' },
+  marquee: { icon: SquareDashedMousePointer, label: 'Kéo từ chỗ trống để chọn nhiều dòng chữ' },
+}
+
+/** Một gợi ý thao tác nhỏ ở đáy khung làm việc; tự mất khi người dùng làm được thao tác đó, hoặc bấm × để bỏ qua. */
+function HintChip({ hint, onClose }: { hint: Hint; onClose: () => void }) {
+  const { icon: Icon, label } = HINT_UI[hint]
   return (
-    <div className="mx-6 max-w-sm animate-rise text-center">
-      <div className="mx-auto grid w-20 -rotate-3 grid-cols-3 grid-rows-3 gap-1.5 rounded-2xl bg-white p-1.5 shadow-lift aspect-[4/5] dark:bg-surface lg:w-40">
+    <div
+      key={hint}
+      className="absolute bottom-3 left-1/2 z-30 hidden -translate-x-1/2 animate-fade items-center gap-2 whitespace-nowrap rounded-full border border-line bg-card py-1 pl-3 pr-1 text-xs font-semibold text-soft shadow-sm lg:flex"
+    >
+      <Icon className="size-3.5 text-coral-dark" />
+      {label}
+      <button
+        type="button"
+        aria-label="Bỏ qua gợi ý"
+        data-tip="Bỏ qua gợi ý này"
+        onClick={onClose}
+        className="grid size-5 place-items-center rounded-full text-muted hover:bg-sand hover:text-ink"
+      >
+        <X className="size-3" />
+      </button>
+    </div>
+  )
+}
+
+/** Bốn bước làm một ảnh ghép, bằng icon; chi tiết từng bước nằm trong chú thích khi rê chuột. */
+const FLOW: { icon: LucideIcon; label: string; tip: string }[] = [
+  { icon: Images, label: 'Thêm ảnh', tip: 'Chọn ảnh hoặc kéo thả cả thư mục. Ảnh dùng ngay tại chỗ, không tải đi đâu cả' },
+  { icon: LayoutGrid, label: 'Ghép', tip: 'Tích nhiều ảnh rồi bấm Ghép. Hơn 800 bố cục, khung đúng cỡ Facebook, Instagram, TikTok' },
+  { icon: Type, label: 'Chữ', tip: 'Hơn 400 mẫu chữ và 500 phông tiếng Việt, gõ thẳng trên ảnh' },
+  { icon: Download, label: 'Xuất', tip: 'Xuất nét như Lightroom, lấy thẳng từ ảnh gốc. Xuất được nhiều thiết kế một lượt' },
+]
+
+function EmptyStage() {
+  // Chưa có ảnh nào (kể cả đang nhập dở): người mới, cần lời mời và đường đi. Có ảnh rồi thì chỉ cần nhắc cách chọn.
+  const fresh = useStore((s) => s.photos.length === 0 && s.imports.length === 0)
+  const [loading, setLoading] = useState(false)
+  const flow = (
+    <ol className="mt-6 hidden items-start justify-center gap-2 lg:flex">
+      {FLOW.map(({ icon: Icon, label, tip }, i) => (
+        <li key={label} className="flex items-start gap-2">
+          {i > 0 && <ChevronRight className="mt-3 size-4 text-muted" />}
+          <span data-tip={tip} className="flex w-16 cursor-help flex-col items-center gap-1.5 text-xs font-semibold text-soft">
+            <span className="grid size-10 place-items-center rounded-2xl bg-card text-ink shadow-sm">
+              <Icon className="size-5" />
+            </span>
+            {label}
+          </span>
+        </li>
+      ))}
+    </ol>
+  )
+
+  if (fresh)
+    return (
+      <div className="mx-6 w-full max-w-md animate-rise text-center">
+        <div className="rounded-3xl border-2 border-dashed border-edge px-5 py-5 lg:py-9">
+          <span className="mx-auto hidden size-12 place-items-center rounded-full bg-blush text-coral-dark lg:grid">
+            <ImagePlus className="size-6" />
+          </span>
+          <h2 className="font-display text-lg font-bold lg:mt-4 lg:text-2xl">Thả ảnh vào đây</h2>
+          <div className="mt-3 flex flex-wrap justify-center gap-2 lg:mt-5">
+            <Button variant="primary" onClick={() => void useStore.getState().pickPhotos()}>
+              <ImagePlus className="size-4" />
+              Thêm ảnh
+            </Button>
+            <Button
+              disabled={loading}
+              data-tip="Nạp vài ảnh mẫu và mở sẵn một ảnh ghép có chữ để bạn vọc thử"
+              onClick={() => {
+                setLoading(true)
+                void useStore
+                  .getState()
+                  .trySamples()
+                  .finally(() => setLoading(false))
+              }}
+            >
+              {loading ? <LoaderCircle className="size-4 animate-spin" /> : <Sparkles className="size-4" />}
+              Thử với ảnh mẫu
+            </Button>
+          </div>
+        </div>
+        {flow}
+      </div>
+    )
+
+  return (
+    <div className="mx-6 max-w-md animate-rise text-center">
+      <div className="mx-auto grid w-20 -rotate-3 grid-cols-3 grid-rows-3 gap-1.5 rounded-2xl bg-white p-1.5 shadow-lift aspect-[4/5] dark:bg-surface lg:w-36">
         <div className="col-span-2 row-span-2 rounded-xl bg-coral" />
         <div className="rounded-xl bg-[#3f6bff]" />
         <div className="rounded-xl bg-[#f4a8c6]" />
         <div className="rounded-xl bg-line" />
         <div className="col-span-2 rounded-xl bg-[#b9a6ff]" />
       </div>
-      <h2 className="mt-5 font-display text-lg font-bold lg:mt-8 lg:text-2xl">Chọn ảnh để bắt đầu ghép</h2>
-      <p className="mt-1.5 text-[13px] leading-relaxed text-soft lg:text-sm">
-        Bấm một ảnh trong thư viện để mở. Muốn ghép nhiều ảnh: tích ô ✓ ở góc các ảnh rồi bấm Ghép, Tiệm Ghép Ảnh sẽ tự xếp
-        bố cục.
-      </p>
+      <h2 className="mt-5 font-display text-lg font-bold lg:mt-7 lg:text-2xl">Chọn ảnh để bắt đầu</h2>
+      <ul className="mt-3 flex flex-wrap justify-center gap-2 text-[13px] font-semibold text-soft">
+        <li className="flex items-center gap-1.5 rounded-full bg-card px-3 py-1.5 shadow-sm">
+          <MousePointerClick className="size-4 text-coral-dark" />
+          Bấm một ảnh để mở
+        </li>
+        <li className="flex items-center gap-1.5 rounded-full bg-card px-3 py-1.5 shadow-sm">
+          <SquareCheck className="size-4 text-coral-dark" />
+          Tích nhiều ảnh rồi bấm Ghép
+        </li>
+      </ul>
     </div>
   )
 }

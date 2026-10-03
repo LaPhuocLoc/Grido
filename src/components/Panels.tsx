@@ -570,14 +570,12 @@ export function TextPanel() {
 const FORMATS: { value: ExportFormat; label: string }[] = [
   { value: 'image/jpeg', label: 'JPEG' },
   { value: 'image/png', label: 'PNG' },
-  { value: 'image/webp', label: 'WebP' },
 ]
 
 /** Một dòng ngắn dưới bảng cài đặt: định dạng này hợp cho việc gì. */
 const FORMAT_NOTES: Record<ExportFormat, string> = {
   'image/jpeg': 'Đăng mạng xã hội · sRGB, giữ EXIF như Lightroom',
   'image/png': 'Không nén mất dữ liệu · file nặng',
-  'image/webp': 'Nhẹ hơn JPEG · vài nền tảng cũ chưa nhận',
 }
 
 const SHARPEN_LEVELS: { value: ExportSharpen; label: string }[] = [
@@ -616,7 +614,8 @@ function ExportWarning({ tip, children }: { tip: string; children: ReactNode }) 
   )
 }
 
-export function ExportPanel() {
+/** `onLeave`: gọi khi người dùng rời bảng này sang hộp thoại khác (bảng đang nằm trong một popup thì đóng popup lại). */
+export function ExportPanel({ onLeave }: { onLeave?: () => void } = {}) {
   const state = useStore()
   const { exportFormat, exportQuality, exportSharpen, set } = state
   const progress = useExportProgress((s) => s.progress)
@@ -654,7 +653,7 @@ export function ExportPanel() {
       </div>
 
       <div className="divide-y divide-line rounded-2xl border border-line bg-surface">
-        <ExportRow label="Định dạng" tip="JPEG để đăng mạng xã hội, PNG khi cần nét tuyệt đối, WebP khi cần file nhẹ.">
+        <ExportRow label="Định dạng" tip="JPEG để đăng mạng xã hội, PNG khi cần nét tuyệt đối.">
           <Segmented small value={exportFormat} options={FORMATS} onChange={(v) => set({ exportFormat: v })} />
         </ExportRow>
         {exportFormat !== 'image/png' && (
@@ -717,7 +716,12 @@ export function ExportPanel() {
               : 'Xuất ảnh ghép…'}
         </Button>
         {canExportMany() && exportable > 1 && (
-          <Button className="h-10 w-full text-[13px]" disabled={progress !== null} onClick={openBatchExport}>
+          <Button className="h-10 w-full text-[13px]" disabled={progress !== null}
+            onClick={() => {
+              onLeave?.()
+              openBatchExport()
+            }}
+          >
             <Images className="size-4" />
             Xuất nhiều thiết kế…
           </Button>

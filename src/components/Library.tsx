@@ -10,7 +10,6 @@ import {
   Grid2x2,
   Grid3x3,
   ImagePlus,
-  Lightbulb,
   ListChecks,
   Search,
   Square,
@@ -189,7 +188,7 @@ const Tile = memo(function Tile({
           </span>
         )}
       </button>
-      {/* Ô tích ở góc: hiện khi rê chuột (luôn hiện ở chế độ "Chọn"); bấm vào là tích ảnh để ghép / xoá nhiều ảnh. */}
+      {/* Ô tích ở góc: luôn hiện mờ (rõ lên khi rê chuột hoặc ở chế độ "Chọn"); bấm vào là tích ảnh để ghép / xoá nhiều ảnh. */}
       {!doomed && (
         <button
           type="button"
@@ -204,7 +203,7 @@ const Tile = memo(function Tile({
             (picking && selected) || swept
               ? 'border-coral bg-coral text-white shadow'
               : 'border-white/90 bg-black/30 text-transparent shadow-sm hover:bg-black/50',
-            !picking && !swept && 'opacity-0 focus-visible:opacity-100 group-hover:opacity-100',
+            !picking && !swept && 'opacity-55 focus-visible:opacity-100 group-hover:opacity-100',
           )}
         >
           <Check className="size-3.5" strokeWidth={3.5} />
@@ -474,7 +473,6 @@ export function Library() {
   const photoAlbum = useStore((s) => s.photoAlbum)
   const collapsedAlbums = useStore((s) => s.collapsedAlbums)
   const replacing = useStore((s) => s.activeCell !== null)
-  const tipSeen = useStore((s) => s.libraryTipSeen)
   const zoom = useStore((s) => s.libraryZoom)
   const {
     pickPhotos,
@@ -1156,19 +1154,8 @@ export function Library() {
         )}
 
         {albums.length === 0 && photos.length === 0 && imports.length === 0 ? (
-            // Thư viện trống thì còn nguyên chỗ: đây là nơi đặt lời mời và hướng dẫn đầy đủ.
-            <button
-              type="button"
-              onClick={() => void pickPhotos()}
-              className="group mt-4 flex w-full animate-rise flex-col items-center rounded-2xl border-2 border-dashed border-edge bg-card px-4 py-8 text-center transition-all duration-200 hover:border-coral hover:bg-surface active:scale-[0.98]"
-            >
-              <span className="grid size-12 place-items-center rounded-full bg-blush text-coral-dark transition-transform duration-300 ease-glide group-hover:rotate-6 group-hover:scale-110">
-                <ImagePlus className="size-6" />
-              </span>
-              <span className="mt-4 font-display text-base font-bold text-ink">Thêm ảnh để bắt đầu ghép</span>
-              <span className="mt-1 text-[13px] leading-relaxed text-soft">Bấm vào đây để chọn, hoặc kéo thả ảnh / cả thư mục vào cửa sổ.</span>
-              <span className="mt-3 text-xs leading-relaxed text-muted">Ảnh được dùng ngay tại chỗ trên máy bạn, không sao chép và không tải đi đâu cả.</span>
-            </button>
+          // Thư viện trống: lời mời thêm ảnh và các bước nằm ở khung làm việc bên cạnh, ở đây không lặp lại.
+          <p className="mt-6 text-center text-xs text-muted">Chưa có ảnh nào</p>
         ) : searching && !visible.length ? (
           <p className="mt-6 px-4 text-center text-[13px] leading-relaxed text-soft">
             Không có ảnh nào khớp “{query.trim()}”.
@@ -1239,19 +1226,26 @@ export function Library() {
           <span className="min-w-0 flex-1 truncate px-1.5 text-[13px] font-semibold tabular-nums">
             {pickedCount ? `Đã chọn ${pickedCount}` : 'Chọn ảnh…'}
           </span>
-          <BarButton
-            label={
+          {/* Việc chính của chế độ này nên là nút duy nhất có chữ. aria-disabled: nút bị khoá vẫn hiện được chú thích. */}
+          <button
+            type="button"
+            aria-disabled={!pickedCount || pickedCount > MAX_PHOTOS}
+            data-tip={
               pickedCount > MAX_PHOTOS
                 ? `Ghép tối đa ${MAX_PHOTOS} ảnh: bỏ bớt ${pickedCount - MAX_PHOTOS} ảnh`
                 : pickedCount
-                  ? `Ghép ${pickedCount} ảnh này`
-                  : 'Ghép ảnh: tích chọn ảnh trước'
+                  ? `Ghép ${pickedCount} ảnh này thành một ảnh`
+                  : 'Tích chọn ảnh trước'
             }
-            disabled={!pickedCount || pickedCount > MAX_PHOTOS}
-            onClick={compose}
+            onClick={() => pickedCount > 0 && pickedCount <= MAX_PHOTOS && compose()}
+            className={cx(
+              'mr-0.5 flex h-9 shrink-0 items-center gap-1.5 rounded-full bg-white pl-2.5 pr-3.5 text-[13px] font-bold text-[#1b1b2b] transition',
+              !pickedCount || pickedCount > MAX_PHOTOS ? 'cursor-default opacity-35' : 'hover:brightness-95 active:scale-95',
+            )}
           >
-            <ComposeIcon className="size-5" />
-          </BarButton>
+            <ComposeIcon className="size-4.5" />
+            Ghép
+          </button>
           <BarButton
             label={`${allPicked ? 'Bỏ chọn hết' : searching ? 'Chọn hết kết quả tìm' : 'Chọn hết'} (Ctrl+A)`}
             disabled={!order.length}
@@ -1272,25 +1266,6 @@ export function Library() {
           <BarButton label="Xoá khỏi thư viện" danger disabled={!pickedCount} onClick={() => setDoomed(pickedInOrder())}>
             <Trash2 className="size-4.5" />
           </BarButton>
-        </div>
-      )}
-
-      {/* Mẹo cho người mới: một dải mỏng ở đáy, đóng một lần là thôi. */}
-      {!tipSeen && !picking && photos.length > 0 && (
-        <div className="flex animate-fade items-start gap-2 border-t border-line bg-card px-3 py-2 lg:px-4">
-          <Lightbulb className="mt-0.5 size-3.5 shrink-0 text-amber" />
-          <p className="min-w-0 flex-1 text-xs leading-snug text-soft">
-            <b className="text-ink">Bấm</b> ảnh để mở · <b className="text-ink">tích ✓</b> để chọn nhiều rồi ghép · <b className="text-ink">kéo</b> để xếp album · <b className="text-ink">chuột phải</b> để xem thêm
-          </p>
-          <button
-            type="button"
-            aria-label="Ẩn mẹo"
-            data-tip="Ẩn mẹo"
-            onClick={() => set({ libraryTipSeen: true })}
-            className="-mr-1 grid size-5 shrink-0 place-items-center rounded-full text-muted hover:bg-sand hover:text-ink"
-          >
-            <X className="size-3.5" />
-          </button>
         </div>
       )}
 

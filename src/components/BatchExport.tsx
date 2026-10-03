@@ -12,7 +12,7 @@ const useBatchExport = create<{ open: boolean }>(() => ({ open: false }))
 export const openBatchExport = () => useBatchExport.setState({ open: true })
 const close = () => useBatchExport.setState({ open: false })
 
-const FORMAT_NAME: Record<ExportFormat, string> = { 'image/jpeg': 'JPEG', 'image/png': 'PNG', 'image/webp': 'WebP' }
+const FORMAT_NAME: Record<ExportFormat, string> = { 'image/jpeg': 'JPEG', 'image/png': 'PNG' }
 const SHARPEN_NAME = { off: 'tắt', low: 'thấp', standard: 'vừa', high: 'cao' } as const
 
 /** Số thiết kế xuất được (đã có ảnh): nút "Xuất nhiều" chỉ hiện khi có từ hai cái trở lên. */

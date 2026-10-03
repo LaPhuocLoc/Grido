@@ -40,7 +40,7 @@ export function buildSpec(s: SpecSource, scale = 1): CollageSpec | null {
   }
 }
 
-const EXT: Record<ExportFormat, string> = { 'image/jpeg': 'jpg', 'image/png': 'png', 'image/webp': 'webp' }
+const EXT: Record<ExportFormat, string> = { 'image/jpeg': 'jpg', 'image/png': 'png' }
 
 /**
  * Mức làm nét đầu ra → cường độ (xem `sharpen.ts`). "Cao" = 1 được dò khớp Output Sharpening: Screen · High của Lightroom;
@@ -206,6 +206,8 @@ export async function exportToFile() {
         desktop.features.reveal ? { label: 'Mở thư mục', run: () => void desktop.exportFile.reveal(target) } : undefined,
       )
     warnQuality(fromPreview, bytes)
+    // Đã xuất được ảnh đầu tiên: người mới không cần chấm chỉ đường nữa.
+    s.set({ guideDone: true })
   } catch (err) {
     s.toast((err as Error).message || 'Xuất ảnh thất bại, thử lại nhé.', 'error')
   } finally {

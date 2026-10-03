@@ -10,6 +10,7 @@ import { getLayouts, MAX_PHOTOS } from './lib/layout/registry'
 import type { LayoutNode } from './lib/layout/types'
 import { albumName, pruneAlbumMap, type Album } from './lib/albums'
 import { copyName, designTitle } from './lib/designs'
+import { GUIDE_TABS, HINTS, SAMPLE_COLLAGE, SAMPLES, type Hint } from './lib/onboarding'
 import { placeTemplate, type TextTemplate } from './lib/templates'
 import { normalizeText, type TextItem } from './lib/text'
 import type { TextPatches } from './lib/textGroup'
@@ -44,7 +45,7 @@ export interface Toast {
   action?: { label: string; run: () => void }
 }
 
-export type Tab = 'designs' | 'library' | 'layout' | 'size' | 'style' | 'text' | 'export'
+export type Tab = 'designs' | 'library' | 'layout' | 'size' | 'style' | 'text'
 
 /** Bố cục người dùng tự lưu (giữ cả tỉ lệ ô đã kéo chỉnh). */
 export interface SavedLayout {
@@ -62,7 +63,8 @@ const TOAST_EXIT_MS = 220
 
 export type Theme = 'system' | 'light' | 'dark'
 
-export type ExportFormat = 'image/jpeg' | 'image/png' | 'image/webp'
+export type ExportFormat = 'image/jpeg' | 'image/png'
+const EXPORT_FORMATS: ExportFormat[] = ['image/jpeg', 'image/png']
 /** Mức làm nét đầu ra khi xuất (bù phần chi tiết mềm đi sau khi thu nhỏ). */
 export type ExportSharpen = 'off' | 'low' | 'standard' | 'high'
 
@@ -83,8 +85,12 @@ interface Settings {
   leftCollapsed: boolean
   /** Bề rộng bảng công cụ của sidebar (px), đổi bằng cách kéo mép phải của nó. */
   panelWidth: number
-  /** Người dùng đã đóng dải mẹo thao tác ở cuối thư viện. */
-  libraryTipSeen: boolean
+  /** Dẫn đường cho người mới (lib/onboarding): các mục đã ghé khi đang có ảnh trên khung. */
+  guideVisited: string[]
+  /** Đã xuất ảnh lần đầu: không cần chấm chỉ bước tiếp theo nữa. */
+  guideDone: boolean
+  /** Các gợi ý thao tác trên khung ghép đã làm được (hoặc đã đóng). */
+  hintsSeen: string[]
   /** Cỡ ảnh trong thư viện: 0 nhỏ (xem được nhiều), 1 vừa, 2 lớn. */
   libraryZoom: number
   /** Cách xem kho font: lưới ảnh mẫu, hoặc danh sách viết câu chữ đang chọn bằng từng font. */
@@ -250,6 +256,10 @@ interface State extends Settings {
   undo: () => void
   redo: () => void
   set: (patch: Partial<Settings>) => void
+  /** Người dùng vừa làm được (hoặc đóng) một gợi ý thao tác: không hiện lại nữa. */
+  markHint: (hint: Hint) => void
+  /** Người mới chưa có ảnh: nạp bộ ảnh mẫu đóng kèm app rồi mở sẵn một ảnh ghép có chữ để thử. */
+  trySamples: () => Promise<void>
   toast: (message: string, kind?: Toast['kind'], action?: Toast['action']) => void
 }
 
@@ -414,7 +424,9 @@ export const useStore = create<State>()(
       theme: 'system',
       leftCollapsed: false,
       panelWidth: PANEL_WIDTH,
-      libraryTipSeen: false,
+      guideVisited: [],
+      guideDone: false,
+      hintsSeen: [],
       libraryZoom: 2,
       fontView: 'list',
 
@@ -836,6 +848,32 @@ export const useStore = create<State>()(
 
       set: (patch) => set(patch),
 
+      markHint: (hint) => set((s) => (s.hintsSeen.includes(hint) ? {} : { hintsSeen: [...s.hintsSeen, hint] })),
+
+      trySamples: async () => {
+        try {
+          const files = await Promise.all(
+            SAMPLES.map(async (name) => {
+              const response = await fetch(`/samples/${name}.jpg`)
+              if (!response.ok) throw new Error(String(response.status))
+              return new File([await response.blob()], `${name}.jpg`, { type: 'image/jpeg' })
+            }),
+          )
+          await get().importFiles(files)
+        } catch {
+          return get().toast('Không tải được ảnh mẫu. Kiểm tra mạng rồi thử lại nhé.', 'error')
+        }
+        const s = get()
+        const ids = SAMPLE_COLLAGE.cells.flatMap((name) => s.photos.find((p) => p.name === name)?.id ?? [])
+        // Trong lúc chờ người dùng đã tự mở ảnh khác thì thôi, không giành khung của họ.
+        if (ids.length !== SAMPLE_COLLAGE.cells.length || s.selected.length) return
+        s.replaceSelection(ids)
+        const size = SIZE_PRESETS.find((p) => p.id === SAMPLE_COLLAGE.preset)
+        set({ layoutId: SAMPLE_COLLAGE.layout, tree: parseLayout(SAMPLE_COLLAGE.layout), ...(size && { presetId: size.id }) })
+        const group = `g${Date.now().toString(36)}${seq++}`
+        set({ texts: SAMPLE_COLLAGE.texts.map((t) => normalizeText({ ...t, id: `t${Date.now().toString(36)}${seq++}`, group })) })
+      },
+
       toast: (message, kind = 'info', action) => {
         // Bấm liên tục vào cùng một giới hạn thì không xếp chồng thông báo giống hệt nhau.
         if (get().toasts.some((t) => t.message === message && !t.leaving)) return
@@ -852,7 +890,7 @@ export const useStore = create<State>()(
       storage: lazyStorage(),
       // Số hiệu cấu trúc dữ liệu lưu. Đổi cấu trúc theo cách `merge` bên dưới không tự xử lý được thì tăng số này và
       // chuyển dữ liệu cũ trong `migrate`. Hiện mọi bản cũ (kể cả bản chưa có số hiệu) đều đọc được nguyên trạng.
-      version: 5,
+      version: 6,
       migrate: (saved, version): Persisted => {
         let s = saved as Persisted
         // Bản 2: bảng phông chữ mặc định xem dạng danh sách; ai đang để lưới ảnh mẫu từ bản cũ cũng chuyển sang một lần.
@@ -864,6 +902,8 @@ export const useStore = create<State>()(
         if (version < 4) s = { ...s, exportSharpen: 'off' }
         // Bản 5: thư viện mặc định hiện ảnh cỡ lớn.
         if (version < 5) s = { ...s, libraryZoom: 2 }
+        // Bản 6: có dẫn đường cho người mới. Ai đã từng làm thiết kế thì coi như đã quen app, không chỉ dẫn lại.
+        if (version < 6 && s.designs?.length) s = { ...s, guideDone: true, hintsSeen: [...HINTS] }
         return s
       },
       // Lưu cả cài đặt lẫn bản nháp đang ghép, để lần sau mở app làm tiếp được ngay.
@@ -883,7 +923,9 @@ export const useStore = create<State>()(
         leftCollapsed: s.leftCollapsed,
         panelWidth: s.panelWidth,
         recentFonts: s.recentFonts,
-        libraryTipSeen: s.libraryTipSeen,
+        guideVisited: s.guideVisited,
+        guideDone: s.guideDone,
+        hintsSeen: s.hintsSeen,
         libraryZoom: s.libraryZoom,
         fontView: s.fontView,
         designs: s.designs,
@@ -903,6 +945,8 @@ export const useStore = create<State>()(
           ...current,
           ...persisted,
           ...(retired && { presetId: CUSTOM_PRESET_ID, customW: retired.width, customH: retired.height }),
+          // WebP không còn là định dạng xuất (kể cả trong file sao lưu cũ).
+          ...(!EXPORT_FORMATS.includes(persisted.exportFormat as ExportFormat) && { exportFormat: current.exportFormat }),
           texts: (persisted.texts ?? []).map(normalizeText),
           designs: (persisted.designs ?? []).map((d) => ({ ...d, snapshot: { ...d.snapshot, texts: d.snapshot.texts.map(normalizeText) } })),
         }
@@ -910,6 +954,13 @@ export const useStore = create<State>()(
     },
   ),
 )
+
+// Dẫn đường cho người mới: ghi lại mục vừa mở khi đang có ảnh trên khung, để chấm chỉ sang mục kế tiếp.
+useStore.subscribe((s, prev) => {
+  if (s.guideDone || !hasCollage(s) || s.leftCollapsed) return
+  if (s.tab === prev.tab && s.leftCollapsed === prev.leftCollapsed && hasCollage(prev)) return
+  if ((GUIDE_TABS as readonly string[]).includes(s.tab) && !s.guideVisited.includes(s.tab)) useStore.setState({ guideVisited: [...s.guideVisited, s.tab] })
+})
 
 const designId = () => `d${Date.now().toString(36)}${seq++}`
 

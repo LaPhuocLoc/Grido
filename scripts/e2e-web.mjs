@@ -105,6 +105,16 @@ const LIBRARY = `
     text: document.body.innerText,
   }`
 
+/** Màn hình của người mới: lời mời ở khung làm việc, dải công cụ và nút Xuất ảnh trên thanh tiêu đề. */
+const FIRST_RUN = `
+  const buttons = [...document.querySelectorAll('button')]
+  return {
+    text: document.querySelector('main').innerText,
+    samples: buttons.some((b) => b.textContent.includes('Thử với ảnh mẫu')),
+    exportDisabled: !!buttons.find((b) => b.textContent.includes('Xuất ảnh'))?.disabled,
+    rail: [...document.querySelectorAll('nav[aria-label="Công cụ"] button[aria-pressed]')].map((b) => b.innerText.trim()),
+  }`
+
 let failed = 0
 function check(name, ok, detail = '') {
   if (!ok) failed++
@@ -121,6 +131,10 @@ try {
   check('app chạy ở chế độ web', boot.platform === 'web')
   check('service worker đã đăng ký', boot.sw)
 
+  const first = await chrome.evaluate(FIRST_RUN)
+  check('lần đầu mở: lời mời thả ảnh, nút thử ảnh mẫu, nút Xuất ảnh còn khoá', /Thả ảnh vào đây/.test(first.text) && first.samples && first.exportDisabled, JSON.stringify(first))
+  check('dải công cụ theo thứ tự làm việc, không còn mục Xuất', first.rail.join(' ') === 'Ảnh Bố cục Khung Viền Chữ Thiết kế', first.rail.join(' '))
+
   await chrome.drop(photos)
   await wait(5000)
   let lib = await chrome.evaluate(LIBRARY)
@@ -131,6 +145,19 @@ try {
   await wait(2500)
   lib = await chrome.evaluate(LIBRARY)
   check('thả lại thư mục đó thì báo trùng, không thêm ảnh', lib.tiles === 3 && /3 ảnh đã có sẵn/.test(lib.text))
+
+  // Mở một ảnh: nút Xuất ảnh trên thanh tiêu đề bật lên, bấm thì bung bảng cài đặt xuất ngay bên dưới.
+  const popup = await chrome.evaluate(`
+    document.querySelector('[data-photo] button').click()
+    await new Promise((r) => setTimeout(r, 800))
+    const button = [...document.querySelectorAll('header button')].find((b) => b.textContent.includes('Xuất ảnh'))
+    const enabled = !button.disabled
+    button.click()
+    await new Promise((r) => setTimeout(r, 500))
+    const text = document.querySelector('[role=dialog][aria-label="Xuất ảnh"]')?.innerText ?? ''
+    window.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape' }))
+    return { enabled, text }`)
+  check('có ảnh trên khung thì nút Xuất ảnh mở bảng xuất (JPEG / PNG)', popup.enabled && /JPEG/.test(popup.text) && /PNG/.test(popup.text) && !/WebP/.test(popup.text), popup.text)
 
   await chrome.send('Network.enable')
   await chrome.send('Network.emulateNetworkConditions', { offline: true, latency: 0, downloadThroughput: 0, uploadThroughput: 0 })

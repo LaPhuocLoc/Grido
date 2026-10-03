@@ -22,3 +22,6 @@ font/
 # Token Netlify dùng để tạo secret cho CI: không bao giờ đưa lên repo
 docs/netlify-token.txt
 *-token.txt
+
+# Ảnh mẫu gốc của người dùng; bản đã thu nhỏ nằm ở public/samples
+sample-img/

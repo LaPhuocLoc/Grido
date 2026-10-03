@@ -470,13 +470,98 @@ describe('text', () => {
   })
 })
 
-describe('library tips', () => {
-  it('shows the tips until they are dismissed, and remembers that after a restart', async () => {
-    expect(get().libraryTipSeen).toBe(false)
-    get().set({ libraryTipSeen: true })
+describe('newcomer guide', () => {
+  it('remembers which hints were done across a restart, each one once', async () => {
+    expect(get().hintsSeen).toEqual([])
+    get().markHint('pan')
+    get().markHint('pan')
+    get().markHint('swap')
     vi.advanceTimersByTime(1000)
     await boot()
-    expect(get().libraryTipSeen).toBe(true)
+    expect(get().hintsSeen).toEqual(['pan', 'swap'])
+  })
+
+  it('notes the editing tabs opened while a collage is on the frame', () => {
+    mod.useStore.setState({ tab: 'layout' })
+    // Chưa có ảnh trên khung: mục Bố cục còn trống nên chưa tính là đã ghé.
+    expect(get().guideVisited).toEqual([])
+    mod.useStore.setState({ tab: 'library' })
+    get().replaceSelection(['p1', 'p2'])
+    mod.useStore.setState({ tab: 'text' })
+    mod.useStore.setState({ tab: 'designs' })
+    mod.useStore.setState({ tab: 'layout' })
+    expect(get().guideVisited).toEqual(['text', 'layout'])
+  })
+
+  it('counts the tab that was already open when the collage appears', () => {
+    mod.useStore.setState({ tab: 'style' })
+    get().replaceSelection(['p1', 'p2'])
+    expect(get().guideVisited).toEqual(['style'])
+  })
+
+  it('stops noting tabs after the first export', () => {
+    get().replaceSelection(['p1', 'p2'])
+    get().set({ guideDone: true })
+    mod.useStore.setState({ tab: 'text' })
+    expect(get().guideVisited).toEqual([])
+  })
+
+  it('treats someone who already has designs as past the guide when upgrading', async () => {
+    get().replaceSelection(['p1', 'p2'])
+    vi.advanceTimersByTime(1000)
+    const saved = JSON.parse(localStorage.getItem('grido-settings')!)
+    delete saved.state.guideDone
+    delete saved.state.hintsSeen
+    localStorage.setItem('grido-settings', JSON.stringify({ ...saved, version: 5 }))
+    await boot()
+    expect(get().guideDone).toBe(true)
+    expect(get().hintsSeen).toEqual(['pan', 'zoom', 'swap', 'resize', 'marquee'])
+  })
+
+  it('keeps guiding a returning user who never made a design', async () => {
+    get().set({ theme: 'dark' })
+    vi.advanceTimersByTime(1000)
+    const saved = JSON.parse(localStorage.getItem('grido-settings')!)
+    localStorage.setItem('grido-settings', JSON.stringify({ ...saved, version: 5 }))
+    await boot()
+    expect(get().guideDone).toBe(false)
+  })
+
+  it('falls back to JPEG when the saved export format is no longer offered', async () => {
+    get().set({ exportFormat: 'image/png' })
+    vi.advanceTimersByTime(1000)
+    const saved = JSON.parse(localStorage.getItem('grido-settings')!)
+    saved.state.exportFormat = 'image/webp'
+    localStorage.setItem('grido-settings', JSON.stringify(saved))
+    await boot()
+    expect(get().exportFormat).toBe('image/jpeg')
+  })
+})
+
+describe('sample photos', () => {
+  const stubFetch = (ok = true) => vi.stubGlobal('fetch', vi.fn(async () => ({ ok, status: ok ? 200 : 404, blob: async () => new Blob(['x'], { type: 'image/jpeg' }) })))
+  afterEach(() => vi.unstubAllGlobals())
+
+  it('imports the bundled photos and opens a ready-made collage with a caption', async () => {
+    await boot([])
+    stubFetch()
+    await get().trySamples()
+    expect(get().photos.map((p) => p.name).sort()).toEqual(['hai-chu-meo', 'may-ban-nuoc', 'nui-phu-si', 'onomichi', 'pho-tuyet', 'ponyo'])
+    const name = (id: string) => get().photos.find((p) => p.id === id)!.name
+    expect(get().selected.map(name)).toEqual(['onomichi', 'nui-phu-si', 'pho-tuyet', 'ponyo'])
+    expect(get()).toMatchObject({ layoutId: 'V(2:*,H3)', presetId: 'ig-portrait', activeText: null })
+    expect(get().texts.map((t) => t.text)).toEqual(['NHẬT BẢN', 'những ngày rong chơi'])
+    expect(new Set(get().texts.map((t) => t.group)).size).toBe(1)
+    // Thành một thiết kế đã lưu như mọi ảnh ghép khác.
+    expect(get().designs).toHaveLength(1)
+  })
+
+  it('says so when the samples cannot be fetched and leaves the library alone', async () => {
+    await boot([])
+    stubFetch(false)
+    await get().trySamples()
+    expect(get().photos).toEqual([])
+    expect(get().toasts.map((t) => t.kind)).toEqual(['error'])
   })
 })
 

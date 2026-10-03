@@ -146,7 +146,8 @@ tests/                 Bộ test (Vitest)
 - **Bản web lưu ảnh xuất vào một thư mục chọn một lần** (trình duyệt không mở được trình quản lý file, nên phần Xuất luôn
   ghi rõ thư mục đó và file vừa xuất, có nút xem lại). Xuất một ảnh thì file mang tên ảnh, trùng tên thì thêm "(2)".
   Quyền đọc ảnh gốc / ghi thư mục chỉ được hỏi lúc bấm Xuất, bằng một hộp nhắc chọn "Cho phép mỗi lần truy cập".
-- **Xuất nhiều thiết kế một lượt** (bản web): nút "Xuất nhiều thiết kế…" ở tab Xuất hoặc nút tải xuống cạnh "Thiết kế
+- **Dẫn đường cho người mới** (`src/lib/onboarding.ts`): màn hình đầu có nút "Thử với ảnh mẫu" (ảnh trong `public/samples`) và bốn bước Thêm ảnh → Ghép → Chữ → Xuất; một chấm trên dải công cụ chỉ mục nên bấm tiếp theo, hết sau lần xuất đầu tiên; gợi ý thao tác trên khung hiện từng cái một, làm được rồi thì thôi. Bảng phím tắt nằm trong menu ⚙.
+- **Xuất nhiều thiết kế một lượt** (bản web): nút "Xuất nhiều thiết kế…" trong bảng Xuất ảnh (nút Xuất ảnh ở góc trên phải) hoặc nút tải xuống cạnh "Thiết kế
   mới". Chọn các thiết kế (mặc định chọn hết), mọi file dùng chung cài đặt xuất, đặt tên theo tên thiết kế (thiết kế một
   ảnh: theo tên ảnh), lưu vào thư mục xuất.
 - Preview và export dùng chung một hàm hình học (`placeImage`, `collageLayout`) nên file xuất ra khớp với những gì thấy trên màn hình.

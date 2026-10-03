@@ -11,6 +11,7 @@ import {
   Images,
   ImageOff,
   Info,
+  Keyboard,
   LayoutGrid,
   LoaderCircle,
   MonitorDown,
@@ -30,9 +31,11 @@ import { AccessDialog } from './components/AccessDialog'
 import { BatchExportDialog } from './components/BatchExport'
 import { DataDialog } from './components/DataDialog'
 import { DesignsPanel } from './components/Designs'
+import { ShortcutsDialog } from './components/ShortcutsDialog'
 import { Library } from './components/Library'
 import { designTitle } from './lib/designs'
 import { installApp, installHint, useInstall } from './lib/install'
+import { nextStep, type GuideTarget } from './lib/onboarding'
 import { toggleGroup, toggleStyle } from './components/TextLayer'
 import { ExportPanel, LayoutPanel, SizePanel, StylePanel, TextPanel } from './components/Panels'
 import { Stage } from './components/Stage'
@@ -41,15 +44,41 @@ import { desktop } from './lib/desktop'
 import { exportToFile, useExportProgress } from './lib/useCollage'
 import { currentDesign, PANEL_WIDTH, PANEL_WIDTH_WIDE, useStore, type Tab } from './store'
 
-const TABS: { id: Tab; label: string; icon: LucideIcon }[] = [
-  { id: 'designs', label: 'Thiết kế', icon: FolderHeart },
+type TabItem = { id: Tab; label: string; icon: LucideIcon }
+
+/** Các bước làm một ảnh ghép, theo đúng thứ tự làm việc. */
+const STEPS: TabItem[] = [
   { id: 'library', label: 'Ảnh', icon: Images },
   { id: 'layout', label: 'Bố cục', icon: LayoutGrid },
   { id: 'size', label: 'Khung', icon: Crop },
   { id: 'style', label: 'Viền', icon: SlidersHorizontal },
   { id: 'text', label: 'Chữ', icon: Type },
-  { id: 'export', label: 'Xuất', icon: Download },
 ]
+/** Kho thiết kế đã lưu: không phải một bước làm việc nên đứng riêng ở cuối. */
+const DESIGNS: TabItem = { id: 'designs', label: 'Thiết kế', icon: FolderHeart }
+
+/** Người mới: mục nên bấm tiếp theo (lib/onboarding). Hết sau lần xuất ảnh đầu tiên. */
+const useGuide = (): GuideTarget | null =>
+  useStore((s) => nextStep({ done: s.guideDone, cells: s.tree ? s.selected.length : 0, visited: s.guideVisited }))
+
+/** Chấm nhấp nháy chỉ mục nên bấm tiếp theo. */
+function GuideDot({ className }: { className?: string }) {
+  return (
+    <span aria-hidden className={cx('pointer-events-none absolute grid size-2.5 place-items-center', className)}>
+      <span className="absolute inset-0 animate-ping rounded-full bg-coral opacity-70" />
+      <span className="size-2 rounded-full bg-coral ring-2 ring-card" />
+    </span>
+  )
+}
+
+const INSTALL_TIP = 'Cài thành ứng dụng: mở nhanh từ máy, chạy cả khi mất mạng, không bị hỏi quyền lại mỗi lần xuất'
+
+/** Nút "Cài app" (bản web): null khi không cần hiện (đang chạy trong app đã cài, hoặc bản desktop). */
+function useInstallAction(): (() => void) | null {
+  const install = useInstall((s) => s.state)
+  if (install !== 'ready' && install !== 'manual') return null
+  return () => void installApp().then((ok) => ok || useStore.getState().toast(installHint(install)))
+}
 
 /** Bề rộng dải biểu tượng của sidebar trái (px). */
 const RAIL_WIDTH = 64
@@ -209,7 +238,6 @@ function Editor() {
         {tab === 'layout' && <LayoutPanel />}
         {tab === 'style' && <StylePanel />}
         {tab === 'text' && <TextPanel />}
-        {tab === 'export' && <ExportPanel />}
       </div>
     )
 
@@ -257,6 +285,25 @@ function Editor() {
 
 /** Dải biểu tượng luôn hiện ở mép trái: chọn mục nào thì bảng bên cạnh mở ra mục đó. */
 function Rail({ active, onSelect }: { active: Tab | null; onSelect: (tab: Tab) => void }) {
+  const guide = useGuide()
+  const install = useInstallAction()
+  const item = (current: boolean) =>
+    cx(
+      'group flex w-full shrink-0 flex-col items-center gap-1 rounded-xl py-1.5 text-[11px] font-semibold transition-colors focus-visible:-outline-offset-2',
+      current ? 'text-coral-dark' : 'text-soft hover:text-ink',
+    )
+  const tabButton = ({ id, label, icon: Icon }: TabItem) => {
+    const current = active === id
+    return (
+      <button key={id} type="button" aria-pressed={current} aria-expanded={current} onClick={() => onSelect(id)} className={item(current)}>
+        <span className={cx('relative grid h-8 w-11 place-items-center rounded-xl transition-colors duration-200', current ? 'bg-blush' : 'group-hover:bg-sand')}>
+          <Icon className={cx('size-5 transition-transform duration-300 ease-glide', current && 'scale-110')} />
+          {guide === id && !current && <GuideDot className="right-1 top-0.5" />}
+        </span>
+        {label}
+      </button>
+    )
+  }
   return (
     <nav aria-label="Công cụ" className="scroll-soft flex min-h-0 flex-col gap-1 overflow-y-auto border-r border-line bg-card px-1 py-2.5">
       {/* Luôn ở đầu dải: bắt đầu thiết kế mới từ bất kỳ mục nào, không phải quay về mục Thiết kế. */}
@@ -272,27 +319,19 @@ function Rail({ active, onSelect }: { active: Tab | null; onSelect: (tab: Tab) =
         </span>
         Tạo
       </button>
-      {TABS.map(({ id, label, icon: Icon }) => {
-        const current = active === id
-        return (
-          <button
-            key={id}
-            type="button"
-            aria-pressed={current}
-            aria-expanded={current}
-            onClick={() => onSelect(id)}
-            className={cx(
-              'group flex w-full shrink-0 flex-col items-center gap-1 rounded-xl py-1.5 text-[11px] font-semibold transition-colors focus-visible:-outline-offset-2',
-              current ? 'text-coral-dark' : 'text-soft hover:text-ink',
-            )}
-          >
-            <span className={cx('grid h-8 w-11 place-items-center rounded-xl transition-colors duration-200', current ? 'bg-blush' : 'group-hover:bg-sand')}>
-              <Icon className={cx('size-5 transition-transform duration-300 ease-glide', current && 'scale-110')} />
+      {STEPS.map(tabButton)}
+      {/* Đáy dải: những thứ không phải một bước làm việc. */}
+      <div className="mt-auto flex flex-col gap-1 pt-3">
+        {tabButton(DESIGNS)}
+        {install && (
+          <button type="button" data-tip={INSTALL_TIP} onClick={install} className={item(false)}>
+            <span className="grid h-8 w-11 place-items-center rounded-xl transition-colors duration-200 group-hover:bg-sand">
+              <MonitorDown className="size-5" />
             </span>
-            {label}
+            Cài app
           </button>
-        )
-      })}
+        )}
+      </div>
     </nav>
   )
 }
@@ -350,6 +389,7 @@ function PanelToggle({ collapsed, onToggle }: { collapsed: boolean; onToggle: ()
 
 /** Thanh tab ở đáy cửa sổ hẹp. */
 function TabBar({ active, onSelect }: { active: Tab; onSelect: (tab: Tab) => void }) {
+  const guide = useGuide()
   const row = useRef<HTMLDivElement>(null)
   const [pill, setPill] = useState<{ left: number; width: number } | null>(null)
 
@@ -379,7 +419,7 @@ function TabBar({ active, onSelect }: { active: Tab; onSelect: (tab: Tab) => voi
             style={{ width: pill.width, transform: `translateX(${pill.left}px)` }}
           />
         )}
-        {TABS.map(({ id, label, icon: Icon }) => (
+        {[...STEPS, DESIGNS].map(({ id, label, icon: Icon }) => (
           <button
             key={id}
             type="button"
@@ -391,6 +431,7 @@ function TabBar({ active, onSelect }: { active: Tab; onSelect: (tab: Tab) => voi
             )}
           >
             <Icon className={cx('size-5 shrink-0 transition-transform duration-300 ease-glide', active === id && 'scale-110')} />
+            {guide === id && active !== id && <GuideDot className="right-[calc(50%-18px)] top-1" />}
             {label}
           </button>
         ))}
@@ -501,10 +542,11 @@ function TitleBar() {
     return open ? designTitle(open.name, s.texts) : ''
   })
   const progress = useExportProgress((s) => s.progress)
-  const install = useInstall((s) => s.state)
+  const install = useInstallAction()
   const [menu, setMenu] = useState(false)
   const [dataOpen, setDataOpen] = useState(false)
   const [aboutOpen, setAboutOpen] = useState(false)
+  const [keysOpen, setKeysOpen] = useState(false)
   const [version, setVersion] = useState('')
   const { state: update, check, asking, confirm, dismiss } = useUpdates()
 
@@ -637,22 +679,38 @@ function TitleBar() {
                     </>
                   )
                 )}
+                <button
+                  type="button"
+                  className={cx(item, 'hidden lg:flex')}
+                  onClick={() => {
+                    setMenu(false)
+                    setKeysOpen(true)
+                  }}
+                >
+                  <Keyboard className="size-4" />
+                  Phím tắt
+                </button>
+                {/* Cửa sổ hẹp không có dải biểu tượng bên trái, nên nút cài app nằm ở đây. */}
+                {install && (
+                  <button
+                    type="button"
+                    className={cx(item, 'lg:hidden')}
+                    onClick={() => {
+                      setMenu(false)
+                      install()
+                    }}
+                  >
+                    <MonitorDown className="size-4" />
+                    Cài app
+                  </button>
+                )}
               </div>
             </>
           )}
         </div>
-        {(install === 'ready' || install === 'manual') && (
-          <Button
-            variant="primary"
-            className="h-8 px-3.5 text-[13px]"
-            data-tip="Cài thành ứng dụng: mở nhanh từ máy, chạy cả khi mất mạng, không bị hỏi quyền lại mỗi lần xuất"
-            onClick={() => void installApp().then((ok) => ok || useStore.getState().toast(installHint(install)))}
-          >
-            <MonitorDown className="size-4" />
-            Cài app
-          </Button>
-        )}
+        <ExportButton />
       </div>
+      {keysOpen && <ShortcutsDialog onClose={() => setKeysOpen(false)} />}
       {dataOpen && <DataDialog onClose={() => setDataOpen(false)} />}
       {aboutOpen && <AboutDialog version={version} onClose={() => setAboutOpen(false)} />}
       {asking && update.status === 'available' && (
@@ -670,5 +728,54 @@ function TitleBar() {
         style={{ transform: `scaleX(${progress ?? 1})` }}
       />
     </header>
+  )
+}
+
+/**
+ * Nút chính của thanh tiêu đề: bấm thì bung bảng cài đặt xuất ngay bên dưới (định dạng, chất lượng, nơi lưu) kèm nút xuất.
+ * Ctrl+E xuất thẳng với cài đặt đang có.
+ */
+function ExportButton() {
+  const hasPhoto = useStore((s) => !!s.tree)
+  const progress = useExportProgress((s) => s.progress)
+  const guide = useGuide() === 'export'
+  const [open, setOpen] = useState(false)
+  const shown = open && hasPhoto
+
+  useEffect(() => {
+    if (!shown) return
+    const key = (e: KeyboardEvent) => e.key === 'Escape' && setOpen(false)
+    window.addEventListener('keydown', key)
+    return () => window.removeEventListener('keydown', key)
+  }, [shown])
+
+  return (
+    // Nút bị khoá không nhận chuột nên chú thích phải nằm ở lớp bọc ngoài.
+    <div className="relative" data-tip={hasPhoto ? undefined : 'Chọn ảnh trước rồi mới xuất được'}>
+      <Button
+        variant="primary"
+        className="h-8 px-3.5 text-[13px] tabular-nums"
+        aria-haspopup="dialog"
+        aria-expanded={shown}
+        disabled={!hasPhoto}
+        onClick={() => setOpen(!open)}
+      >
+        {progress !== null ? <LoaderCircle className="size-4 animate-spin" /> : <Download className="size-4" />}
+        {progress !== null ? `${Math.round(progress * 100)}%` : 'Xuất ảnh'}
+      </Button>
+      {guide && !shown && <GuideDot className="-right-0.5 -top-0.5" />}
+      {shown && (
+        <>
+          <div className="fixed inset-0" onClick={() => setOpen(false)} />
+          <div
+            role="dialog"
+            aria-label="Xuất ảnh"
+            className="absolute right-0 top-10 w-[min(340px,calc(100vw-16px))] origin-top-right animate-pop rounded-2xl border border-line bg-card p-4 shadow-lift"
+          >
+            <ExportPanel onLeave={() => setOpen(false)} />
+          </div>
+        </>
+      )}
+    </div>
   )
 }
