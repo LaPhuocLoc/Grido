@@ -22,7 +22,9 @@ const standalone = () => ['standalone', 'window-controls-overlay', 'minimal-ui']
 /** Gọi sớm lúc mở trang: trình duyệt chỉ báo "cài được" một lần, bỏ lỡ là mất. */
 export function watchInstall() {
   if (standalone()) return useInstall.setState({ state: 'app' })
-  useInstall.setState({ state: 'manual' })
+  // Sự kiện tới trước khi app chạy thì public/theme.js đã giữ lại.
+  deferred = (window as Window & { __installPrompt?: InstallEvent }).__installPrompt ?? null
+  useInstall.setState({ state: deferred || 'install' in navigator ? 'ready' : 'manual' })
   addEventListener('beforeinstallprompt', (e) => {
     e.preventDefault()
     deferred = e as InstallEvent
@@ -36,7 +38,7 @@ export function watchInstall() {
   const related = (navigator as Navigator & { getInstalledRelatedApps?: () => Promise<unknown[]> }).getInstalledRelatedApps
   void related
     ?.call(navigator)
-    .then((apps) => apps.length && useInstall.getState().state === 'manual' && useInstall.setState({ state: 'installed' }))
+    .then((apps) => apps.length && !deferred && useInstall.setState({ state: 'installed' }))
     .catch(() => {})
 }
 
@@ -49,11 +51,28 @@ export const installHint = (state: InstallState) =>
 /** Bấm "Cài app": mở hộp cài của trình duyệt. Trả về `false` khi không mở được (người gọi chỉ cách cài tay). */
 export async function installApp() {
   const e = deferred
-  if (!e) return false
+  if (!e) return webInstall()
   // Hộp cài chỉ mở được một lần cho mỗi lần trình duyệt báo.
   deferred = null
   await e.prompt()
   const { outcome } = await e.userChoice
   useInstall.setState({ state: outcome === 'accepted' ? 'installed' : 'manual' })
   return true
+}
+
+/**
+ * Chưa có sự kiện "cài được" (trình duyệt chưa báo, hoặc báo rồi nhưng người dùng đã đóng hộp cài): dùng Web Install API
+ * (`navigator.install()`) nếu trình duyệt có, cũng mở hộp cài của trình duyệt.
+ */
+async function webInstall() {
+  const install = (navigator as Navigator & { install?: () => Promise<unknown> }).install
+  if (!install) return false
+  try {
+    await install.call(navigator)
+    useInstall.setState({ state: 'installed' })
+    return true
+  } catch (err) {
+    // Người dùng tự đóng hộp cài thì thôi, khỏi chỉ cách cài tay.
+    return (err as Error).name === 'AbortError'
+  }
 }
