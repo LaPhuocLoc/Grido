@@ -248,6 +248,25 @@ describe('text', () => {
     expect(get().editingText).toBeNull()
   })
 
+  it('moves a caption, or its whole group, above or below the other captions, as one undo step', () => {
+    get().toggleSelect('p1')
+    ;[1, 2, 3].forEach(() => get().addText())
+    const [a, b, c] = get().texts.map((t) => t.id)
+    const order = () => get().texts.map((t) => t.id)
+    get().arrangeTexts(a, 'front')
+    expect(order()).toEqual([b, c, a])
+    get().groupTexts([b, a])
+    pause()
+    get().arrangeTexts(a, 'back')
+    expect(order()).toEqual([b, a, c])
+    // Đã nằm dưới cùng: không đổi gì, không sinh bước hoàn tác thừa.
+    const { past } = get()
+    get().arrangeTexts(b, 'back')
+    expect(get().past).toBe(past)
+    get().undo()
+    expect(order()).toEqual([b, c, a])
+  })
+
   it('duplicates a caption next to the original and selects the copy', () => {
     get().toggleSelect('p1')
     get().addText()

@@ -1,9 +1,12 @@
 import {
   ArrowLeftRight,
+  BringToFront,
   ChevronRight,
+  Copy,
   Dices,
   Download,
   FlipHorizontal2,
+  Group,
   ImageMinus,
   ImagePlus,
   Images,
@@ -12,8 +15,12 @@ import {
   Maximize,
   MousePointerClick,
   Move,
+  PencilLine,
   Redo2,
+  RefreshCcw,
+  Replace,
   RotateCwSquare,
+  SendToBack,
   Shuffle,
   Sparkles,
   Trash2,
@@ -22,11 +29,12 @@ import {
   Type,
   Undo2,
   UnfoldHorizontal,
+  Ungroup,
   X,
   ZoomIn,
   type LucideIcon,
 } from 'lucide-react'
-import { useEffect, useMemo, useRef, useState, type CSSProperties, type PointerEvent as ReactPointerEvent } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties, type MouseEvent as ReactMouseEvent, type PointerEvent as ReactPointerEvent } from 'react'
 import { flushSync } from 'react-dom'
 import { useShallow } from 'zustand/react/shallow'
 import { fileUrl, thumbUrl, useUrlVersion } from '../lib/desktop'
@@ -37,8 +45,9 @@ import type { Divider, LayoutNode, Rect } from '../lib/layout/types'
 import { nextHint, type Hint } from '../lib/onboarding'
 import { buildSpec } from '../lib/useCollage'
 import { clampPan, clampViewZoom, MAX_VIEW_ZOOM, MIN_VIEW_ZOOM, zoomByWheel } from '../lib/view'
-import { canvasSize, currentDesign, useStore } from '../store'
-import { contrast, TextLayer, TextToolbar } from './TextLayer'
+import { canvasSize, currentDesign, selectionOf, useStore } from '../store'
+import { Menu, type MenuItem, type MenuState } from './Menu'
+import { contrast, TextLayer, TextToolbar, toggleGroup } from './TextLayer'
 import { Button, cx, IconButton } from './ui'
 
 const STAGE_PADDING = 16
@@ -373,10 +382,35 @@ export function Stage() {
     return () => el.removeEventListener('wheel', handler)
   }, [])
 
+  type FilledCell = NonNullable<CollageSpec['cells'][number]>
+  // Ảnh trong ô đã bị xoay, lật, phóng to hay dịch đi: lúc đó mới có gì để "Đặt lại".
+  const isAdjusted = (adjust: CellAdjust) => (Object.keys(DEFAULT_ADJUST) as (keyof CellAdjust)[]).some((key) => adjust[key] !== DEFAULT_ADJUST[key])
+  // Ba thao tác trên ảnh của một ô, dùng chung cho thanh công cụ dưới đáy và menu chuột phải.
+  const rotateCell = ({ photo, adjust }: FilledCell) => {
+    const rot = ((adjust.rot + 90) % 360) as Rotation
+    // 270° → 0° mà có transition thì ảnh quay ngược cả vòng, nên bước đó đổi tức thì.
+    if (rot === 0) settle()
+    else bump()
+    setAdjust(photo.id, { rot })
+  }
+  const flipCell = ({ photo, adjust }: FilledCell) => {
+    bump()
+    setAdjust(photo.id, { flip: !adjust.flip })
+  }
+  const resetCell = ({ photo, adjust }: FilledCell) => {
+    if (adjust.rot === 0) bump()
+    else settle()
+    setAdjust(photo.id, DEFAULT_ADJUST)
+  }
+  /** Chọn ô rồi mở thư viện: ảnh bấm tiếp theo sẽ vào ô đó. */
+  const chooseFor = (cell: number) => {
+    setActiveCell(cell)
+    useStore.setState({ tab: 'library', leftCollapsed: false })
+  }
+
   const active = (spec && activeCell !== null && spec.cells[activeCell]) || undefined
   // Đang chọn một ô trống: chờ người dùng bấm ảnh trong thư viện để đưa vào ô đó.
-  // Ảnh trong ô đã bị xoay, lật, phóng to hay dịch đi: lúc đó mới có gì để "Đặt lại".
-  const adjusted = !!active && (Object.keys(DEFAULT_ADJUST) as (keyof CellAdjust)[]).some((k) => active.adjust[k] !== DEFAULT_ADJUST[k])
+  const adjusted = !!active && isAdjusted(active.adjust)
   const activeEmpty = !!spec && activeCell !== null && activeCell < spec.cells.length && !spec.cells[activeCell]
   /** Bấm một ô trống: chọn ô đó rồi mở thư viện để lấy ảnh. */
   const pickSlot = (cell: number) => {
@@ -385,6 +419,87 @@ export function Stage() {
     useStore.setState({ tab: 'library', leftCollapsed: false })
   }
   const activeItem = spec?.texts.find((t) => t.id === activeText)
+
+  /**
+   * Chuột phải vào ảnh, ô trống hay dòng chữ trên khung: chọn luôn thành phần đó (như bấm chuột trái) rồi mở menu những
+   * thao tác hay dùng ngay tại con trỏ. Đang gõ chữ thì nhường menu của trình duyệt (dán, sửa chính tả).
+   */
+  const [menu, setMenu] = useState<MenuState | null>(null)
+  const closeMenu = useCallback(() => setMenu(null), [])
+  const onFrameMenu = (e: ReactMouseEvent) => {
+    const target = e.target as HTMLElement
+    if (!spec || target.closest('[contenteditable]')) return
+    const pick = (el: Element) => el.closest<HTMLElement>('[data-text], [data-cell]')
+    // Tay nắm và khung chọn nằm ở lớp phủ phía trên: lấy thành phần nằm ngay dưới con trỏ. Nút của thanh nổi thì bỏ qua.
+    const el = pick(target) ?? (target.closest('button') ? null : document.elementsFromPoint(e.clientX, e.clientY).map(pick).find(Boolean))
+    if (!el) return
+    e.preventDefault()
+    const open = (items: MenuItem[]) => setMenu({ x: e.clientX, y: e.clientY, items })
+    const s = useStore.getState()
+
+    const textId = el.dataset.text
+    if (textId) {
+      // Dòng đang được chọn chung với các dòng khác thì giữ nguyên vùng chọn, menu áp dụng cho cả cụm.
+      if (!s.activeText || s.editingText || !selectionOf(s, s.activeText).includes(textId)) s.setActiveText(textId)
+      const { texts, pickedTexts } = useStore.getState()
+      const ids = selectionOf({ texts, pickedTexts }, textId)
+      const members = texts.filter((t) => ids.includes(t.id))
+      const grouped = members.length > 1 && !!members[0].group && members.every((t) => t.group === members[0].group)
+      return open([
+        ...(ids.length === 1 ? [{ label: 'Sửa chữ', icon: <PencilLine />, run: () => s.setEditingText(textId) }] : []),
+        { label: ids.length > 1 ? `Nhân bản ${ids.length} dòng chữ` : 'Nhân bản', icon: <Copy />, shortcut: 'Ctrl+D', run: () => s.duplicateText(textId) },
+        ...(ids.length > 1
+          ? [{ label: grouped ? 'Bỏ nhóm' : 'Gộp thành nhóm', icon: grouped ? <Ungroup /> : <Group />, shortcut: grouped ? 'Ctrl+Shift+G' : 'Ctrl+G', run: () => toggleGroup(textId) }]
+          : []),
+        // Chỉ có nghĩa khi còn dòng chữ khác để nằm trên / dưới.
+        ...(texts.length > ids.length
+          ? [
+              {
+                label: 'Đưa lên trên cùng',
+                icon: <BringToFront />,
+                divider: true,
+                disabled: texts.slice(-ids.length).every((t) => ids.includes(t.id)),
+                run: () => s.arrangeTexts(textId, 'front'),
+              },
+              {
+                label: 'Đưa xuống dưới cùng',
+                icon: <SendToBack />,
+                disabled: texts.slice(0, ids.length).every((t) => ids.includes(t.id)),
+                run: () => s.arrangeTexts(textId, 'back'),
+              },
+            ]
+          : []),
+        { label: ids.length > 1 ? `Xoá ${ids.length} dòng chữ` : 'Xoá', icon: <Trash2 />, shortcut: 'Delete', danger: true, divider: true, run: () => s.removeText(textId) },
+      ])
+    }
+
+    const index = Number(el.dataset.cell)
+    const cell = spec.cells[index]
+    setActiveCell(index)
+    if (!cell)
+      return open([
+        { label: 'Chọn ảnh cho ô này…', icon: <ImagePlus />, run: () => chooseFor(index) },
+        {
+          label: 'Bỏ ô trống này',
+          icon: <Trash2 />,
+          shortcut: 'Delete',
+          danger: true,
+          divider: true,
+          run: () => {
+            setActiveCell(index)
+            removeActiveCell()
+          },
+        },
+      ])
+    open([
+      { label: 'Đổi ảnh khác…', icon: <Replace />, run: () => chooseFor(index) },
+      { label: 'Xoay 90°', icon: <RotateCwSquare />, divider: true, run: () => rotateCell(cell) },
+      { label: 'Lật ngang', icon: <FlipHorizontal2 />, run: () => flipCell(cell) },
+      { label: 'Đặt lại ảnh', icon: <RefreshCcw />, disabled: !isAdjusted(cell.adjust), run: () => resetCell(cell) },
+      { label: 'Bỏ ảnh khỏi bản ghép', icon: <ImageMinus />, shortcut: 'Delete', danger: true, divider: true, run: () => toggleSelect(cell.photo.id) },
+    ])
+  }
+
   const deselect = () => {
     setActiveCell(null)
     setActiveText(null)
@@ -618,6 +733,7 @@ export function Stage() {
           <div
             ref={stage}
             data-frame
+            onContextMenu={onFrameMenu}
             // absolute: kích thước khung không được ảnh hưởng ngược lại vùng chứa (tránh vòng lặp đo ↔ vẽ).
             className={cx('absolute left-1/2 top-1/2 touch-none select-none', glide && 'glide')}
             style={{ width: size.width * k, height: size.height * k, translate: `calc(-50% + ${pan.x}px) calc(-50% + ${pan.y}px)` }}
@@ -882,22 +998,13 @@ export function Stage() {
           <div role="toolbar" aria-label="Chỉnh ảnh trong ô" className="flex animate-pop items-center gap-0.5 rounded-full bg-card p-1.5 shadow-lift">
             <IconButton
               label="Xoay 90°"
-              onClick={() => {
-                const rot = ((active.adjust.rot + 90) % 360) as Rotation
-                // 270° → 0° mà có transition thì ảnh quay ngược cả vòng, nên bước đó đổi tức thì.
-                if (rot === 0) settle()
-                else bump()
-                setAdjust(active.photo.id, { rot })
-              }}
+              onClick={() => rotateCell(active)}
             >
               <RotateCwSquare className="size-4.5" />
             </IconButton>
             <IconButton
               label="Lật ngang"
-              onClick={() => {
-                bump()
-                setAdjust(active.photo.id, { flip: !active.adjust.flip })
-              }}
+              onClick={() => flipCell(active)}
             >
               <FlipHorizontal2 className="size-4.5" />
             </IconButton>
@@ -910,11 +1017,7 @@ export function Stage() {
               type="button"
               data-tip="Bỏ xoay, lật, phóng to và dịch chuyển của ảnh này"
               disabled={!adjusted}
-              onClick={() => {
-                if (active.adjust.rot === 0) bump()
-                else settle()
-                setAdjust(active.photo.id, DEFAULT_ADJUST)
-              }}
+              onClick={() => resetCell(active)}
               className="h-9 shrink-0 rounded-full px-3 text-[13px] font-semibold text-soft transition-colors hover:bg-sand hover:text-ink disabled:pointer-events-none disabled:opacity-40"
             >
               Đặt lại
@@ -938,6 +1041,7 @@ export function Stage() {
         hint && <HintChip hint={hint} onClose={() => markHint(hint)} />
       )}
       {spec && <div className="absolute bottom-2.5 right-2.5 z-30 hidden lg:block">{zoomControl}</div>}
+      {menu && <Menu menu={menu} onClose={closeMenu} />}
     </div>
   )
 }

@@ -264,6 +264,8 @@ interface State extends Settings {
   removeText: (id: string, alone?: boolean) => void
   /** Nhân bản dòng chữ; dòng thuộc một nhóm (hoặc đang được chọn chung) thì nhân bản hết. */
   duplicateText: (id: string) => void
+  /** Đưa dòng chữ (cùng nhóm / các dòng đang chọn chung) lên trên cùng hoặc xuống dưới cùng các dòng chữ khác. */
+  arrangeTexts: (id: string, to: 'front' | 'back') => void
   /** Chèn một mẫu chữ vào giữa khung thành một nhóm mới. */
   insertTemplate: (template: TextTemplate) => void
   /** Tách nhóm: các dòng chữ trở lại độc lập. */
@@ -877,6 +879,16 @@ export const useStore = create<State>()(
             activeText: s.activeText && gone.has(s.activeText) ? null : s.activeText,
             editingText: s.editingText && gone.has(s.editingText) ? null : s.editingText,
           }
+        }),
+
+      arrangeTexts: (id, to) =>
+        set((s) => {
+          // Thứ tự trong mảng là thứ tự vẽ: dòng đứng sau nằm đè lên dòng đứng trước.
+          const ids = selectionOf(s, id)
+          const moved = s.texts.filter((t) => ids.includes(t.id))
+          const rest = s.texts.filter((t) => !ids.includes(t.id))
+          const texts = to === 'front' ? [...rest, ...moved] : [...moved, ...rest]
+          return texts.every((t, i) => t === s.texts[i]) ? {} : { texts }
         }),
 
       duplicateText: (id) => {
