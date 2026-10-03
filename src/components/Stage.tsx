@@ -1092,7 +1092,7 @@ function HintChip({ hint, onClose }: { hint: Hint; onClose: () => void }) {
 /** Bốn bước làm một ảnh ghép, bằng icon; chi tiết từng bước nằm trong chú thích khi rê chuột. */
 const FLOW: { icon: LucideIcon; label: string; tip: string }[] = [
   { icon: Images, label: 'Thêm ảnh', tip: 'Chọn ảnh hoặc kéo thả cả thư mục. Ảnh dùng ngay tại chỗ, không tải đi đâu cả' },
-  { icon: LayoutGrid, label: 'Ghép', tip: 'Tích nhiều ảnh rồi bấm Ghép. Hơn 800 bố cục, khung đúng cỡ Facebook, Instagram, TikTok' },
+  { icon: LayoutGrid, label: 'Ghép', tip: 'Tích nhiều ảnh rồi bấm Ghép. Hơn 600 bố cục, khung đúng cỡ Facebook, Instagram, TikTok' },
   { icon: Type, label: 'Chữ', tip: 'Hơn 400 mẫu chữ và 500 phông tiếng Việt, gõ thẳng trên ảnh' },
   { icon: Download, label: 'Xuất', tip: 'Xuất nét như Lightroom, lấy thẳng từ ảnh gốc. Xuất được nhiều thiết kế một lượt' },
 ]

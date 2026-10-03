@@ -24,7 +24,7 @@ import { placeImage } from '../lib/geometry'
 import { collageLayout } from '../lib/imaging/exportCollage'
 import { computeLayout } from '../lib/layout/compute'
 import { parseLayout } from '../lib/layout/dsl'
-import { getLayouts, MAX_PHOTOS } from '../lib/layout/registry'
+import { getLayouts, getLayoutShapes, layoutShape, MAX_PHOTOS } from '../lib/layout/registry'
 import type { LayoutCategory, LayoutNode } from '../lib/layout/types'
 import {
   BACKGROUNDS,
@@ -332,10 +332,15 @@ export function LayoutPanel() {
   const { setLayout, toggleFavorite, saveLayout, applySavedLayout, removeSavedLayout, setOrientation } = useStore.getState()
   const size = canvasSize({ presetId, customW, customH })
   const orientation = orientationOf(size)
-  const [category, setCategory] = useState<CategoryId>('all')
+  const [picked, setCategory] = useState<CategoryId>('all')
 
-  const all = useMemo(() => getLayouts(n), [n])
+  // Danh sách chỉ hiện mỗi dáng một lần: các biến thể chỉ khác tỉ lệ ô thì người dùng tự kéo đường viền (hoặc bấm "Bố cục
+  // ngẫu nhiên") là ra, bày hết ra chỉ làm khó chọn.
+  const all = useMemo(() => getLayoutShapes(n), [n])
   const favSet = useMemo(() => new Set(favorites), [favorites])
+  // Mục Yêu thích vẫn giữ những biến thể đã thả tim từ trước.
+  const loved = useMemo(() => getLayouts(n).filter((l) => favSet.has(l.id)), [n, favSet])
+  const shape = useMemo(() => (tree ? layoutShape(tree) : null), [tree])
   const saved = useMemo(() => savedLayouts.filter((l) => l.n === n), [savedLayouts, n])
   // Bố cục đã lưu đang được dùng nếu cây hiện tại giống hệt (kể cả tỉ lệ ô đã kéo).
   const treeSignature = useMemo(() => JSON.stringify(tree), [tree])
@@ -344,17 +349,22 @@ export function LayoutPanel() {
 
   const counts: Record<CategoryId, number> = {
     all: all.length,
-    fav: all.filter((l) => favSet.has(l.id)).length,
+    fav: loved.length,
     saved: saved.length,
     grid: all.filter((l) => l.category === 'grid').length,
     hero: all.filter((l) => l.category === 'hero').length,
     mosaic: all.filter((l) => l.category === 'mosaic').length,
   }
+  // Mục cá nhân luôn hiện (kể cả khi trống) để người dùng biết có tính năng này. Nhóm có sẵn mà trống, hoặc gồm đúng mọi
+  // bố cục của "Tất cả", thì ẩn đi cho đỡ rối.
+  const offered = (id: CategoryId) => id === 'all' || id === 'fav' || id === 'saved' || (counts[id] > 0 && counts[id] < counts.all)
+  // Đổi số ảnh có thể làm nhóm đang xem biến mất: khi đó xem "Tất cả".
+  const category = offered(picked) ? picked : 'all'
   const shown =
     category === 'all'
       ? all
       : category === 'fav'
-        ? all.filter((l) => favSet.has(l.id))
+        ? loved
         : category === 'saved'
           ? []
           : all.filter((l) => l.category === category)
@@ -418,9 +428,7 @@ export function LayoutPanel() {
         </div>
         <div className="flex flex-wrap gap-1.5">
           {CATEGORIES.map((c) => {
-            const personal = c.id === 'fav' || c.id === 'saved'
-            // Mục cá nhân luôn hiện (kể cả khi trống) để người dùng biết có tính năng này.
-            if (!counts[c.id] && !personal) return null
+            if (!offered(c.id)) return null
             return (
               <button
                 key={c.id}
@@ -490,7 +498,9 @@ export function LayoutPanel() {
         ) : shown.length ? (
           <div key={category} className={cx(grid, 'animate-fade')}>
             {shown.map((l, i) => {
-              const active = n === cells && l.id === layoutId
+              // Bố cục trên khung cùng dáng với ô này (kể cả khi đã kéo đổi tỉ lệ ô) thì ô này sáng; mục Yêu thích có thể chứa
+              // nhiều biến thể cùng dáng nên so đúng từng bố cục.
+              const active = n === cells && (category === 'fav' ? l.id === layoutId : l.shape === shape)
               const fav = favSet.has(l.id)
               return (
                 <div key={l.id} className="group relative">

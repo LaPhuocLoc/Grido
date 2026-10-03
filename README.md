@@ -177,3 +177,5 @@ Ví dụ `H(2:*,V3)` = một ảnh lớn bên trái + cột 3 ảnh nhỏ bên p
 - **Thêm cả một họ bố cục**: viết một generator `(n) => string[]` trong `src/lib/layout/generators.ts` và đăng ký vào `GENERATORS`.
 
 Registry tự đếm số ô, tự loại bố cục trùng hình, và id bố cục chính là chuỗi DSL nên ổn định qua các lần cập nhật.
+
+Danh sách trong mục Bố cục chỉ hiện mỗi **dáng** một lần (`getLayoutShapes`): hai bố cục chỉ khác nhau ở tỉ lệ ô, vd `H(*,*)` và `H(2:*,*)`, là cùng một dáng, vì người dùng tự kéo đường viền là ra. Bố cục đứng trước trong danh sách là đại diện của dáng đó. Nút "Bố cục ngẫu nhiên" vẫn rút trong toàn bộ danh sách (`getLayouts`), kể cả các biến thể tỉ lệ.

@@ -52,7 +52,7 @@ export function AboutDialog({ version, onClose }: { version: string; onClose: ()
           <Feature icon={<Aperture />} title="Xuất nét như Lightroom">
             Lấy thẳng từ ảnh gốc, giữ đúng màu và độ nét.
           </Feature>
-          <Feature icon={<LayoutDashboard />} title="Hơn 800 bố cục">
+          <Feature icon={<LayoutDashboard />} title="Hơn 600 bố cục">
             Ghép tới 12 ảnh, khung chuẩn Facebook, Instagram, TikTok.
           </Feature>
           <Feature icon={<Type />} title="Hơn 500 phông chữ">

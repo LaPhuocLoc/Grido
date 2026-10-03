@@ -17,6 +17,8 @@ export interface LayoutDef {
   /** Số ô ảnh. */
   n: number
   category: LayoutCategory
+  /** Dáng của bố cục (xem `layoutShape`): các bố cục chỉ khác nhau ở tỉ lệ ô thì cùng dáng. */
+  shape: string
 }
 
 export interface Rect {

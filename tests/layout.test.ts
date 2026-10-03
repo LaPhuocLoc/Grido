@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { computeLayout, moveDivider } from '../src/lib/layout/compute'
 import { countCells, parseLayout } from '../src/lib/layout/dsl'
-import { getLayouts, MAX_PHOTOS } from '../src/lib/layout/registry'
+import { getLayouts, getLayoutShapes, layoutShape, MAX_PHOTOS, totalLayoutCount } from '../src/lib/layout/registry'
 import type { LayoutNode, Rect } from '../src/lib/layout/types'
 
 const cell: LayoutNode = { kind: 'cell' }
@@ -98,5 +98,42 @@ describe('layout registry', () => {
       expect(new Set(shapes).size, `n=${n}`).toBe(shapes.length)
       for (const l of getLayouts(n)) expect(countCells(parseLayout(l.id)), l.id).toBe(n)
     }
+  })
+})
+
+describe('layouts offered in the picker', () => {
+  const ids = (n: number) => getLayoutShapes(n).map((l) => l.id)
+
+  it('shows two photos side by side or stacked, not every way of resizing those two', () => {
+    expect(ids(2)).toEqual(['H(*,*)', 'V(*,*)'])
+    expect(getLayouts(2).length).toBeGreaterThan(2)
+  })
+
+  it('shows each arrangement of three photos once', () => {
+    expect(ids(3)).toEqual(['H(*,V2)', 'V(*,H2)', 'H(V2,*)', 'V(H2,*)', 'H(*,*,*)', 'V(*,*,*)'])
+  })
+
+  it('treats layouts that only differ in cell proportions as one shape', () => {
+    const shape = (dsl: string) => layoutShape(parseLayout(dsl))
+    expect(shape('H(2:*,V3)')).toBe(shape('H(*,V3)'))
+    expect(shape('H(3:*,2:V(2:*,*))')).toBe(shape('H(*,V2)'))
+    // Lưới 2×2 chia theo hàng hay theo cột, hàng trên cao hơn hay không, vẫn là một dáng.
+    expect(shape('V(2:H2,H2)')).toBe(shape('H(V2,V2)'))
+    // Ảnh lớn bên trái và ảnh lớn bên phải là hai dáng khác nhau.
+    expect(shape('H(*,V3)')).not.toBe(shape('H(V3,*)'))
+  })
+
+  it('never shows two layouts of the same shape, and starts with the default layout', () => {
+    for (let n = 1; n <= MAX_PHOTOS; n++) {
+      const shapes = getLayoutShapes(n).map((l) => l.shape)
+      expect(new Set(shapes).size, `n=${n}`).toBe(shapes.length)
+      expect(getLayoutShapes(n)[0], `n=${n}`).toBe(getLayouts(n)[0])
+      // Mọi biến thể (nút "Bố cục ngẫu nhiên") đều thuộc một dáng có trong danh sách.
+      for (const l of getLayouts(n)) expect(shapes, l.id).toContain(l.shape)
+    }
+  })
+
+  it('still backs the "hơn 600 bố cục" line in the app intro', () => {
+    expect(totalLayoutCount()).toBeGreaterThan(600)
   })
 })
