@@ -1,4 +1,4 @@
-import { ArrowLeftRight, Bookmark, CircleCheck, Download, Folder, Heart, Image as ImageIcon, LoaderCircle, TriangleAlert, Type, X } from 'lucide-react'
+import { ArrowLeftRight, Bookmark, CircleCheck, Download, Flame, Folder, Heart, Image as ImageIcon, Images, LoaderCircle, TriangleAlert, Type, X } from 'lucide-react'
 import { memo, useEffect, useMemo, useState, type CSSProperties, type ReactNode } from 'react'
 import { desktop } from '../lib/desktop'
 import { placeImage } from '../lib/geometry'
@@ -14,11 +14,14 @@ import {
   MIN_CANVAS,
   ORIGINAL_PRESET_ID,
   PLATFORMS,
+  POPULAR_PRESETS,
   SIZE_PRESETS,
   type Platform,
 } from '../lib/presets'
-import { buildSpec, exportToFile, useExportProgress } from '../lib/useCollage'
+import { buildSpec, canExportMany, exportToFile, useExportProgress } from '../lib/useCollage'
 import { canvasSize, originalCanvasOf, pctToPx, currentDesign, useStore, type ExportFormat, type ExportSharpen } from '../store'
+import { openBatchExport, useExportableCount } from './BatchExport'
+import { BrandIcon } from './BrandIcon'
 import { FontPicker } from './FontPicker'
 import { PresetArt } from './PresetArt'
 import { styleTexts } from './TextLayer'
@@ -27,9 +30,10 @@ import { Button, cx, Section, Segmented, Slider } from './ui'
 
 /* ───────────── Khung ảnh ───────────── */
 
-type PresetGroup = Platform | 'fav'
+type PresetGroup = 'popular' | Platform | 'fav'
 
-const PRESET_GROUPS: { id: PresetGroup; label: string }[] = [...PLATFORMS, { id: 'fav', label: 'Yêu thích' }]
+const PRESET_GROUPS: { id: PresetGroup; label: string }[] = [{ id: 'popular', label: 'Phổ biến' }, ...PLATFORMS, { id: 'fav', label: 'Yêu thích' }]
+const POPULAR_IDS = new Set(POPULAR_PRESETS.map((p) => p.id))
 
 export function SizePanel() {
   const presetId = useStore((s) => s.presetId)
@@ -38,14 +42,19 @@ export function SizePanel() {
   const favoritePresets = useStore((s) => s.favoritePresets)
   const firstPhoto = useStore((s) => s.photos.find((p) => p.id === s.selected[0]))
   const { set, toggleFavoritePreset, applyOriginalSize } = useStore.getState()
-  // Mở tab ở đúng nền tảng của khung đang dùng.
-  const [group, setGroup] = useState<PresetGroup>(() => SIZE_PRESETS.find((p) => p.id === presetId)?.platform ?? 'instagram')
+  // Mở tab có khung đang dùng: "Phổ biến" nếu khung nằm trong đó, không thì đúng nền tảng của khung.
+  const [group, setGroup] = useState<PresetGroup>(() =>
+    POPULAR_IDS.has(presetId) ? 'popular' : (SIZE_PRESETS.find((p) => p.id === presetId)?.platform ?? 'popular'),
+  )
   const isCustom = presetId === CUSTOM_PRESET_ID
   const isOriginal = presetId === ORIGINAL_PRESET_ID
   const current = canvasSize({ presetId, customW, customH })
   const original = isOriginal ? current : firstPhoto && originalCanvasOf(firstPhoto)
   const favSet = useMemo(() => new Set(favoritePresets), [favoritePresets])
-  const shown = SIZE_PRESETS.filter((p) => (group === 'fav' ? favSet.has(p.id) : p.platform === group))
+  const shown =
+    group === 'popular'
+      ? POPULAR_PRESETS.flatMap(({ id, label }) => SIZE_PRESETS.filter((p) => p.id === id).map((p) => ({ ...p, label })))
+      : SIZE_PRESETS.filter((p) => (group === 'fav' ? favSet.has(p.id) : p.platform === group))
 
   const dimension = (value: number, onChange: (v: number) => void, label: string) => (
     <label className="flex-1 space-y-1">
@@ -92,23 +101,36 @@ export function SizePanel() {
       </button>
 
       <Section title="Khung theo nền tảng">
+        {/* Tab đang mở hiện cả tên; các tab khác chỉ còn icon (rê chuột để xem tên) để cả hàng vừa một dòng. */}
         <div className="flex gap-1.5">
-          {PRESET_GROUPS.map((g) => (
-            <button
-              key={g.id}
-              type="button"
-              aria-pressed={group === g.id}
-              onClick={() => setGroup(g.id)}
-              className={cx(
-                'flex h-8 flex-auto items-center justify-center gap-1 whitespace-nowrap rounded-full px-2 text-xs font-semibold transition-colors active:scale-95',
-                group === g.id ? 'bg-ink text-paper' : 'bg-sand text-soft hover:text-ink',
-              )}
-            >
-              {g.id === 'fav' && <Heart className="size-3 shrink-0" />}
-              {g.label}
-              {g.id === 'fav' && <span className="font-normal opacity-60">{favoritePresets.length}</span>}
-            </button>
-          ))}
+          {PRESET_GROUPS.map((g) => {
+            const on = group === g.id
+            const name = g.id === 'fav' ? `Yêu thích (${favoritePresets.length})` : g.label
+            return (
+              <button
+                key={g.id}
+                type="button"
+                aria-pressed={on}
+                aria-label={name}
+                data-tip={on ? undefined : name}
+                onClick={() => setGroup(g.id)}
+                className={cx(
+                  'flex h-8 items-center justify-center gap-1.5 whitespace-nowrap rounded-full text-xs font-semibold transition-colors active:scale-95',
+                  on ? 'flex-[3_1_auto] bg-ink px-3 text-paper' : 'flex-[1_1_auto] bg-sand px-2.5 text-soft hover:text-ink',
+                )}
+              >
+                {g.id === 'popular' ? (
+                  <Flame className="size-3.5 shrink-0" />
+                ) : g.id === 'fav' ? (
+                  <Heart className="size-3.5 shrink-0" />
+                ) : (
+                  <BrandIcon platform={g.id} className="size-3.5 shrink-0" />
+                )}
+                {on && <span>{g.id === 'fav' ? 'Yêu thích' : g.label}</span>}
+                {g.id === 'fav' && favoritePresets.length > 0 && <span className="font-normal opacity-70">{favoritePresets.length}</span>}
+              </button>
+            )
+          })}
         </div>
 
         {shown.length ? (
@@ -598,6 +620,8 @@ export function ExportPanel() {
   const state = useStore()
   const { exportFormat, exportQuality, exportSharpen, set } = state
   const progress = useExportProgress((s) => s.progress)
+  const batch = useExportProgress((s) => s.batch)
+  const exportable = useExportableCount()
   const size = canvasSize(state)
 
   // Đếm số ảnh sẽ bị phóng to quá độ phân giải gốc ở kích thước khung hiện tại.
@@ -684,8 +708,20 @@ export function ExportPanel() {
           onClick={() => void exportToFile()}
         >
           {progress !== null ? <LoaderCircle className="size-5 animate-spin" /> : <Download className="size-5" />}
-          {progress !== null ? `Đang xuất… ${Math.round(progress * 100)}%` : desktop.exportFile.folder ? 'Xuất ảnh' : 'Xuất ảnh ghép…'}
+          {progress !== null
+            ? batch
+              ? `Đang xuất ${Math.min(batch.done + 1, batch.total)}/${batch.total}… ${Math.round(progress * 100)}%`
+              : `Đang xuất… ${Math.round(progress * 100)}%`
+            : desktop.exportFile.folder
+              ? 'Xuất ảnh'
+              : 'Xuất ảnh ghép…'}
         </Button>
+        {canExportMany() && exportable > 1 && (
+          <Button className="h-10 w-full text-[13px]" disabled={progress !== null} onClick={openBatchExport}>
+            <Images className="size-4" />
+            Xuất nhiều thiết kế…
+          </Button>
+        )}
         <ExportFolder busy={progress !== null} />
       </div>
     </div>

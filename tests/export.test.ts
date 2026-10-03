@@ -201,6 +201,41 @@ describe('exporting on the web (export folder, access prompt)', () => {
     expect(fake.saved).toHaveLength(1)
   })
 
+  it('exports several designs in one go, named after each design, into the export folder', async () => {
+    // Thiết kế 1: một ảnh (p2). Thiết kế 2: hai ảnh, có tên. Thiết kế 3: ghép không tên, không chữ.
+    const first = get().currentDesignId!
+    get().newDesign()
+    get().toggleSelect('p2')
+    get().toggleSelect('p3')
+    const second = get().currentDesignId!
+    get().renameDesign(second, 'Đà Lạt: mùa "mưa"')
+    get().newDesign()
+    get().toggleSelect('p1')
+    get().toggleSelect('p3')
+    const third = get().currentDesignId!
+
+    store.useStore.setState({ toasts: [] })
+    await collage.exportDesigns([first, second, third])
+    expect(choose).toHaveBeenCalledTimes(1)
+    expect(renderCollage).toHaveBeenCalledTimes(3)
+    expect(renderCollage.mock.calls.map((c) => c[0].cells.length)).toEqual([1, 2, 2])
+    expect(fake.saved.map((f) => f.suggested)).toEqual(['p2.jpg', 'Đà Lạt mùa mưa.jpg', expect.stringMatching(/^tiem-ghep-anh-\d{8}-\d{6}\.jpg$/)])
+    expect(get().toasts).toMatchObject([{ kind: 'success', message: 'Đã lưu 3 ảnh vào thư mục "Ảnh đã ghép".', action: { label: 'Xem ảnh cuối' } }])
+    expect(collage.useExportProgress.getState()).toMatchObject({ progress: null, batch: null })
+  })
+
+  it('stops a batch at the first failure and says how many were saved', async () => {
+    const first = get().currentDesignId!
+    get().newDesign()
+    get().toggleSelect('p3')
+    const second = get().currentDesignId!
+    renderCollage.mockResolvedValueOnce({ width: 0, height: 0 }).mockRejectedValueOnce(new Error('Hết bộ nhớ.'))
+    store.useStore.setState({ toasts: [] })
+    await collage.exportDesigns([first, second])
+    expect(fake.saved).toHaveLength(1)
+    expect(get().toasts).toMatchObject([{ kind: 'error', message: 'Đã lưu 1/2 ảnh, rồi gặp lỗi: Hết bộ nhớ.' }])
+  })
+
   it('exports nothing when the access prompt is closed', async () => {
     folder = { name: 'Ảnh đã ghép', ready: false }
     const running = collage.exportToFile()

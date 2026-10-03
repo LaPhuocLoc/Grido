@@ -1,4 +1,4 @@
-import { Check, Copy, Pencil, Plus, Search, Trash2 } from 'lucide-react'
+import { Check, Copy, Download, Pencil, Plus, Search, Trash2 } from 'lucide-react'
 import { memo, useMemo, useRef, useState } from 'react'
 import type { Photo } from '../../shared/types'
 import { thumbUrl, useUrlVersion } from '../lib/desktop'
@@ -6,14 +6,15 @@ import { designTitle, frameLabel } from '../lib/designs'
 import { placeImage } from '../lib/geometry'
 import { collageLayout } from '../lib/imaging/exportCollage'
 import { textLayoutStyle } from '../lib/text'
-import { buildSpec } from '../lib/useCollage'
+import { buildSpec, canExportMany, useExportProgress } from '../lib/useCollage'
+import { openBatchExport, useExportableCount } from './BatchExport'
 import { canvasSize, isKeeper, useStore, type Design, type Snapshot } from '../store'
 import { imageStyle } from './Stage'
 import { Button, cx } from './ui'
 
 /** Vùng dành cho ảnh thu nhỏ trong thẻ thiết kế (px); ảnh ghép nằm gọn bên trong, giữ đúng tỉ lệ khung. */
-const THUMB_W = 132
-const THUMB_H = 108
+export const THUMB_W = 132
+export const THUMB_H = 108
 
 /** Bỏ dấu để gõ "da lat" vẫn ra "Đà Lạt". */
 const plain = (s: string) =>
@@ -24,7 +25,7 @@ const plain = (s: string) =>
     .toLowerCase()
 
 /** Ảnh thu nhỏ của một thiết kế, dựng từ thumbnail trong thư viện theo đúng bố cục, viền và chữ đã lưu. */
-const DesignThumb = memo(function DesignThumb({ snapshot, photos }: { snapshot: Snapshot; photos: Photo[] }) {
+export const DesignThumb = memo(function DesignThumb({ snapshot, photos }: { snapshot: Snapshot; photos: Photo[] }) {
   useUrlVersion()
   const spec = useMemo(() => buildSpec({ ...snapshot, photos }), [snapshot, photos])
   const layout = useMemo(() => (spec ? collageLayout(spec) : null), [spec])
@@ -198,6 +199,8 @@ export function DesignsPanel() {
   const current = useStore((s) => s.currentDesignId)
   const photos = useStore((s) => s.photos)
   const { newDesign } = useStore.getState()
+  const exportable = useExportableCount()
+  const exporting = useExportProgress((s) => s.progress !== null)
   const [query, setQuery] = useState('')
 
   // Thiết kế vừa bị bỏ hết ảnh vẫn có mặt (còn chữ hoặc tên): người dùng phải thấy nó vẫn còn đó. Cái trống trơn thì không.
@@ -207,10 +210,23 @@ export function DesignsPanel() {
 
   return (
     <div className="space-y-4">
-      <Button variant="primary" className="h-11 w-full" onClick={newDesign}>
-        <Plus className="size-[18px]" />
-        Thiết kế mới
-      </Button>
+      <div className="flex gap-2">
+        <Button variant="primary" className="h-11 flex-1" onClick={newDesign}>
+          <Plus className="size-[18px]" />
+          Thiết kế mới
+        </Button>
+        {canExportMany() && exportable > 1 && (
+          <Button
+            aria-label="Xuất nhiều thiết kế"
+            data-tip="Xuất nhiều thiết kế cùng lúc"
+            disabled={exporting}
+            className="h-11 w-11 shrink-0 px-0"
+            onClick={openBatchExport}
+          >
+            <Download className="size-[18px]" />
+          </Button>
+        )}
+      </div>
 
       {listed.length > 6 && (
         <label className="relative block">

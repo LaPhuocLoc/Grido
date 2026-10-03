@@ -1,20 +1,22 @@
-import { HardDrive, ShieldCheck, WifiOff, X } from 'lucide-react'
+import { Aperture, LayoutDashboard, Save, ShieldCheck, Type, WifiOff, X } from 'lucide-react'
 import { useEffect, type ReactNode } from 'react'
 import { createPortal } from 'react-dom'
 
-function Point({ icon, title, children }: { icon: ReactNode; title: string; children: ReactNode }) {
+/** Một điểm đặc biệt của app: icon + vài chữ, đọc lướt là hiểu. */
+function Feature({ icon, title, children }: { icon: ReactNode; title: string; children: ReactNode }) {
   return (
-    <div className="flex gap-3">
-      <span className="mt-0.5 shrink-0 text-coral-dark">{icon}</span>
-      <div>
-        <p className="text-sm font-semibold text-ink">{title}</p>
-        <p className="mt-0.5 text-[13px] leading-relaxed text-soft">{children}</p>
-      </div>
-    </div>
+    <li className="rounded-2xl bg-sand p-3">
+      <span className="grid size-8 place-items-center rounded-xl bg-blush text-coral-dark [&>svg]:size-[18px]">{icon}</span>
+      <p className="mt-2 text-[13px] font-bold leading-snug text-ink">{title}</p>
+      <p className="mt-0.5 text-xs leading-snug text-soft">{children}</p>
+    </li>
   )
 }
 
-/** Bản web: nói rõ ảnh của người dùng đi đâu (không đi đâu cả) và trang giữ những gì trong trình duyệt. */
+/**
+ * Bản web: giới thiệu ngắn những điểm chỉ Tiệm Ghép Ảnh có, viết cho người dùng phổ thông (ít chữ, đọc lướt), kèm một
+ * dòng về dữ liệu trang giữ trong trình duyệt.
+ */
 export function AboutDialog({ version, onClose }: { version: string; onClose: () => void }) {
   useEffect(() => {
     const key = (e: KeyboardEvent) => e.key === 'Escape' && onClose()
@@ -30,36 +32,42 @@ export function AboutDialog({ version, onClose }: { version: string; onClose: ()
         className="max-h-full w-full max-w-md animate-pop overflow-y-auto rounded-3xl border border-line bg-card p-6 shadow-lift"
         onPointerDown={(e) => e.stopPropagation()}
       >
-        <div className="flex items-start justify-between gap-3">
-          <div>
+        <div className="flex items-start gap-3">
+          <img src="/logo.png" alt="" className="size-11 shrink-0" />
+          <div className="min-w-0 flex-1">
             <h2 id="about-title" className="font-display text-lg font-bold text-ink">
               Tiệm Ghép Ảnh
             </h2>
-            <p className="text-xs text-muted">Phiên bản {version} · miễn phí, không cần tài khoản</p>
+            <p className="text-xs text-muted">Miễn phí · không cần tài khoản · bản {version}</p>
           </div>
-          <button type="button" aria-label="Đóng" onClick={onClose} className="grid size-8 place-items-center rounded-full text-muted hover:bg-sand hover:text-ink">
+          <button type="button" aria-label="Đóng" onClick={onClose} className="-mr-2 -mt-1 grid size-8 place-items-center rounded-full text-muted hover:bg-sand hover:text-ink">
             <X className="size-4" />
           </button>
         </div>
 
-        <div className="mt-5 space-y-4">
-          <Point icon={<ShieldCheck className="size-5" />} title="Ảnh của bạn không rời khỏi máy">
-            Trang đọc ảnh ngay tại chỗ trên máy bạn và ghép ảnh bằng chính trình duyệt này. Không có máy chủ nào nhận ảnh, và trang được cài
-            đặt để trình duyệt chặn mọi kết nối gửi dữ liệu ra ngoài.
-          </Point>
-          <Point icon={<HardDrive className="size-5" />} title="Trình duyệt giữ những gì">
-            Thiết kế, album, cài đặt, và bản xem trước thu nhỏ của ảnh trong thư viện. File gốc không bị sao chép hay sửa đổi; xoá ảnh khỏi thư
-            viện cũng không đụng tới file gốc. Xoá dữ liệu duyệt web của trang này sẽ xoá những thứ trên, nên hãy sao lưu ở mục Dữ liệu &amp;
-            sao lưu.
-          </Point>
-          <Point icon={<WifiOff className="size-5" />} title="Dùng được khi không có mạng">
-            Sau lần mở đầu tiên, trang chạy được cả khi mất mạng. Mạng chỉ cần để tải những phông chữ bạn chưa từng dùng và để nhận bản mới.
-          </Point>
-        </div>
+        <ul className="mt-5 grid grid-cols-2 gap-2">
+          <Feature icon={<ShieldCheck />} title="Ảnh không rời máy bạn">
+            Không tải lên mạng, không ai xem được.
+          </Feature>
+          <Feature icon={<Aperture />} title="Xuất nét như Lightroom">
+            Lấy thẳng từ ảnh gốc, giữ đúng màu và độ nét.
+          </Feature>
+          <Feature icon={<LayoutDashboard />} title="Hơn 800 bố cục">
+            Ghép tới 12 ảnh, khung chuẩn Facebook, Instagram, TikTok.
+          </Feature>
+          <Feature icon={<Type />} title="Hơn 500 phông chữ">
+            Kèm hơn 400 mẫu chữ đẹp sẵn, bấm là dùng.
+          </Feature>
+          <Feature icon={<Save />} title="Tự lưu mọi thiết kế">
+            Đóng trang, mở lại vẫn còn nguyên.
+          </Feature>
+          <Feature icon={<WifiOff />} title="Chạy cả khi mất mạng">
+            Mở một lần là dùng được offline.
+          </Feature>
+        </ul>
 
-        <p className="mt-5 rounded-2xl bg-sand px-3.5 py-3 text-[12.5px] leading-relaxed text-soft">
-          Mỗi lần mở lại trang, trình duyệt sẽ hỏi lại quyền đọc ảnh gốc: đó là cách trình duyệt bảo vệ file của bạn, không phải lỗi. Chưa cho
-          phép thì bạn vẫn ghép và xuất được bằng bản xem trước.
+        <p className="mt-4 text-center text-[11.5px] leading-relaxed text-muted">
+          Thiết kế và album nằm trong trình duyệt này. Xoá dữ liệu trang là mất, nên thỉnh thoảng sao lưu ở mục Dữ liệu &amp; sao lưu.
         </p>
       </div>
     </div>,

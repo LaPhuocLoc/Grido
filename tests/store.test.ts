@@ -710,6 +710,16 @@ describe('original frame', () => {
     expect([get().exportSharpen, get().exportQuality]).toEqual(['low', 0.9])
   })
 
+  it('shows large library photos by default, once, then keeps the chosen size', async () => {
+    localStorage.setItem('grido-settings', JSON.stringify({ state: { libraryZoom: 1 }, version: 4 }))
+    await boot()
+    expect(get().libraryZoom).toBe(2)
+    get().set({ libraryZoom: 0 })
+    window.dispatchEvent(new Event('pagehide'))
+    await boot()
+    expect(get().libraryZoom).toBe(0)
+  })
+
   it('moves a draft that used a retired frame to the same custom size', async () => {
     localStorage.setItem('grido-settings', JSON.stringify({ state: { presetId: 'a4' }, version: 0 }))
     await boot()

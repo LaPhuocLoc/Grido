@@ -49,11 +49,19 @@ export function AccessDialog() {
           Cho phép đọc ảnh gốc
         </h2>
         <p id="access-text" className="mt-1 text-[13px] leading-relaxed text-soft">
-          Để xuất đủ nét, trình duyệt sẽ hỏi quyền đọc ảnh trên máy. Hãy chọn:
+          Để xuất đủ nét, trình duyệt sẽ hỏi quyền đọc ảnh trên máy, với 3 lựa chọn như dưới đây.
         </p>
 
+        {/* Lời nhắc + mũi tên chỉ thẳng vào lựa chọn cần bấm. */}
+        <p className="mt-3 flex items-end justify-end gap-1 pr-3 text-[13px] font-bold leading-tight text-coral-dark">
+          <span className="pb-1 text-right">Nhớ chọn dòng này để ảnh xuất ra nét nhất</span>
+          <svg viewBox="0 0 32 34" fill="none" stroke="currentColor" strokeWidth={2.4} strokeLinecap="round" strokeLinejoin="round" className="size-8 shrink-0 animate-bob" aria-hidden>
+            <path d="M3 5c13-2 22 6 21 24" />
+            <path d="m17.5 23.5 6.5 6.5 5.5-7.5" />
+          </svg>
+        </p>
         {/* Bản vẽ lại hộp thoại của trình duyệt, chỉ để minh hoạ (không bấm được). */}
-        <ol aria-hidden className="mt-3 space-y-1 rounded-2xl border border-line bg-surface p-1.5 text-[13px]">
+        <ol aria-hidden className="space-y-1 rounded-2xl border border-line bg-surface p-1.5 text-[13px]">
           {BROWSER_CHOICES.map((label, i) => (
             <li
               key={label}

@@ -26,6 +26,7 @@ import { createPortal } from 'react-dom'
 import type { UpdateState } from '../shared/types'
 import { AboutDialog } from './components/AboutDialog'
 import { AccessDialog } from './components/AccessDialog'
+import { BatchExportDialog } from './components/BatchExport'
 import { DataDialog } from './components/DataDialog'
 import { DesignsPanel } from './components/Designs'
 import { Library } from './components/Library'
@@ -66,6 +67,7 @@ export default function App() {
     <>
       <Editor />
       <DropOverlay />
+      <BatchExportDialog />
       <AccessDialog />
       <Toasts />
       <Tooltip />

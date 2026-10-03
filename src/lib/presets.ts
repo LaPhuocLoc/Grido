@@ -14,9 +14,17 @@ export interface SizePreset {
 }
 
 export const PLATFORMS: { id: Platform; label: string }[] = [
-  { id: 'instagram', label: 'Instagram' },
   { id: 'facebook', label: 'Facebook' },
+  { id: 'instagram', label: 'Instagram' },
   { id: 'tiktok', label: 'TikTok' },
+]
+
+/** Nhóm "Phổ biến": những khung hay dùng nhất, gom lại một chỗ với tên ghi rõ nền tảng. */
+export const POPULAR_PRESETS: { id: string; label: string }[] = [
+  { id: 'ig-portrait', label: 'Bài đăng Instagram' },
+  { id: 'fb-portrait', label: 'Ảnh dọc Facebook' },
+  { id: 'fb-landscape', label: 'Ảnh ngang Facebook' },
+  { id: 'story', label: 'Tin story' },
 ]
 
 export const SIZE_PRESETS: SizePreset[] = [

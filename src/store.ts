@@ -415,7 +415,7 @@ export const useStore = create<State>()(
       leftCollapsed: false,
       panelWidth: PANEL_WIDTH,
       libraryTipSeen: false,
-      libraryZoom: 1,
+      libraryZoom: 2,
       fontView: 'list',
 
       photos: [],
@@ -852,7 +852,7 @@ export const useStore = create<State>()(
       storage: lazyStorage(),
       // Số hiệu cấu trúc dữ liệu lưu. Đổi cấu trúc theo cách `merge` bên dưới không tự xử lý được thì tăng số này và
       // chuyển dữ liệu cũ trong `migrate`. Hiện mọi bản cũ (kể cả bản chưa có số hiệu) đều đọc được nguyên trạng.
-      version: 4,
+      version: 5,
       migrate: (saved, version): Persisted => {
         let s = saved as Persisted
         // Bản 2: bảng phông chữ mặc định xem dạng danh sách; ai đang để lưới ảnh mẫu từ bản cũ cũng chuyển sang một lần.
@@ -862,6 +862,8 @@ export const useStore = create<State>()(
         if (version < 3) s = { ...s, exportSharpen: 'high', exportQuality: 1 }
         // Bản 4: người dùng chọn mặc định tắt làm nét đầu ra; ai đang dùng cũng chuyển một lần.
         if (version < 4) s = { ...s, exportSharpen: 'off' }
+        // Bản 5: thư viện mặc định hiện ảnh cỡ lớn.
+        if (version < 5) s = { ...s, libraryZoom: 2 }
         return s
       },
       // Lưu cả cài đặt lẫn bản nháp đang ghép, để lần sau mở app làm tiếp được ngay.
