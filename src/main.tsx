@@ -38,12 +38,15 @@ if (import.meta.env.DEV && new URLSearchParams(location.search).has('lab')) {
   await start()
 } else {
   // Bản web: trang chạy thẳng trong trình duyệt, tự lo file bằng File System Access API.
-  const [{ createWebPlatform, guardPage, isSupported }, { claimTab, takeOverTab }, { OtherTab, Unsupported }, { setPlatform }] = await Promise.all([
-    import('./platform/web'),
-    import('./platform/web/lock'),
-    import('./platform/web/Notice'),
-    import('./lib/desktop'),
-  ])
+  const [{ createWebPlatform, guardPage, isSupported }, { claimTab, takeOverTab }, { OtherTab, Unsupported }, { setPlatform }, { watchInstall }] =
+    await Promise.all([
+      import('./platform/web'),
+      import('./platform/web/lock'),
+      import('./platform/web/Notice'),
+      import('./lib/desktop'),
+      import('./lib/install'),
+    ])
+  watchInstall()
   const startWeb = async () => {
     setPlatform(await createWebPlatform())
     await start()

@@ -13,6 +13,7 @@ import {
   Info,
   LayoutGrid,
   LoaderCircle,
+  MonitorDown,
   Plus,
   RefreshCw,
   RotateCw,
@@ -31,6 +32,7 @@ import { DataDialog } from './components/DataDialog'
 import { DesignsPanel } from './components/Designs'
 import { Library } from './components/Library'
 import { designTitle } from './lib/designs'
+import { installApp, installHint, useInstall } from './lib/install'
 import { toggleGroup, toggleStyle } from './components/TextLayer'
 import { ExportPanel, LayoutPanel, SizePanel, StylePanel, TextPanel } from './components/Panels'
 import { Stage } from './components/Stage'
@@ -499,6 +501,7 @@ function TitleBar() {
     return open ? designTitle(open.name, s.texts) : ''
   })
   const progress = useExportProgress((s) => s.progress)
+  const install = useInstall((s) => s.state)
   const [menu, setMenu] = useState(false)
   const [dataOpen, setDataOpen] = useState(false)
   const [aboutOpen, setAboutOpen] = useState(false)
@@ -638,10 +641,17 @@ function TitleBar() {
             </>
           )}
         </div>
-        <Button variant="primary" className="h-8 px-3.5 text-[13px]" disabled={!hasCollage || progress !== null} onClick={() => void exportToFile()}>
-          {progress !== null ? <LoaderCircle className="size-4 animate-spin" /> : <Download className="size-4" />}
-          <span className="tabular-nums">{progress !== null ? `${Math.round(progress * 100)}%` : 'Xuất ảnh'}</span>
-        </Button>
+        {(install === 'ready' || install === 'manual') && (
+          <Button
+            variant="primary"
+            className="h-8 px-3.5 text-[13px]"
+            data-tip="Cài thành ứng dụng: mở nhanh từ máy, chạy cả khi mất mạng, không bị hỏi quyền lại mỗi lần xuất"
+            onClick={() => void installApp().then((ok) => ok || useStore.getState().toast(installHint(install)))}
+          >
+            <MonitorDown className="size-4" />
+            Cài app
+          </Button>
+        )}
       </div>
       {dataOpen && <DataDialog onClose={() => setDataOpen(false)} />}
       {aboutOpen && <AboutDialog version={version} onClose={() => setAboutOpen(false)} />}

@@ -1,6 +1,7 @@
-import { Check, Images, X } from 'lucide-react'
+import { Check, Images, MonitorDown, X } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { createPortal } from 'react-dom'
+import { installApp, installHint, useInstall } from '../lib/install'
 import { allowAccess, closeAccess, useAccessPrompt } from '../lib/useCollage'
 import { Button, cx } from './ui'
 
@@ -15,9 +16,16 @@ const PICK = 1
  */
 export function AccessDialog() {
   const open = useAccessPrompt((s) => s.open)
+  const install = useInstall((s) => s.state)
   const [asking, setAsking] = useState(false)
+  // Trình duyệt chưa cho cài bằng một cú bấm: bấm "Cài app" thì hiện cách cài tay ngay trong hộp (thông báo nổi bị lớp phủ che).
+  const [hint, setHint] = useState(false)
   useEffect(() => {
-    if (!open) return setAsking(false)
+    if (!open) {
+      setAsking(false)
+      setHint(false)
+      return
+    }
     const key = (e: KeyboardEvent) => e.key === 'Escape' && closeAccess()
     window.addEventListener('keydown', key)
     return () => window.removeEventListener('keydown', key)
@@ -108,6 +116,25 @@ export function AccessDialog() {
         >
           Tiếp tục
         </Button>
+
+        {/* App đã cài được trình duyệt giữ quyền: gợi ý cài để lần sau khỏi hỏi. */}
+        {(install === 'ready' || install === 'manual') && (
+          <div className="mt-3 flex items-center gap-2.5 rounded-2xl bg-sand py-2 pl-3 pr-2">
+            <MonitorDown className="size-4 shrink-0 text-coral-dark" />
+            <p className="min-w-0 flex-1 text-xs font-medium leading-snug text-soft">{hint ? installHint(install) : 'Cài thành app để không bị hỏi lại'}</p>
+            {!hint && (
+              <Button className="h-8 shrink-0 px-3 text-[13px]" onClick={() => void installApp().then((ok) => setHint(!ok))}>
+                Cài app
+              </Button>
+            )}
+          </div>
+        )}
+        {install === 'installed' && (
+          <p className="mt-3 flex items-center gap-2.5 rounded-2xl bg-sand px-3 py-2.5 text-xs font-medium leading-snug text-soft">
+            <MonitorDown className="size-4 shrink-0 text-coral-dark" />
+            Đã cài app: mở Tiệm Ghép Ảnh từ Start menu để không bị hỏi lại
+          </p>
+        )}
       </div>
     </div>,
     document.body,
