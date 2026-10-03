@@ -13,8 +13,7 @@ import {
   MousePointerClick,
   Move,
   Redo2,
-  RotateCcw,
-  RotateCw,
+  RotateCwSquare,
   Shuffle,
   Sparkles,
   Trash2,
@@ -376,6 +375,8 @@ export function Stage() {
 
   const active = (spec && activeCell !== null && spec.cells[activeCell]) || undefined
   // Đang chọn một ô trống: chờ người dùng bấm ảnh trong thư viện để đưa vào ô đó.
+  // Ảnh trong ô đã bị xoay, lật, phóng to hay dịch đi: lúc đó mới có gì để "Đặt lại".
+  const adjusted = !!active && (Object.keys(DEFAULT_ADJUST) as (keyof CellAdjust)[]).some((k) => active.adjust[k] !== DEFAULT_ADJUST[k])
   const activeEmpty = !!spec && activeCell !== null && activeCell < spec.cells.length && !spec.cells[activeCell]
   /** Bấm một ô trống: chọn ô đó rồi mở thư viện để lấy ảnh. */
   const pickSlot = (cell: number) => {
@@ -509,6 +510,14 @@ export function Stage() {
         <Maximize className="size-4" />
       </IconButton>
     </span>
+  )
+  // Thanh nổi ở đáy nằm giữa hai khoảng đệm; khoảng bên phải rộng ít nhất bằng thanh thu phóng (min-w-60), nên cửa sổ
+  // hẹp thì thanh nổi dịch sang trái chứ không chui xuống dưới thanh thu phóng.
+  const zoomRoom = (
+    <>
+      <span className="hidden flex-1 lg:block" />
+      <span className="order-last hidden min-w-60 flex-1 lg:block" />
+    </>
   )
 
   return (
@@ -868,8 +877,9 @@ export function Stage() {
 
       {active ? (
         <div className="absolute inset-x-0 bottom-2.5 z-30 flex justify-center px-2.5">
+          {zoomRoom}
           {/* Phóng to / thu nhỏ ảnh: kéo nút tròn ở góc ảnh hoặc lăn chuột, nên thanh này chỉ còn các thao tác bấm. */}
-          <div className="flex animate-pop items-center gap-0.5 rounded-full bg-card p-1.5 shadow-lift">
+          <div role="toolbar" aria-label="Chỉnh ảnh trong ô" className="flex animate-pop items-center gap-0.5 rounded-full bg-card p-1.5 shadow-lift">
             <IconButton
               label="Xoay 90°"
               onClick={() => {
@@ -880,7 +890,7 @@ export function Stage() {
                 setAdjust(active.photo.id, { rot })
               }}
             >
-              <RotateCw className="size-4.5" />
+              <RotateCwSquare className="size-4.5" />
             </IconButton>
             <IconButton
               label="Lật ngang"
@@ -891,23 +901,29 @@ export function Stage() {
             >
               <FlipHorizontal2 className="size-4.5" />
             </IconButton>
-            <IconButton
-              label="Đặt lại ảnh"
+            <IconButton label="Bỏ ảnh khỏi bố cục" onClick={() => toggleSelect(active.photo.id)}>
+              <ImageMinus className="size-4.5" />
+            </IconButton>
+            <span className="mx-1 h-5 w-px shrink-0 bg-line" />
+            {/* "Đặt lại" không có biểu tượng nào ai cũng hiểu (mũi tên vòng thì giống nút xoay), nên viết bằng chữ. */}
+            <button
+              type="button"
+              data-tip="Bỏ xoay, lật, phóng to và dịch chuyển của ảnh này"
+              disabled={!adjusted}
               onClick={() => {
                 if (active.adjust.rot === 0) bump()
                 else settle()
                 setAdjust(active.photo.id, DEFAULT_ADJUST)
               }}
+              className="h-9 shrink-0 rounded-full px-3 text-[13px] font-semibold text-soft transition-colors hover:bg-sand hover:text-ink disabled:pointer-events-none disabled:opacity-40"
             >
-              <RotateCcw className="size-4.5" />
-            </IconButton>
-            <IconButton label="Bỏ ảnh khỏi bố cục" onClick={() => toggleSelect(active.photo.id)}>
-              <ImageMinus className="size-4.5" />
-            </IconButton>
+              Đặt lại
+            </button>
           </div>
         </div>
       ) : activeEmpty ? (
         <div className="absolute inset-x-0 bottom-2.5 z-30 flex justify-center px-2.5">
+          {zoomRoom}
           <div className="flex animate-pop items-center gap-2 rounded-full bg-card py-1.5 pl-4 pr-1.5 text-[13px] font-semibold text-soft shadow-lift">
             <Images className="size-4 shrink-0 text-coral-dark" />
             Bấm ảnh trong thư viện để vào ô này
