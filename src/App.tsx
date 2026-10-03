@@ -119,7 +119,7 @@ function DropOverlay() {
   return (
     <div className="pointer-events-none fixed inset-0 z-[60] grid animate-overlay place-items-center bg-paper/70 p-6 backdrop-blur-md">
       <div className="drop-frame grid w-full max-w-lg animate-pop place-items-center gap-3 rounded-[28px] bg-card px-8 py-12 text-center shadow-lift">
-        <span className="grid size-16 animate-bob place-items-center rounded-full gradient-brand glow-brand">
+        <span className="grid size-16 animate-bob place-items-center rounded-full bg-blush text-coral-dark">
           <ImagePlus className="size-7" />
         </span>
         <p className="font-display text-xl font-bold">Thả ảnh vào đây</p>
@@ -650,7 +650,7 @@ function TitleBar() {
       <span
         aria-hidden
         className={cx(
-          'absolute inset-x-0 -bottom-px h-[3px] origin-left gradient-brand ease-out',
+          'absolute inset-x-0 -bottom-px h-[3px] origin-left bg-coral ease-out',
           // Lúc bắt đầu thanh phải về 0 ngay; xong thì chạy nốt tới hết rồi mờ đi.
           progress === 0 ? 'transition-none' : 'transition-[transform,opacity] duration-300',
           progress === null && 'opacity-0',

@@ -29,7 +29,7 @@ export function Button({
       {...props}
       className={cx(
         'inline-flex items-center justify-center gap-2 rounded-full px-4 h-10 text-sm font-semibold transition-all duration-150 active:scale-[0.97] disabled:opacity-50 disabled:active:scale-100 whitespace-nowrap',
-        variant === 'primary' && 'gradient-brand glow-brand hover:brightness-105',
+        variant === 'primary' && 'btn-primary',
         variant === 'soft' && 'bg-card text-ink border border-line hover:border-edge hover:bg-surface shadow-sm',
         variant === 'ghost' && 'text-soft hover:bg-sand hover:text-ink',
         className,
@@ -125,13 +125,16 @@ export function Segmented<T extends string | number>({
   value,
   options,
   onChange,
+  small,
 }: {
   value: T
   options: { value: T; label: string; disabled?: boolean }[]
   onChange: (value: T) => void
+  /** Bản gọn cho các dòng cài đặt (cao 28px, chữ 13px). */
+  small?: boolean
 }) {
   return (
-    <div className="flex rounded-full bg-sand p-1 gap-1">
+    <div className={cx('flex rounded-full bg-sand', small ? 'min-w-0 flex-1 gap-0.5 p-0.5' : 'gap-1 p-1')}>
       {options.map((o) => (
         <button
           key={o.value}
@@ -140,7 +143,8 @@ export function Segmented<T extends string | number>({
           aria-pressed={o.value === value}
           onClick={() => onChange(o.value)}
           className={cx(
-            'flex-1 h-8 rounded-full text-sm font-semibold transition-all duration-200 active:scale-95 disabled:opacity-35',
+            'flex-1 rounded-full font-semibold transition-all duration-200 active:scale-95 disabled:opacity-35',
+            small ? 'h-7 px-1 text-[13px]' : 'h-8 text-sm',
             o.value === value ? 'bg-surface text-ink shadow-sm' : 'text-soft hover:text-ink',
           )}
         >

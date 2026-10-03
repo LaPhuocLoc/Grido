@@ -1,12 +1,15 @@
-import { FolderLock, X } from 'lucide-react'
+import { Check, Images, X } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { allowAccess, closeAccess, useAccessPrompt } from '../lib/useCollage'
-import { Button } from './ui'
+import { Button, cx } from './ui'
+
+/** Ba lựa chọn trong hộp thoại xin quyền của Chrome / Edge; mục đầu là mục nên chọn. */
+const BROWSER_CHOICES = ['Cho phép mỗi lần truy cập', 'Cho phép lần này', 'Không cho phép']
 
 /**
  * Bản web: hiện ngay trước khi xuất, khi trình duyệt chưa cho đọc lại ảnh gốc / ghi vào thư mục xuất trong lần mở trang
- * này. Nói trước nên chọn gì ở hộp thoại của trình duyệt, để chỉ phải cho phép một lần cho mãi mãi.
+ * này. Vẽ lại hộp thoại của trình duyệt và tô sẵn mục nên chọn, để người dùng nhận ra ngay và chỉ phải cho phép một lần.
  */
 export function AccessDialog() {
   const open = useAccessPrompt((s) => s.open)
@@ -24,12 +27,13 @@ export function AccessDialog() {
       <div
         role="dialog"
         aria-labelledby="access-title"
+        aria-describedby="access-text"
         className="w-full max-w-sm animate-pop rounded-3xl border border-line bg-card p-6 shadow-lift"
         onPointerDown={(e) => e.stopPropagation()}
       >
         <div className="flex items-start justify-between gap-3">
           <span className="grid size-11 shrink-0 place-items-center rounded-full bg-blush text-coral-dark">
-            <FolderLock className="size-5" />
+            <Images className="size-5" />
           </span>
           <button
             type="button"
@@ -44,10 +48,34 @@ export function AccessDialog() {
         <h2 id="access-title" className="mt-3 font-display text-lg font-bold text-ink">
           Cho phép đọc ảnh gốc
         </h2>
-        <p className="mt-1.5 text-[13px] leading-relaxed text-soft">
-          Trình duyệt cần bạn cho phép đọc lại ảnh gốc để xuất nét tối đa. Ở hộp thoại tiếp theo, chọn{' '}
-          <b className="text-ink">“Cho phép mỗi lần truy cập”</b> để từ nay không phải hỏi lại.
+        <p id="access-text" className="mt-1 text-[13px] leading-relaxed text-soft">
+          Để xuất đủ nét, trình duyệt sẽ hỏi quyền đọc ảnh trên máy. Hãy chọn:
         </p>
+
+        {/* Bản vẽ lại hộp thoại của trình duyệt, chỉ để minh hoạ (không bấm được). */}
+        <ol aria-hidden className="mt-3 space-y-1 rounded-2xl border border-line bg-surface p-1.5 text-[13px]">
+          {BROWSER_CHOICES.map((label, i) => (
+            <li
+              key={label}
+              className={cx(
+                'flex h-9 items-center gap-2.5 rounded-xl px-3',
+                i === 0 ? 'bg-blush font-semibold text-ink ring-2 ring-coral' : 'text-muted',
+              )}
+            >
+              <span
+                className={cx(
+                  'grid size-4 shrink-0 place-items-center rounded-full border-2',
+                  i === 0 ? 'border-coral bg-coral text-white' : 'border-edge',
+                )}
+              >
+                {i === 0 && <Check className="size-2.5" strokeWidth={4} />}
+              </span>
+              {label}
+            </li>
+          ))}
+        </ol>
+        <p className="mt-2.5 text-xs leading-relaxed text-muted">Hỏi một lần cho cả thư viện. Ảnh vẫn nằm trên máy bạn, không tải đi đâu.</p>
+
         <Button
           variant="primary"
           autoFocus
@@ -58,7 +86,7 @@ export function AccessDialog() {
             void allowAccess()
           }}
         >
-          Cho phép
+          Tiếp tục
         </Button>
       </div>
     </div>,

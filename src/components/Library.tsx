@@ -11,7 +11,6 @@ import {
   ImagePlus,
   Lightbulb,
   ListChecks,
-  LockKeyhole,
   Search,
   Trash2,
   TriangleAlert,
@@ -128,6 +127,8 @@ const Tile = memo(function Tile({
   return (
     <li
       data-photo={photo.id}
+      // Quyền đọc file gốc của trình duyệt là chuyện của lúc xuất (app hỏi khi đó), không hiện thành biểu tượng trên ảnh.
+      data-locked={photo.locked || undefined}
       className={cx('tile group absolute transition-opacity', index < ANIMATED_TILES && 'animate-tile', moving && 'opacity-35')}
       style={{ left: x, top: y, width: w, height: h, animationDelay: `${Math.min(index, STAGGER) * 22}ms` }}
       onContextMenu={(e) => {
@@ -170,22 +171,14 @@ const Tile = memo(function Tile({
             !loaded ? 'scale-105 opacity-0' : doomed ? 'opacity-45' : 'opacity-100',
           )}
         />
-        {photo.locked ? (
+        {/* Ảnh chỉ đang chờ trình duyệt cho phép đọc (locked) cũng có cờ missing, nhưng không phải lỗi: không hiện gì. */}
+        {photo.missing && !photo.locked && (
           <span
-            data-tip="Trình duyệt chưa cho đọc file gốc trong lần mở này: app sẽ hỏi bạn cho phép khi xuất ảnh"
-            className="absolute bottom-1 left-1 grid size-5 place-items-center rounded-full bg-black/60 text-white"
+            data-tip="Không tìm thấy file gốc (đã bị di chuyển hoặc xoá): xuất ảnh sẽ dùng bản xem trước"
+            className="absolute bottom-1 left-1 grid size-5 place-items-center rounded-full bg-amber text-ink"
           >
-            <LockKeyhole className="size-3" />
+            <TriangleAlert className="size-3" />
           </span>
-        ) : (
-          photo.missing && (
-            <span
-              data-tip="Không tìm thấy file gốc (đã bị di chuyển hoặc xoá): xuất ảnh sẽ dùng bản xem trước"
-              className="absolute bottom-1 left-1 grid size-5 place-items-center rounded-full bg-amber text-ink"
-            >
-              <TriangleAlert className="size-3" />
-            </span>
-          )
         )}
       </button>
       {/* Ô tích ở góc: hiện khi rê chuột (luôn hiện ở chế độ "Chọn"); bấm vào là tích ảnh để ghép / xoá nhiều ảnh. */}
@@ -1199,7 +1192,7 @@ export function Library() {
               onClick={() => void pickPhotos()}
               className="group mt-4 flex w-full animate-rise flex-col items-center rounded-2xl border-2 border-dashed border-edge bg-card px-4 py-8 text-center transition-all duration-200 hover:border-coral hover:bg-surface active:scale-[0.98]"
             >
-              <span className="grid size-12 place-items-center rounded-full gradient-brand glow-brand transition-transform duration-300 ease-glide group-hover:rotate-6 group-hover:scale-110">
+              <span className="grid size-12 place-items-center rounded-full bg-blush text-coral-dark transition-transform duration-300 ease-glide group-hover:rotate-6 group-hover:scale-110">
                 <ImagePlus className="size-6" />
               </span>
               <span className="mt-4 font-display text-base font-bold text-ink">Thêm ảnh để bắt đầu ghép</span>

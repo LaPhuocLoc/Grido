@@ -946,7 +946,7 @@ function EmptyStage() {
   return (
     <div className="mx-6 max-w-sm animate-rise text-center">
       <div className="mx-auto grid w-20 -rotate-3 grid-cols-3 grid-rows-3 gap-1.5 rounded-2xl bg-white p-1.5 shadow-lift aspect-[4/5] dark:bg-surface lg:w-40">
-        <div className="col-span-2 row-span-2 rounded-xl gradient-brand" />
+        <div className="col-span-2 row-span-2 rounded-xl bg-coral" />
         <div className="rounded-xl bg-[#3f6bff]" />
         <div className="rounded-xl bg-[#f4a8c6]" />
         <div className="rounded-xl bg-line" />

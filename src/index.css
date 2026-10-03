@@ -19,11 +19,13 @@
   --color-coral-dark: #5335e6;
   --color-amber: #ffb23e;
   --color-blush: #ece8ff;
-  /* Hai đầu dải màu thương hiệu và màu chữ / biểu tượng đặt trên dải đó. */
-  --color-brand-from: #e5306c;
-  --color-brand-mid: #9a4cf2;
-  --color-brand-to: #3f6bff;
-  --color-on-brand: #ffffff;
+  /*
+   * Nút chính (Xuất ảnh, Thêm ảnh, Thiết kế mới…): một màu đặc trung tính như các app ảnh chuyên nghiệp, để màu của
+   * ảnh nổi lên thay vì bị nút màu mè giành mắt. Màu tím chỉ làm điểm nhấn cho lựa chọn / tiêu điểm.
+   */
+  --color-primary: #1b1b2b;
+  --color-primary-hover: #34344d;
+  --color-on-primary: #ffffff;
   --color-danger: #e5484d;
 
   --shadow-soft: 0 1px 2px rgb(27 27 43 / 0.04), 0 8px 24px -8px rgb(27 27 43 / 0.12);
@@ -128,7 +130,7 @@
 /* Giao diện tối: chỉ đổi giá trị token, mọi class bg-paper/text-ink… tự đổi theo. */
 :root[data-theme='dark'] {
   color-scheme: dark;
-  /* Nền gần đen ngả xanh tím, điểm nhấn tím xanh; dải thương hiệu hồng → tím → xanh dùng chung cho cả hai giao diện. */
+  /* Nền gần đen ngả xanh tím, điểm nhấn tím xanh; nút chính đảo thành sáng trên nền tối. */
   --color-paper: #111218;
   --color-card: #171922;
   --color-surface: #252836;
@@ -142,9 +144,9 @@
   --color-coral-dark: #b7b8ff;
   --color-amber: #f2cf8a;
   --color-blush: #28285a;
-  --color-brand-from: #e5306c;
-  --color-brand-to: #3f6bff;
-  --color-on-brand: #ffffff;
+  --color-primary: #eeeef6;
+  --color-primary-hover: #ffffff;
+  --color-on-primary: #15161d;
   --color-danger: #ff6b81;
   --shadow-soft: 0 1px 2px rgb(4 6 12 / 0.35), 0 8px 24px -8px rgb(4 6 12 / 0.55);
   --shadow-lift: 0 2px 4px rgb(4 6 12 / 0.35), 0 24px 60px -20px rgb(4 6 12 / 0.75);
@@ -284,13 +286,16 @@ img {
   mix-blend-mode: normal;
 }
 
-.gradient-brand {
-  background-image: linear-gradient(100deg, var(--color-brand-from), var(--color-brand-mid) 52%, var(--color-brand-to));
-  color: var(--color-on-brand);
+/* Nút chính: màu đặc, một vệt sáng mảnh ở mép trên và bóng sát đáy cho có khối, không quầng màu. */
+.btn-primary {
+  background-color: var(--color-primary);
+  color: var(--color-on-primary);
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 0.12),
+    0 1px 2px rgb(0 0 0 / 0.18);
 }
-/* Quầng sáng cùng màu bên dưới các nút / huy hiệu mang màu thương hiệu. */
-.glow-brand {
-  box-shadow: 0 8px 20px -8px color-mix(in srgb, var(--color-brand-from) 75%, transparent);
+.btn-primary:not(:disabled):hover {
+  background-color: var(--color-primary-hover);
 }
 
 /* Thanh cuộn mảnh, mềm */

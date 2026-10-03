@@ -1,5 +1,5 @@
-import { ArrowLeftRight, Bookmark, Download, Eye, Folder, Heart, Image as ImageIcon, LoaderCircle, TriangleAlert, Type, X } from 'lucide-react'
-import { memo, useEffect, useMemo, useState } from 'react'
+import { ArrowLeftRight, Bookmark, CircleCheck, Download, Folder, Heart, Image as ImageIcon, LoaderCircle, TriangleAlert, Type, X } from 'lucide-react'
+import { memo, useEffect, useMemo, useState, type CSSProperties, type ReactNode } from 'react'
 import { desktop } from '../lib/desktop'
 import { placeImage } from '../lib/geometry'
 import { collageLayout } from '../lib/imaging/exportCollage'
@@ -551,19 +551,48 @@ const FORMATS: { value: ExportFormat; label: string }[] = [
   { value: 'image/webp', label: 'WebP' },
 ]
 
+/** Một dòng ngắn dưới bảng cài đặt: định dạng này hợp cho việc gì. */
 const FORMAT_NOTES: Record<ExportFormat, string> = {
-  'image/jpeg':
-    'Hợp nhất để đăng mạng xã hội. Màu giữ đủ độ phân giải (4:4:4) và gắn hồ sơ màu sRGB như khi xuất từ Lightroom / Photoshop. Mức 100% giữ trọn chi tiết như bản Lightroom; 90–95% nhẹ hơn nhiều nhưng ảnh nhiều lá, cỏ sẽ mất chi tiết nhỏ.',
-  'image/png': 'Không nén mất dữ liệu, nét tuyệt đối nhưng file nặng. Mạng xã hội thường sẽ tự nén lại.',
-  'image/webp': 'File nhẹ hơn JPEG ở cùng chất lượng. Một số nền tảng cũ chưa nhận WebP.',
+  'image/jpeg': 'Đăng mạng xã hội · sRGB, giữ EXIF như Lightroom',
+  'image/png': 'Không nén mất dữ liệu · file nặng',
+  'image/webp': 'Nhẹ hơn JPEG · vài nền tảng cũ chưa nhận',
 }
 
 const SHARPEN_LEVELS: { value: ExportSharpen; label: string }[] = [
   { value: 'off', label: 'Tắt' },
   { value: 'low', label: 'Thấp' },
-  { value: 'standard', label: 'Tiêu chuẩn' },
+  { value: 'standard', label: 'Vừa' },
   { value: 'high', label: 'Cao' },
 ]
+
+/** Một dòng của bảng cài đặt xuất: nhãn (rê chuột vào để xem giải thích) bên trái, điều khiển bên phải. */
+function ExportRow({ label, tip, children }: { label: string; tip: string; children: ReactNode }) {
+  return (
+    <div className="flex min-h-12 items-center gap-2 px-3.5 py-2">
+      {/* Gạch chân chấm: dấu hiệu quen thuộc của "rê chuột vào để xem giải thích", không tốn chỗ như icon. */}
+      <span
+        data-tip={tip}
+        className="w-[76px] shrink-0 cursor-help whitespace-nowrap text-[13px] font-semibold text-ink underline decoration-edge decoration-dotted decoration-[1.5px] underline-offset-4"
+      >
+        {label}
+      </span>
+      <div className="flex min-w-0 flex-1 items-center gap-2.5">{children}</div>
+    </div>
+  )
+}
+
+/** Cảnh báo ngắn một dòng; phần giải thích nằm trong chú thích khi rê chuột. */
+function ExportWarning({ tip, children }: { tip: string; children: ReactNode }) {
+  return (
+    <li
+      data-tip={tip}
+      className="flex cursor-help items-center gap-2 rounded-xl bg-[#fff4dc] px-3 py-2 text-[12.5px] font-medium text-[#8a5a00] dark:bg-[#3a2c10] dark:text-[#ffcf70]"
+    >
+      <TriangleAlert className="size-3.5 shrink-0" />
+      <span className="min-w-0 flex-1">{children}</span>
+    </li>
+  )
+}
 
 export function ExportPanel() {
   const state = useStore()
@@ -585,80 +614,69 @@ export function ExportPanel() {
     }).length
   }, [state])
 
-  const inCollage = state.tree ? state.selected.length : 0
-  const missing = new Set(state.photos.filter((p) => p.missing).map((p) => p.id))
-  const fromOriginal = state.selected.filter((id) => !missing.has(id)).length
-  // Bản web: ảnh còn file gốc nhưng trình duyệt chưa được cấp lại quyền đọc trong phiên này.
-  const lockedIds = new Set(state.photos.filter((p) => p.locked).map((p) => p.id))
-  const lockedInCollage = state.selected.filter((id) => lockedIds.has(id)).length
+  // Ảnh mất file gốc (bị dời / xoá) phải xuất từ bản xem trước. Ảnh chỉ đang chờ trình duyệt cho phép đọc thì không
+  // tính: lúc bấm xuất app sẽ hỏi.
+  const missingIds = new Set(state.photos.filter((p) => p.missing && !p.locked).map((p) => p.id))
+  const missing = state.tree ? state.selected.filter((id) => missingIds.has(id)).length : 0
+  const quality = Math.round(exportQuality * 100)
 
   return (
-    <div className="space-y-6">
-      <Section title="Định dạng" hint={`${size.width} × ${size.height} px`}>
-        <Segmented value={exportFormat} options={FORMATS} onChange={(v) => set({ exportFormat: v })} />
-        <p className="text-[13px] leading-relaxed text-soft">{FORMAT_NOTES[exportFormat]}</p>
+    <div className="space-y-4">
+      <div className="flex items-baseline justify-between gap-3">
+        <h3 className="font-display text-[15px] font-bold text-ink">Ảnh xuất</h3>
+        <span className="text-xs tabular-nums text-muted">
+          {size.width} × {size.height} px
+        </span>
+      </div>
+
+      <div className="divide-y divide-line rounded-2xl border border-line bg-surface">
+        <ExportRow label="Định dạng" tip="JPEG để đăng mạng xã hội, PNG khi cần nét tuyệt đối, WebP khi cần file nhẹ.">
+          <Segmented small value={exportFormat} options={FORMATS} onChange={(v) => set({ exportFormat: v })} />
+        </ExportRow>
         {exportFormat !== 'image/png' && (
-          <Slider
+          <ExportRow
             label="Chất lượng"
-            value={Math.round(exportQuality * 100)}
-            min={70}
-            max={100}
-            step={1}
-            display={`${Math.round(exportQuality * 100)}%`}
-            onChange={(v) => set({ exportQuality: v / 100 })}
-          />
+            tip="100% giữ trọn chi tiết như bản Lightroom. 90–95% nhẹ hơn nhiều nhưng ảnh nhiều lá, cỏ sẽ mất chi tiết nhỏ."
+          >
+            <input
+              type="range"
+              aria-label="Chất lượng"
+              min={70}
+              max={100}
+              step={1}
+              value={quality}
+              style={{ '--fill': `${((quality - 70) / 30) * 100}%` } as CSSProperties}
+              onChange={(e) => set({ exportQuality: Number(e.target.value) / 100 })}
+              className="min-w-0 flex-1"
+            />
+            <span className="w-9 shrink-0 text-right text-[13px] font-semibold tabular-nums text-ink">{quality}%</span>
+          </ExportRow>
         )}
-      </Section>
+        <ExportRow
+          label="Làm nét"
+          tip="Bù chi tiết mất đi khi thu nhỏ ảnh, như Output Sharpening: Screen của Lightroom (Cao = High). Tắt = giống Lightroom khi không bật làm nét. Không đụng tới ảnh bị phóng to hay giữ nguyên cỡ."
+        >
+          <Segmented small value={exportSharpen} options={SHARPEN_LEVELS} onChange={(v) => set({ exportSharpen: v })} />
+        </ExportRow>
+      </div>
+      <p className="-mt-1.5 px-1 text-xs leading-relaxed text-muted">{FORMAT_NOTES[exportFormat]}</p>
 
-      <Section title="Làm nét đầu ra">
-        <Segmented value={exportSharpen} options={SHARPEN_LEVELS} onChange={(v) => set({ exportSharpen: v })} />
-        <p className="text-[13px] leading-relaxed text-soft">
-          Tắt: ảnh thu nhỏ giống hệt Lightroom khi không bật Output Sharpening. Bật lên để bù lại chi tiết như Output
-          Sharpening: Screen của Lightroom (Cao = High). Chỉ áp dụng cho ảnh được thu nhỏ, không đụng tới ảnh bị phóng to
-          hay giữ nguyên cỡ.
-        </p>
-      </Section>
-
-      {inCollage > 0 && (
-        <p className="rounded-2xl bg-sand p-4 text-[13px] leading-relaxed text-soft">
-          {fromOriginal === inCollage ? (
-            <>
-              <b className="text-ink">Xuất từ file gốc.</b> Cả {inCollage} ảnh trong khung đều lấy thẳng từ file gốc
-              trên máy, không qua bản nén nào.
-            </>
-          ) : (
-            <>
-              <b className="text-ink">
-                {fromOriginal}/{inCollage} ảnh xuất từ file gốc.
-              </b>{' '}
-              {lockedInCollage > 0 ? (
-                <>
-                  Trình duyệt chưa được phép đọc file gốc của {lockedInCollage} ảnh trong lần mở này; khi bấm xuất, app sẽ hỏi
-                  bạn cho phép.
-                </>
-              ) : (
-                <>
-                  Ảnh còn lại không còn file gốc ở chỗ cũ (đã bị di chuyển, đổi tên hoặc xoá) nên dùng bản xem trước 2560px.
-                  Muốn nét tối đa, hãy thêm lại những ảnh đó từ vị trí mới.
-                </>
-              )}
-            </>
+      {(upscaled > 0 || missing > 0) && (
+        <ul className="space-y-1.5">
+          {upscaled > 0 && (
+            <ExportWarning tip="Ảnh bị phóng to quá độ phân giải của chính nó nên có thể hơi mềm. Giảm zoom ảnh trong ô hoặc chọn khung nhỏ hơn.">
+              {upscaled} ảnh bị phóng to quá cỡ gốc
+            </ExportWarning>
           )}
-        </p>
+          {missing > 0 && (
+            <ExportWarning tip="File gốc đã bị di chuyển, đổi tên hoặc xoá nên app dùng bản xem trước 2560px. Thêm lại ảnh từ vị trí mới để xuất nét tối đa.">
+              {missing} ảnh mất file gốc, sẽ xuất từ bản xem trước
+            </ExportWarning>
+          )}
+        </ul>
       )}
 
-      {upscaled > 0 && (
-        <p className="flex gap-2.5 rounded-2xl bg-[#fff4dc] p-4 text-[13px] leading-relaxed text-[#8a5a00] dark:bg-[#3a2c10] dark:text-[#ffcf70]">
-          <TriangleAlert className="mt-0.5 size-4 shrink-0" />
-          <span>
-            {upscaled} ảnh đang bị phóng to quá độ phân giải của chính nó nên có thể hơi mềm. Giảm zoom hoặc chọn khung
-            nhỏ hơn.
-          </span>
-        </p>
-      )}
-
-      <div className="space-y-2.5">
-        <ExportFolder busy={progress !== null} />
+      <div className="space-y-2 pt-1">
         <Button
           variant="primary"
           className="h-12 w-full text-[15px]"
@@ -668,6 +686,7 @@ export function ExportPanel() {
           {progress !== null ? <LoaderCircle className="size-5 animate-spin" /> : <Download className="size-5" />}
           {progress !== null ? `Đang xuất… ${Math.round(progress * 100)}%` : desktop.exportFile.folder ? 'Xuất ảnh' : 'Xuất ảnh ghép…'}
         </Button>
+        <ExportFolder busy={progress !== null} />
       </div>
     </div>
   )
@@ -694,34 +713,37 @@ function ExportFolder({ busy }: { busy: boolean }) {
     }
   }
   return (
-    <div className="rounded-2xl border border-line bg-surface px-3.5 py-2.5 text-[13px]">
-      <div className="flex items-center gap-2">
-        <Folder className="size-4 shrink-0 text-muted" />
-        <span className="min-w-0 flex-1 truncate text-soft">
-          {name ? (
-            <>
-              Lưu vào <b className="text-ink">{name}</b>
-            </>
-          ) : (
-            'Lần xuất đầu tiên sẽ hỏi thư mục lưu ảnh'
-          )}
-        </span>
+    <div className="space-y-1 text-center text-xs text-muted">
+      <p className="flex items-center justify-center gap-1.5">
+        <Folder className="size-3.5 shrink-0" />
+        {name ? (
+          <span className="min-w-0 truncate">
+            Lưu vào <b className="font-semibold text-soft">{name}</b>
+          </span>
+        ) : (
+          <span>Lần xuất đầu sẽ hỏi chỗ lưu</span>
+        )}
+        <span aria-hidden>·</span>
         <button type="button" disabled={busy} onClick={() => void change()} className="shrink-0 font-semibold text-coral-dark hover:underline">
           {name ? 'Đổi' : 'Chọn thư mục'}
         </button>
-      </div>
+      </p>
       {last && last.folder === name && (
-        <button
-          type="button"
-          onClick={() => void desktop.exportFile.view?.(last.target)}
-          data-tip="Mở ảnh vừa xuất trong tab mới"
-          className="mt-1.5 flex w-full items-center gap-2 text-left text-muted hover:text-ink"
-        >
-          <Eye className="size-4 shrink-0" />
-          <span className="min-w-0 flex-1 truncate">
-            Vừa xuất: <span className="font-medium">{last.file}</span>
+        <p className="flex items-center justify-center gap-1.5">
+          <CircleCheck className="size-3.5 shrink-0 text-[#2f9e5b] dark:text-[#5fd08a]" />
+          <span className="min-w-0 truncate">
+            Vừa xuất <span className="font-medium text-soft">{last.file}</span>
           </span>
-        </button>
+          <span aria-hidden>·</span>
+          <button
+            type="button"
+            onClick={() => void desktop.exportFile.view?.(last.target)}
+            data-tip="Mở ảnh vừa xuất trong tab mới"
+            className="shrink-0 font-semibold text-coral-dark hover:underline"
+          >
+            Xem
+          </button>
+        </p>
       )}
     </div>
   )

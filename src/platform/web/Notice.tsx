@@ -13,7 +13,7 @@ export function Notice({ title, children, action }: { title: string; children: R
             type="button"
             autoFocus
             onClick={action.run}
-            className="mt-6 h-11 rounded-full gradient-brand px-6 text-sm font-semibold transition hover:brightness-105 active:scale-95"
+            className="mt-6 h-11 rounded-full btn-primary px-6 text-sm font-semibold transition active:scale-95"
           >
             {action.label}
           </button>

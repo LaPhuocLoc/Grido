@@ -100,7 +100,7 @@ const LIBRARY = `
   return {
     tiles: tiles.length,
     names: tiles.map((t) => t.querySelector('img')?.dataset.tip).sort(),
-    locked: document.querySelectorAll('[data-photo] [data-tip^="Trình duyệt chưa"]').length,
+    locked: document.querySelectorAll('[data-photo][data-locked]').length,
     banner: /ảnh cần được cho phép/.test(document.body.innerText),
     text: document.body.innerText,
   }`
