@@ -59,6 +59,22 @@ export function parseLayout(dsl: string): LayoutNode {
   return root
 }
 
+/** Số viết gọn tới 2 chữ số thập phân: 1.50 → "1.5", 2.00 → "2". */
+const short = (v: number) => String(Math.round(v * 100) / 100)
+
+/**
+ * Viết một cây thành chuỗi DSL (ngược với `parseLayout`). Trọng số được quy về "phần nhỏ nhất = 1" và làm tròn 2 chữ số,
+ * nên hai cây cùng hình luôn ra cùng một chuỗi.
+ */
+export function formatLayout(node: LayoutNode): string {
+  if (node.kind === 'cell') return '*'
+  const dir = node.dir === 'h' ? 'H' : 'V'
+  const least = Math.min(...node.weights)
+  const weights = node.weights.map((w) => short(w / least))
+  if (node.children.every((c) => c.kind === 'cell') && weights.every((w) => w === '1')) return `${dir}${node.children.length}`
+  return `${dir}(${node.children.map((c, i) => (weights[i] === '1' ? '' : `${weights[i]}:`) + formatLayout(c)).join(',')})`
+}
+
 export function countCells(node: LayoutNode): number {
   return node.kind === 'cell' ? 1 : node.children.reduce((sum, c) => sum + countCells(c), 0)
 }

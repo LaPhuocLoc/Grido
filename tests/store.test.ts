@@ -44,7 +44,7 @@ describe('choosing photos', () => {
     get().toggleSelect('p2')
     get().toggleSelect('p1')
     expect(get().selected).toEqual(['p2', 'p1'])
-    expect(get().layoutId).toBe('H(*,*)')
+    expect(get().layoutId).toBe('H2')
     expect(get().tree).toEqual({ kind: 'split', dir: 'h', weights: [1, 1], children: [{ kind: 'cell' }, { kind: 'cell' }] })
   })
 
@@ -54,10 +54,10 @@ describe('choosing photos', () => {
     expect(get()).toMatchObject({ selected: [], tree: null, layoutId: null })
   })
 
-  it('refuses a 13th photo and says why', () => {
-    ids(13).forEach((id) => get().toggleSelect(id))
-    expect(get().selected).toEqual(ids(12))
-    expect(get().toasts.map((t) => t.message)).toEqual(['Một ảnh ghép chứa tối đa 12 ảnh.'])
+  it('refuses an 11th photo and says why', () => {
+    ids(11).forEach((id) => get().toggleSelect(id))
+    expect(get().selected).toEqual(ids(10))
+    expect(get().toasts.map((t) => t.message)).toEqual(['Một ảnh ghép chứa tối đa 10 ảnh.'])
   })
 
   it('puts the clicked photo into the active cell instead of adding a cell', () => {
@@ -101,7 +101,7 @@ describe('removing photos from the library', () => {
     await get().deletePhotos(['p2'])
     expect(get().photos.map((p) => p.id)).not.toContain('p2')
     expect(get().selected).toEqual(['p1', 'p3'])
-    expect(get().layoutId).toBe('H(*,*)')
+    expect(get().layoutId).toBe('H2')
     expect(get().adjust).toEqual({})
   })
 })
@@ -590,7 +590,7 @@ describe('layout first: empty cells', () => {
     get().setActiveCell(2)
     get().removeActiveCell()
     expect(get().selected).toEqual(['p2', null])
-    expect(get().layoutId).toBe('H(*,*)')
+    expect(get().layoutId).toBe('H2')
   })
 
   it('does not spin forever shuffling a collage with a single photo among empty cells', () => {
@@ -618,6 +618,29 @@ describe('layout first: empty cells', () => {
     expect(get().selected).toEqual(['p1', null, 'p2'])
     await get().deletePhotos(['p1'])
     expect(get().selected).toEqual([null, 'p2'])
+  })
+})
+
+describe('layout chosen for the photos', () => {
+  it('fits the layout to the photos and the frame when photos are picked together', () => {
+    // Ảnh mẫu của test đều là ảnh ngang 3:2, khung "Ảnh gốc" cũng 3:2: bốn ảnh ngang vừa khít lưới 2×2.
+    get().replaceSelection(['p1', 'p2', 'p3', 'p4'])
+    expect(get().layoutId).toBe('V(H2,H2)')
+    // Sang khung dọc 4:5 rồi ghép lại: ba ảnh ngang xếp một ảnh lớn trên, hai ảnh nhỏ dưới, không thành ba dải dẹt.
+    get().set({ presetId: 'ig-portrait' })
+    get().replaceSelection(['p1', 'p2', 'p3'])
+    expect(get().layoutId).toBe('V(2:*,H2)')
+  })
+
+  it('draws the random layout from the ones offered for the frame', () => {
+    get().replaceSelection(['p1', 'p2', 'p3'])
+    const offered = new Set<string | null>()
+    for (let i = 0; i < 20; i++) {
+      get().randomLayout()
+      offered.add(get().layoutId)
+    }
+    expect(offered.size).toBeGreaterThan(2)
+    for (const id of offered) expect(get().selected, String(id)).toHaveLength(3)
   })
 })
 
@@ -913,7 +936,7 @@ describe('reopening the app', () => {
     window.dispatchEvent(new Event('pagehide'))
     await boot(['p1', 'p3'])
     expect(get().selected).toEqual(['p1', 'p3'])
-    expect(get().layoutId).toBe('H(*,*)')
+    expect(get().layoutId).toBe('H2')
     expect(get().past).toEqual([])
   })
 })
@@ -1181,7 +1204,7 @@ describe('designs', () => {
     get().newDesign()
     await get().deletePhotos(['p1'])
     expect(titles()).toEqual(['p2+p3'])
-    expect(get().designs[0].snapshot.layoutId).toBe('H(*,*)')
+    expect(get().designs[0].snapshot.layoutId).toBe('H2')
   })
 
   it('remembers every design and which one is open after a restart', async () => {
@@ -1214,10 +1237,10 @@ describe('selecting many photos at once', () => {
   })
 
   it('stops at the photo limit and says how many were added', () => {
-    ids(10).forEach((id) => get().toggleSelect(id))
-    get().selectMany(['p11', 'p12', 'p13', 'p14'])
-    expect(get().selected).toEqual(ids(12))
-    expect(get().toasts.map((t) => t.message)).toEqual(['Chỉ thêm được 2 ảnh: một ảnh ghép chứa tối đa 12 ảnh.'])
+    ids(8).forEach((id) => get().toggleSelect(id))
+    get().selectMany(['p9', 'p10', 'p11', 'p12'])
+    expect(get().selected).toEqual(ids(10))
+    expect(get().toasts.map((t) => t.message)).toEqual(['Chỉ thêm được 2 ảnh: một ảnh ghép chứa tối đa 10 ảnh.'])
   })
 
   it('does nothing when every swept photo is already there', () => {
@@ -1267,9 +1290,9 @@ describe('composing from picked photos', () => {
   })
 
   it('refuses more than the photo limit', () => {
-    get().replaceSelection(ids(13))
+    get().replaceSelection(ids(11))
     expect(get().selected).toEqual([])
-    expect(get().toasts.map((t) => t.message)).toEqual(['Một ảnh ghép chứa tối đa 12 ảnh.'])
+    expect(get().toasts.map((t) => t.message)).toEqual(['Một ảnh ghép chứa tối đa 10 ảnh.'])
   })
 
   it('takes a single photo out of the collage, even while a cell is active', () => {

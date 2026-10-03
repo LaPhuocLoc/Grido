@@ -9,16 +9,11 @@ export type Dir = 'h' | 'v'
 
 export type LayoutNode = { kind: 'cell' } | { kind: 'split'; dir: Dir; children: LayoutNode[]; weights: number[] }
 
-export type LayoutCategory = 'grid' | 'hero' | 'mosaic'
-
 export interface LayoutDef {
   /** Chính là chuỗi DSL chuẩn hoá — ổn định, dùng làm id lưu trữ được. */
   id: string
   /** Số ô ảnh. */
   n: number
-  category: LayoutCategory
-  /** Dáng của bố cục (xem `layoutShape`): các bố cục chỉ khác nhau ở tỉ lệ ô thì cùng dáng. */
-  shape: string
 }
 
 export interface Rect {

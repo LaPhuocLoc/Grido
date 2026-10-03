@@ -173,9 +173,11 @@ H3 / V3    viết tắt của H(*,*,*) / V(*,*,*)
 
 Ví dụ `H(2:*,V3)` = một ảnh lớn bên trái + cột 3 ảnh nhỏ bên phải.
 
-- **Thêm 1 bố cục**: thêm một dòng vào `src/lib/layout/handcrafted.ts`.
-- **Thêm cả một họ bố cục**: viết một generator `(n) => string[]` trong `src/lib/layout/generators.ts` và đăng ký vào `GENERATORS`.
+Bố cục bày ra cho người dùng không phải là "mọi cách chia ô" mà là danh sách đã chọn lọc cho đúng khung đang dùng (`src/lib/layout/curate.ts`):
 
-Registry tự đếm số ô, tự loại bố cục trùng hình, và id bố cục chính là chuỗi DSL nên ổn định qua các lần cập nhật.
+- **Ứng viên**: các kiểu xếp hàng / xếp cột, độ cao mỗi hàng được canh (`justify`) để ô giữ tỉ lệ của một tấm ảnh, kể cả hàng có ô hẹp cạnh ô rộng gấp đôi (ảnh dọc cạnh ảnh ngang); cộng các cấu trúc có ô chủ đạo trong `generators.ts` và `handcrafted.ts`.
+- **Chấm điểm** (`quality`): ô phải nằm trong khoảng 2:3 tới 16:9, ít cỡ ô khác nhau, không ô nào bé tí cạnh ô khổng lồ. Điểm tính theo tỉ lệ khung, nên khung dọc và khung ngang có danh sách khác nhau.
+- **Chọn**: lấy từ đẹp nhất xuống, bỏ cái nhìn gần giống cái đã lấy, tối đa 24.
+- **Gợi ý theo ảnh** (`suggestLayouts`): cùng cách làm nhưng canh ô theo tỉ lệ thật của những ảnh đang chọn, giữ nguyên thứ tự ảnh; cái đứng đầu là bố cục mặc định khi vừa ghép ảnh.
 
-Danh sách trong mục Bố cục chỉ hiện mỗi **dáng** một lần (`getLayoutShapes`): hai bố cục chỉ khác nhau ở tỉ lệ ô, vd `H(*,*)` và `H(2:*,*)`, là cùng một dáng, vì người dùng tự kéo đường viền là ra. Bố cục đứng trước trong danh sách là đại diện của dáng đó. Nút "Bố cục ngẫu nhiên" vẫn rút trong toàn bộ danh sách (`getLayouts`), kể cả các biến thể tỉ lệ.
+Thêm cấu trúc mới: một dòng vào `handcrafted.ts`, hoặc một generator `(n) => string[]` trong `generators.ts`; nó chỉ hiện ra nếu đủ điểm trên khung đang dùng. Id bố cục chính là chuỗi DSL (viết ra bằng `formatLayout`) nên thiết kế và mục Yêu thích cũ vẫn mở được dù bố cục đó không còn trong danh sách. Một ảnh ghép chứa tối đa 10 ảnh (`MAX_PHOTOS`).

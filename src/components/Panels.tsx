@@ -12,6 +12,7 @@ import {
   LoaderCircle,
   RectangleHorizontal,
   RectangleVertical,
+  Sparkles,
   Square,
   TriangleAlert,
   Type,
@@ -23,9 +24,9 @@ import { desktop } from '../lib/desktop'
 import { placeImage } from '../lib/geometry'
 import { collageLayout } from '../lib/imaging/exportCollage'
 import { computeLayout } from '../lib/layout/compute'
-import { parseLayout } from '../lib/layout/dsl'
-import { getLayouts, getLayoutShapes, layoutShape, MAX_PHOTOS } from '../lib/layout/registry'
-import type { LayoutCategory, LayoutNode } from '../lib/layout/types'
+import { countCells, parseLayout } from '../lib/layout/dsl'
+import { getLayouts, layoutLook, MAX_PHOTOS, suggestLayouts } from '../lib/layout/registry'
+import type { LayoutDef, LayoutNode } from '../lib/layout/types'
 import {
   BACKGROUNDS,
   CUSTOM_PRESET_ID,
@@ -40,7 +41,7 @@ import {
   type Platform,
 } from '../lib/presets'
 import { buildSpec, canExportMany, exportToFile, useExportProgress } from '../lib/useCollage'
-import { canvasSize, originalCanvasOf, pctToPx, currentDesign, photosIn, useStore, type ExportFormat, type ExportSharpen } from '../store'
+import { canvasSize, originalCanvasOf, pctToPx, currentDesign, photosIn, slotAspects, useStore, type ExportFormat, type ExportSharpen } from '../store'
 import { openBatchExport, useExportableCount } from './BatchExport'
 import { BrandIcon } from './BrandIcon'
 import { FontPicker } from './FontPicker'
@@ -245,15 +246,12 @@ export function SizePanel() {
 
 /* ───────────── Bố cục ───────────── */
 
-type CategoryId = LayoutCategory | 'all' | 'fav' | 'saved'
+type CategoryId = 'all' | 'fav' | 'saved'
 
 const CATEGORIES: { id: CategoryId; label: string }[] = [
-  { id: 'all', label: 'Tất cả' },
+  { id: 'all', label: 'Gợi ý' },
   { id: 'fav', label: 'Yêu thích' },
   { id: 'saved', label: 'Đã lưu' },
-  { id: 'grid', label: 'Lưới' },
-  { id: 'hero', label: 'Nổi bật' },
-  { id: 'mosaic', label: 'Khảm' },
 ]
 
 const LayoutThumb = memo(function LayoutThumb({
@@ -314,6 +312,17 @@ const ORIENTATIONS: { id: Orientation; label: string; icon: LucideIcon }[] = [
 /** Mở mục Bố cục khi khung còn trống thì đứng sẵn ở số ảnh này. */
 const DEFAULT_LAYOUT_COUNT = 3
 
+/** Bố cục đã thả tim cho n ảnh. Id chính là chuỗi DSL nên bố cục cũ không còn trong danh sách vẫn dựng lại được. */
+function lovedLayouts(favorites: string[], n: number): LayoutDef[] {
+  return favorites.flatMap((id) => {
+    try {
+      return countCells(parseLayout(id)) === n ? [{ id, n }] : []
+    } catch {
+      return []
+    }
+  })
+}
+
 export function LayoutPanel() {
   // Số ô của bố cục đang nằm trên khung (0 = khung trống).
   const cells = useStore((s) => s.selected.length)
@@ -322,8 +331,9 @@ export function LayoutPanel() {
   useEffect(() => {
     if (cells) setCount(cells)
   }, [cells])
-  const layoutId = useStore((s) => s.layoutId)
   const tree = useStore((s) => s.tree)
+  const selected = useStore((s) => s.selected)
+  const photos = useStore((s) => s.photos)
   const favorites = useStore((s) => s.favorites)
   const savedLayouts = useStore((s) => s.savedLayouts)
   const presetId = useStore((s) => s.presetId)
@@ -331,44 +341,72 @@ export function LayoutPanel() {
   const customH = useStore((s) => s.customH)
   const { setLayout, toggleFavorite, saveLayout, applySavedLayout, removeSavedLayout, setOrientation } = useStore.getState()
   const size = canvasSize({ presetId, customW, customH })
+  const frame = size.width / size.height
   const orientation = orientationOf(size)
-  const [picked, setCategory] = useState<CategoryId>('all')
+  const [category, setCategory] = useState<CategoryId>('all')
 
-  // Danh sách chỉ hiện mỗi dáng một lần: các biến thể chỉ khác tỉ lệ ô thì người dùng tự kéo đường viền (hoặc bấm "Bố cục
-  // ngẫu nhiên") là ra, bày hết ra chỉ làm khó chọn.
-  const all = useMemo(() => getLayoutShapes(n), [n])
+  // Ảnh nào sẽ nằm ở ô nào nếu chọn một bố cục n ô (như lúc đổi bố cục thật): nhiều ô hơn thì thêm ô trống, ít ô hơn thì
+  // dồn ảnh lên trước.
+  const aspects = useMemo(() => {
+    const now = slotAspects(photos, selected)
+    const kept = n < now.length ? now.filter((a) => a !== null).slice(0, n) : now
+    return [...kept, ...Array<null>(n - kept.length).fill(null)]
+  }, [photos, selected, n])
+  // Hai nhóm: bố cục ôm sát những ảnh đang chọn, rồi các bố cục đẹp của khung này (xem lib/layout/curate.ts).
+  const fitting = useMemo(() => suggestLayouts(aspects, frame), [aspects, frame])
   const favSet = useMemo(() => new Set(favorites), [favorites])
-  // Mục Yêu thích vẫn giữ những biến thể đã thả tim từ trước.
-  const loved = useMemo(() => getLayouts(n).filter((l) => favSet.has(l.id)), [n, favSet])
-  const shape = useMemo(() => (tree ? layoutShape(tree) : null), [tree])
+  const loved = useMemo(() => lovedLayouts(favorites, n), [favorites, n])
+  const looks = useMemo(() => {
+    const map = new Map<string, string>()
+    for (const l of [...fitting, ...getLayouts(n, frame), ...loved]) if (!map.has(l.id)) map.set(l.id, layoutLook(parseLayout(l.id), frame))
+    return map
+  }, [fitting, loved, n, frame])
+  const others = useMemo(() => {
+    const taken = new Set(fitting.map((l) => looks.get(l.id)))
+    return getLayouts(n, frame).filter((l) => !taken.has(looks.get(l.id)))
+  }, [fitting, looks, n, frame])
+  // Ô nào trong danh sách đang nằm trên khung: so bằng dáng nhìn, nên kéo lệch đường viền một chút ô đó vẫn sáng.
+  const look = useMemo(() => (tree && n === cells ? layoutLook(tree, frame) : null), [tree, n, cells, frame])
   const saved = useMemo(() => savedLayouts.filter((l) => l.n === n), [savedLayouts, n])
   // Bố cục đã lưu đang được dùng nếu cây hiện tại giống hệt (kể cả tỉ lệ ô đã kéo).
   const treeSignature = useMemo(() => JSON.stringify(tree), [tree])
   // Khung quá dẹt/quá cao thì thumbnail vẫn giữ trong khoảng dễ nhìn.
-  const ratio = Math.min(2, Math.max(0.56, size.width / size.height))
+  const ratio = Math.min(2, Math.max(0.56, frame))
 
-  const counts: Record<CategoryId, number> = {
-    all: all.length,
-    fav: loved.length,
-    saved: saved.length,
-    grid: all.filter((l) => l.category === 'grid').length,
-    hero: all.filter((l) => l.category === 'hero').length,
-    mosaic: all.filter((l) => l.category === 'mosaic').length,
-  }
-  // Mục cá nhân luôn hiện (kể cả khi trống) để người dùng biết có tính năng này. Nhóm có sẵn mà trống, hoặc gồm đúng mọi
-  // bố cục của "Tất cả", thì ẩn đi cho đỡ rối.
-  const offered = (id: CategoryId) => id === 'all' || id === 'fav' || id === 'saved' || (counts[id] > 0 && counts[id] < counts.all)
-  // Đổi số ảnh có thể làm nhóm đang xem biến mất: khi đó xem "Tất cả".
-  const category = offered(picked) ? picked : 'all'
-  const shown =
-    category === 'all'
-      ? all
-      : category === 'fav'
-        ? loved
-        : category === 'saved'
-          ? []
-          : all.filter((l) => l.category === category)
+  const counts: Record<CategoryId, number> = { all: fitting.length + others.length, fav: loved.length, saved: saved.length }
   const grid = 'grid grid-cols-[repeat(auto-fill,minmax(68px,1fr))] items-start gap-2'
+  const caption = 'flex items-center gap-1.5 text-xs font-semibold text-soft'
+
+  /** Một nhóm ô bố cục; `from` là số thứ tự của ô đầu nhóm trong cả danh sách. */
+  const tiles = (list: LayoutDef[], from: number) => (
+    <div className={grid}>
+      {list.map((l, i) => {
+        const active = look !== null && looks.get(l.id) === look
+        const fav = favSet.has(l.id)
+        const number = from + i + 1
+        return (
+          <div key={l.id} className="group relative">
+            <button type="button" aria-pressed={active} aria-label={`Bố cục ${number}`} onClick={() => setLayout(l.id)} className={tile(active)}>
+              <LayoutThumb id={l.id} ratio={ratio} active={active} />
+            </button>
+            <button
+              type="button"
+              aria-pressed={fav}
+              aria-label={fav ? `Bỏ thích bố cục ${number}` : `Thích bố cục ${number}`}
+              data-tip={fav ? 'Bỏ khỏi Yêu thích' : 'Thêm vào Yêu thích'}
+              onClick={() => toggleFavorite(l.id)}
+              className={cx(
+                tileAction,
+                fav ? 'text-coral' : 'text-soft opacity-0 hover:text-coral group-hover:opacity-100 [@media(hover:none)]:opacity-60',
+              )}
+            >
+              <Heart key={String(fav)} className={cx('size-3.5', fav && 'animate-pop fill-current')} />
+            </button>
+          </div>
+        )
+      })}
+    </div>
+  )
 
   return (
     <div className="space-y-5">
@@ -405,8 +443,8 @@ export function LayoutPanel() {
           ))}
         </div>
       </Section>
-      <Section title="Số ảnh" hint={`${all.length} kiểu`}>
-        <div role="radiogroup" aria-label="Số ảnh của bố cục" className="grid grid-cols-12 gap-1">
+      <Section title="Số ảnh">
+        <div role="radiogroup" aria-label="Số ảnh của bố cục" className="grid grid-cols-10 gap-1">
           {Array.from({ length: MAX_PHOTOS }, (_, i) => i + 1).map((count) => (
             <button
               key={count}
@@ -427,25 +465,22 @@ export function LayoutPanel() {
           ))}
         </div>
         <div className="flex flex-wrap gap-1.5">
-          {CATEGORIES.map((c) => {
-            if (!offered(c.id)) return null
-            return (
-              <button
-                key={c.id}
-                type="button"
-                aria-pressed={category === c.id}
-                onClick={() => setCategory(c.id)}
-                className={cx(
-                  'flex h-8 items-center gap-1 rounded-full px-3 text-[13px] font-semibold transition-colors active:scale-95',
-                  category === c.id ? 'bg-ink text-paper' : 'bg-sand text-soft hover:text-ink',
-                )}
-              >
-                {c.id === 'fav' && <Heart className="size-3.5" />}
-                {c.id === 'saved' && <Bookmark className="size-3.5" />}
-                {c.label} <span className="font-normal opacity-60">{counts[c.id]}</span>
-              </button>
-            )
-          })}
+          {CATEGORIES.map((c) => (
+            <button
+              key={c.id}
+              type="button"
+              aria-pressed={category === c.id}
+              onClick={() => setCategory(c.id)}
+              className={cx(
+                'flex h-8 items-center gap-1 rounded-full px-3 text-[13px] font-semibold transition-colors active:scale-95',
+                category === c.id ? 'bg-ink text-paper' : 'bg-sand text-soft hover:text-ink',
+              )}
+            >
+              {c.id === 'fav' && <Heart className="size-3.5" />}
+              {c.id === 'saved' && <Bookmark className="size-3.5" />}
+              {c.label} <span className="font-normal opacity-60">{counts[c.id]}</span>
+            </button>
+          ))}
         </div>
 
         {tree && n === cells && (
@@ -495,48 +530,31 @@ export function LayoutPanel() {
               <b className="text-ink">Lưu bố cục đang dùng</b> để lần sau chọn lại.
             </p>
           )
-        ) : shown.length ? (
-          <div key={category} className={cx(grid, 'animate-fade')}>
-            {shown.map((l, i) => {
-              // Bố cục trên khung cùng dáng với ô này (kể cả khi đã kéo đổi tỉ lệ ô) thì ô này sáng; mục Yêu thích có thể chứa
-              // nhiều biến thể cùng dáng nên so đúng từng bố cục.
-              const active = n === cells && (category === 'fav' ? l.id === layoutId : l.shape === shape)
-              const fav = favSet.has(l.id)
-              return (
-                <div key={l.id} className="group relative">
-                  <button
-                    type="button"
-                    aria-pressed={active}
-                    aria-label={`Bố cục ${i + 1}`}
-                    onClick={() => setLayout(l.id)}
-                    className={tile(active)}
-                  >
-                    <LayoutThumb id={l.id} ratio={ratio} active={active} />
-                  </button>
-                  <button
-                    type="button"
-                    aria-pressed={fav}
-                    aria-label={fav ? `Bỏ thích bố cục ${i + 1}` : `Thích bố cục ${i + 1}`}
-                    data-tip={fav ? 'Bỏ khỏi Yêu thích' : 'Thêm vào Yêu thích'}
-                    onClick={() => toggleFavorite(l.id)}
-                    className={cx(
-                      tileAction,
-                      fav
-                        ? 'text-coral'
-                        : 'text-soft opacity-0 hover:text-coral group-hover:opacity-100 [@media(hover:none)]:opacity-60',
-                    )}
-                  >
-                    <Heart key={String(fav)} className={cx('size-3.5', fav && 'animate-pop fill-current')} />
-                  </button>
-                </div>
-              )
-            })}
-          </div>
+        ) : category === 'fav' ? (
+          loved.length ? (
+            <div key="fav" className="animate-fade">
+              {tiles(loved, 0)}
+            </div>
+          ) : (
+            <p className="rounded-2xl bg-sand p-4 text-[13px] leading-relaxed text-soft">
+              Chưa có bố cục yêu thích nào cho {n} ảnh. Bấm biểu tượng <Heart className="inline size-3.5 align-[-2px]" /> ở góc một bố cục
+              để thêm vào đây.
+            </p>
+          )
         ) : (
-          <p className="rounded-2xl bg-sand p-4 text-[13px] leading-relaxed text-soft">
-            Chưa có bố cục yêu thích nào cho {n} ảnh. Bấm biểu tượng <Heart className="inline size-3.5 align-[-2px]" /> ở góc
-            một bố cục để thêm vào đây.
-          </p>
+          <div key={`${n}`} className="animate-fade space-y-3">
+            {fitting.length > 0 && (
+              <>
+                <p className={caption} data-tip="Ô nào cũng gần đúng tỉ lệ của ảnh nằm trong đó, nên ảnh ít bị cắt nhất">
+                  <Sparkles className="size-3.5 text-coral-dark" />
+                  Hợp với ảnh đang chọn
+                </p>
+                {tiles(fitting, 0)}
+                <p className={caption}>Bố cục khác</p>
+              </>
+            )}
+            {tiles(others, fitting.length)}
+          </div>
         )}
       </Section>
     </div>

@@ -500,7 +500,7 @@ export function Library() {
   const [query, setQuery] = useState('')
   /**
    * Chế độ "Chọn": những ảnh đang được chọn để ghép / chuyển album / xoá một lượt, không giới hạn số lượng (khác với ảnh
-   * trong bố cục, tối đa 12). null = không ở chế độ này.
+   * trong bố cục, tối đa 10). null = không ở chế độ này.
    */
   const [picked, setPicked] = useState<Set<string> | null>(null)
   const pickedRef = useRef(picked)

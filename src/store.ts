@@ -6,7 +6,7 @@ import { DEFAULT_ADJUST, type CellAdjust } from './lib/geometry'
 import { readExif } from './lib/imaging/exif'
 import { POOL_SIZE, prepareImport } from './lib/imaging/tasks'
 import { countCells, parseLayout } from './lib/layout/dsl'
-import { getLayouts, MAX_PHOTOS } from './lib/layout/registry'
+import { defaultLayout, getLayouts, MAX_PHOTOS, suggestLayouts } from './lib/layout/registry'
 import type { LayoutNode } from './lib/layout/types'
 import { albumName, pruneAlbumMap, type Album } from './lib/albums'
 import { copyName, designTitle } from './lib/designs'
@@ -375,7 +375,7 @@ function pruneSnapshot(snap: Snapshot, alive: (id: string) => boolean): Snapshot
   const selected = snap.selected.filter(kept)
   const adjust = Object.fromEntries(Object.entries(snap.adjust).filter(([id]) => alive(id)))
   if (!selected.length) return { ...snap, selected, adjust, layoutId: null, tree: null }
-  const layoutId = getLayouts(selected.length)[0].id
+  const layoutId = getLayouts(selected.length, frameAspect(snap))[0].id
   return { ...snap, selected, adjust, layoutId, tree: parseLayout(layoutId) }
 }
 
@@ -416,18 +416,30 @@ function originalSize(state: State, photoId: string | undefined): Partial<Settin
 function freshSelection(state: State, ids: string[]): Partial<State> {
   const next = withSelection({ ...state, selected: [] }, ids)
   if (!state.selected.length || state.presetId === ORIGINAL_PRESET_ID) return next
-  return { ...next, presetId: state.presetId, customW: state.customW, customH: state.customH }
+  const frame = { presetId: state.presetId, customW: state.customW, customH: state.customH }
+  if (!ids.length) return { ...next, ...frame }
+  // Bố cục phải hợp với khung được giữ lại, không phải khung "Ảnh gốc" vừa tính tạm ở trên.
+  const layoutId = defaultLayout(slotAspects(state.photos, ids), frameAspect(frame))
+  return { ...next, ...frame, layoutId, tree: parseLayout(layoutId) }
 }
 
 const toggled = (list: string[], id: string) => (list.includes(id) ? list.filter((f) => f !== id) : [id, ...list])
 
-/** Khi số ô đổi thì bố cục cũ không còn hợp lệ → chọn bố cục đầu tiên của số ô mới. */
+/** Tỉ lệ rộng/cao của từng ô theo ảnh đang nằm trong đó (null = ô trống): đầu vào để gợi ý bố cục ôm ảnh. */
+export function slotAspects(photos: Photo[], selected: Slot[]): (number | null)[] {
+  return selected.map((id) => {
+    const photo = id === null ? undefined : photos.find((p) => p.id === id)
+    return photo ? photo.width / photo.height : null
+  })
+}
+
+/** Khi số ô đổi thì bố cục cũ không còn hợp lệ → lấy bố cục ôm sát những ảnh đang chọn nhất trên khung hiện tại. */
 function withSelection(state: State, selected: Slot[]): Partial<State> {
   if (selected.length === 0) return { selected, layoutId: null, tree: null, activeCell: null }
   if (selected.length === state.selected.length && state.tree) return { selected, activeCell: null }
-  const layoutId = getLayouts(selected.length)[0].id
   // Bản ghép mới bắt đầu bằng khung đúng tỉ lệ / độ phân giải gốc của ảnh đầu tiên.
   const size = state.selected.length === 0 ? originalSize(state, photosIn(selected)[0]) : {}
+  const layoutId = defaultLayout(slotAspects(state.photos, selected), frameAspect({ ...state, ...size }))
   return { selected, layoutId, tree: parseLayout(layoutId), activeCell: null, ...size }
 }
 
@@ -829,7 +841,9 @@ export const useStore = create<State>()(
 
       randomLayout: () => {
         const s = get()
-        const options = getLayouts(s.selected.length).filter((l) => l.id !== s.layoutId)
+        // Rút trong những bố cục đang bày ở mục Bố cục: gợi ý theo ảnh và danh sách của khung hiện tại.
+        const frame = frameAspect(s)
+        const options = [...suggestLayouts(slotAspects(s.photos, s.selected), frame), ...getLayouts(s.selected.length, frame)].filter((l) => l.id !== s.layoutId)
         if (options.length) s.setLayout(options[Math.floor(Math.random() * options.length)].id)
       },
 
@@ -1278,6 +1292,12 @@ export function canvasSize(s: Pick<State, 'presetId' | 'customW' | 'customH'>): 
   // Ô nhập có thể đang gõ dở (vd "10") nên luôn kẹp về khoảng hợp lệ.
   const fit = (v: number) => Math.min(MAX_CANVAS, Math.max(MIN_CANVAS, Math.round(v) || MIN_CANVAS))
   return { width: fit(s.customW), height: fit(s.customH) }
+}
+
+/** Tỉ lệ rộng/cao của khung: bố cục đẹp hay không là tuỳ khung dọc hay ngang. */
+export function frameAspect(s: Pick<State, 'presetId' | 'customW' | 'customH'>): number {
+  const { width, height } = canvasSize(s)
+  return width / height
 }
 
 /** Đổi % cạnh ngắn sang px trên khung width×height. */

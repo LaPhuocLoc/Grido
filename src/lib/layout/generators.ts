@@ -1,9 +1,7 @@
-import type { LayoutCategory } from './types'
-
 /**
- * Các "họ" bố cục được sinh tự động theo số ảnh n. Mỗi generator trả về danh sách chuỗi DSL.
- * Muốn thêm cả một họ bố cục mới: viết thêm 1 generator và đăng ký vào GENERATORS ở cuối file.
- * Trùng lặp hình học giữa các generator được registry tự loại bỏ.
+ * Các "họ" cấu trúc bố cục được sinh tự động theo số ảnh n. Mỗi generator trả về danh sách chuỗi DSL.
+ * Đây chỉ là nguồn ứng viên: bố cục nào được bày ra cho người dùng là do `curate.ts` chấm điểm và chọn theo từng khung.
+ * Muốn thêm cả một họ mới: viết thêm 1 generator và đăng ký vào GENERATORS ở cuối file.
  */
 export type Generator = (n: number) => string[]
 
@@ -150,11 +148,11 @@ const quilts: Generator = (n) => {
   return out
 }
 
-export const GENERATORS: { category: LayoutCategory; generate: Generator }[] = [
-  { category: 'grid', generate: grids },
-  { category: 'grid', generate: weightedPairs },
-  { category: 'hero', generate: heroes },
-  { category: 'mosaic', generate: bricks },
-  { category: 'mosaic', generate: spirals },
-  { category: 'mosaic', generate: quilts },
+export const GENERATORS: { generate: Generator }[] = [
+  { generate: grids },
+  { generate: weightedPairs },
+  { generate: heroes },
+  { generate: bricks },
+  { generate: spirals },
+  { generate: quilts },
 ]
