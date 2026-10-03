@@ -799,7 +799,7 @@ export function Stage() {
         spec && (
           <p className="pointer-events-none absolute bottom-3 left-56 right-56 hidden text-center text-xs text-muted lg:block">
             {openEmpty
-              ? 'Thiết kế vẫn đang mở: khung, viền và chữ được giữ nguyên · chọn ảnh để ghép tiếp · bấm Tạo ở góc trái để làm thiết kế mới'
+              ? 'Thiết kế vẫn đang mở: khung, viền và chữ được giữ nguyên · bấm ảnh trong thư viện để mở, hoặc tích nhiều ảnh rồi Ghép · bấm Tạo ở góc trái để làm thiết kế mới'
               : spec.texts.length > 1
                 ? 'Kéo ảnh để căn khung · thả sang ô khác để đổi chỗ · kéo từ chỗ trống ngoài khung (hoặc giữ Shift rồi kéo trên ảnh) để khoanh vùng chọn nhiều dòng chữ'
                 : 'Kéo ảnh để căn khung · thả sang ô khác để đổi chỗ · bấm ảnh rồi kéo nút ở góc để phóng to · kéo đường viền để đổi kích thước ô'}
@@ -954,7 +954,8 @@ function EmptyStage() {
       </div>
       <h2 className="mt-5 font-display text-lg font-bold lg:mt-8 lg:text-2xl">Chọn ảnh để bắt đầu ghép</h2>
       <p className="mt-1.5 text-[13px] leading-relaxed text-soft lg:text-sm">
-        Bấm vào các ảnh trong thư viện, Tiệm Ghép Ảnh sẽ tự xếp bố cục.
+        Bấm một ảnh trong thư viện để mở. Muốn ghép nhiều ảnh: tích ô ✓ ở góc các ảnh rồi bấm Ghép, Tiệm Ghép Ảnh sẽ tự xếp
+        bố cục.
       </p>
     </div>
   )

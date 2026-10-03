@@ -937,6 +937,35 @@ describe('selecting many photos at once', () => {
   })
 })
 
+describe('opening a photo from the library', () => {
+  it('puts just that photo in the frame, sized to it, and switching keeps following the photo', () => {
+    get().openPhoto('p1')
+    expect(get().selected).toEqual(['p1'])
+    expect(get().presetId).toBe('original')
+    get().replaceSelection(['p1', 'p2', 'p3'])
+    pause()
+    get().openPhoto('p2')
+    expect(get().selected).toEqual(['p2'])
+    get().undo()
+    expect(get().selected).toEqual(['p1', 'p2', 'p3'])
+  })
+
+  it('keeps a frame the user picked when switching photos', () => {
+    get().openPhoto('p1')
+    get().set({ presetId: 'ig-portrait' })
+    get().openPhoto('p2')
+    expect(get().selected).toEqual(['p2'])
+    expect(get().presetId).toBe('ig-portrait')
+  })
+
+  it('fills the active cell instead when one is being replaced', () => {
+    get().replaceSelection(['p1', 'p2'])
+    get().setActiveCell(1)
+    get().openPhoto('p5')
+    expect(get().selected).toEqual(['p1', 'p5'])
+  })
+})
+
 describe('composing from picked photos', () => {
   it('starts a new collage with exactly the picked photos, in order', () => {
     get().toggleSelect('p5')

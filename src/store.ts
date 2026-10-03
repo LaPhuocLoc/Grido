@@ -196,6 +196,8 @@ interface State extends Settings {
   deselect: (id: string) => void
   /** Ghép đúng những ảnh này thành một bản ghép mới (thay cho các ảnh đang có trong bố cục). */
   replaceSelection: (ids: string[]) => void
+  /** Bấm một ảnh trong thư viện: mở riêng ảnh đó trong khung (đang chọn một ô thì đổi ảnh cho ô đó). */
+  openPhoto: (id: string) => void
   clearSelection: () => void
   shuffle: () => void
   swapCells: (a: number, b: number) => void
@@ -372,6 +374,16 @@ function originalSize(state: State, photoId: string | undefined): Partial<Settin
   if (!photo) return {}
   const { width, height } = originalCanvasOf(photo)
   return { presetId: ORIGINAL_PRESET_ID, customW: width, customH: height }
+}
+
+/**
+ * Bản ghép mới gồm đúng `ids` (bấm mở một ảnh, hoặc "Ghép" những ảnh đã chọn). Khung đang theo ảnh gốc (mặc định) thì
+ * đổi theo ảnh mới; khung người dùng tự chọn (IG 4:5, 2048px…) thì giữ nguyên.
+ */
+function freshSelection(state: State, ids: string[]): Partial<State> {
+  const next = withSelection({ ...state, selected: [] }, ids)
+  if (!state.selected.length || state.presetId === ORIGINAL_PRESET_ID) return next
+  return { ...next, presetId: state.presetId, customW: state.customW, customH: state.customH }
 }
 
 const toggled = (list: string[], id: string) => (list.includes(id) ? list.filter((f) => f !== id) : [id, ...list])
@@ -585,8 +597,15 @@ export const useStore = create<State>()(
       replaceSelection: (ids) => {
         const s = get()
         if (ids.length > MAX_PHOTOS) return s.toast(`Một ảnh ghép chứa tối đa ${MAX_PHOTOS} ảnh.`)
-        // Bắt đầu như một bản ghép mới: khung theo tỉ lệ ảnh đầu tiên, bố cục hợp với số ảnh.
-        set(withSelection({ ...s, selected: [] }, ids))
+        set(freshSelection(s, ids))
+      },
+
+      openPhoto: (id) => {
+        const s = get()
+        // Đang chọn một ô trong khung: ảnh vừa bấm vào ô đó (như trước).
+        if (s.activeCell !== null) return s.toggleSelect(id)
+        if (s.selected.length === 1 && s.selected[0] === id) return
+        set(freshSelection(s, [id]))
       },
 
       clearSelection: () => set((s) => withSelection(s, [])),

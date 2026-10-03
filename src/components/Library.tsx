@@ -1,5 +1,6 @@
 import {
   Check,
+  CheckCheck,
   ChevronDown,
   CircleAlert,
   CircleHelp,
@@ -8,7 +9,6 @@ import {
   FolderOpen,
   FolderPlus,
   ImagePlus,
-  LayoutGrid,
   Lightbulb,
   ListChecks,
   LockKeyhole,
@@ -78,9 +78,9 @@ function movingIds(photoId: string, picked: Set<string> | null): string[] {
 }
 
 /**
- * Một ảnh trong thư viện, hiện trọn khung theo đúng tỉ lệ (không cắt vuông). Bấm vào ảnh = đưa vào / bỏ khỏi bố cục (ở
- * chế độ "Chọn": chọn / bỏ chọn); kéo ảnh = chuyển sang album khác; xoá khỏi thư viện là nút thùng rác riêng (hoặc menu
- * chuột phải) nên không thể bấm nhầm.
+ * Một ảnh trong thư viện, hiện trọn khung theo đúng tỉ lệ (không cắt vuông). Bấm vào ảnh = mở ảnh đó trong khung chỉnh
+ * sửa (ở chế độ "Chọn": tích / bỏ tích); ô ✓ ở góc = tích ảnh và vào chế độ "Chọn" để ghép nhiều ảnh; kéo ảnh = chuyển
+ * sang album khác; xoá khỏi thư viện là nút thùng rác riêng (hoặc menu chuột phải) nên không thể bấm nhầm.
  * memo: chọn / bỏ chọn một ảnh chỉ vẽ lại đúng ô đó.
  */
 const Tile = memo(function Tile({
@@ -96,6 +96,7 @@ const Tile = memo(function Tile({
   picking,
   index,
   onActivate,
+  onPick,
   onDelete,
   onMenu,
 }: {
@@ -105,7 +106,7 @@ const Tile = memo(function Tile({
   y: number
   w: number
   h: number
-  /** Đang trong bố cục, hoặc (chế độ "Chọn") đang được chọn. */
+  /** Đang nằm trong khung, hoặc (chế độ "Chọn") đang được tích. */
   selected: boolean
   /** Ảnh đang nằm trong vùng quét chọn (chưa thả chuột). */
   swept: boolean
@@ -117,6 +118,8 @@ const Tile = memo(function Tile({
   picking: boolean
   index: number
   onActivate: (id: string, shift: boolean) => void
+  /** Bấm ô ✓: tích / bỏ tích ảnh (vào chế độ "Chọn" nếu chưa ở đó). */
+  onPick: (id: string, shift: boolean) => void
   onDelete: (id: string) => void
   onMenu: (photo: Photo, x: number, y: number) => void
 }) {
@@ -136,9 +139,7 @@ const Tile = memo(function Tile({
         type="button"
         aria-pressed={selected}
         aria-label={
-          picking
-            ? `${selected ? 'Bỏ chọn' : 'Chọn'} ảnh ${photo.name}`
-            : `${selected ? 'Bỏ ảnh' : 'Đưa ảnh'} ${photo.name} ${selected ? 'khỏi' : 'vào'} bố cục`
+          picking ? `${selected ? 'Bỏ chọn' : 'Chọn'} ảnh ${photo.name}` : `Mở ảnh ${photo.name} trong khung`
         }
         onPointerEnter={() => prefetchFile(photo.id)}
         onClick={(e) => onActivate(photo.id, e.shiftKey)}
@@ -186,20 +187,28 @@ const Tile = memo(function Tile({
             </span>
           )
         )}
-        {/* Dấu tích ở góc: mờ khi chưa chọn, sáng lên khi ảnh đang được chọn. Ở chế độ "Chọn" luôn hiện rõ để dễ nhắm. */}
-        <span
+      </button>
+      {/* Ô tích ở góc: hiện khi rê chuột (luôn hiện ở chế độ "Chọn"); bấm vào là tích ảnh để ghép / xoá nhiều ảnh. */}
+      {!doomed && (
+        <button
+          type="button"
+          role="checkbox"
+          aria-checked={picking && selected}
+          aria-label={`${picking && selected ? 'Bỏ chọn' : 'Chọn'} ảnh ${photo.name}`}
+          data-tip={picking ? undefined : 'Chọn ảnh này (để ghép nhiều ảnh, chuyển album hoặc xoá)'}
+          data-no-drag
+          onClick={(e) => onPick(photo.id, e.shiftKey)}
           className={cx(
-            'absolute right-1.5 top-1.5 grid size-5 place-items-center rounded-full transition-colors duration-150',
-            selected || swept
-              ? 'bg-coral text-white shadow'
-              : picking
-                ? 'bg-black/45 text-white/80 ring-1 ring-white/70'
-                : 'bg-black/40 text-white/55 group-hover:bg-black/60 group-hover:text-white',
+            'absolute left-1.5 top-1.5 grid size-5.5 place-items-center rounded-md border-2 transition-[opacity,background-color,border-color] duration-150',
+            (picking && selected) || swept
+              ? 'border-coral bg-coral text-white shadow'
+              : 'border-white/90 bg-black/30 text-transparent shadow-sm hover:bg-black/50',
+            !picking && !swept && 'opacity-0 focus-visible:opacity-100 group-hover:opacity-100',
           )}
         >
-          <Check className="size-3" strokeWidth={3.5} />
-        </span>
-      </button>
+          <Check className="size-3.5" strokeWidth={3.5} />
+        </button>
+      )}
       {!doomed && !picking && (
         <button
           type="button"
@@ -292,8 +301,8 @@ function Menu({ menu, onClose }: { menu: MenuState; onClose: () => void }) {
 
 /** Mọi thao tác của thư viện, gom vào một chỗ để không phải rải chữ hướng dẫn khắp panel. */
 const TIPS: [string, string][] = [
-  ['Bấm vào ảnh', 'đưa ảnh vào bố cục, bấm lần nữa để bỏ ra'],
-  ['Nút “Chọn”, hoặc giữ chuột quét qua nhiều ảnh', 'chọn bao nhiêu ảnh cũng được (Shift + bấm để chọn cả dải, Ctrl + A để chọn hết), rồi ghép, chuyển album hoặc xoá một lượt'],
+  ['Bấm vào ảnh', 'mở ảnh đó trong khung để chỉnh, chèn chữ, xuất; bấm ảnh khác để đổi (Ctrl + Z để quay lại)'],
+  ['Ô ✓ ở góc ảnh, nút “Chọn”, hoặc giữ chuột quét qua nhiều ảnh', 'chọn bao nhiêu ảnh cũng được (Shift + bấm để chọn cả dải, Ctrl + A để chọn hết), rồi ghép, chuyển album hoặc xoá một lượt ở thanh dưới đáy'],
   ['Ô tìm kiếm', 'tìm theo tên file, thư mục, máy ảnh, ống kính, giả lập phim hoặc ngày chụp (vd. 28/03/2026)'],
   ['Dải ảnh trong bố cục', 'bấm một ảnh để tìm tới nó trong thư viện, nút × để bỏ ra'],
   ['Kéo ảnh', 'chuyển sang album khác; tích nhiều ảnh rồi kéo để chuyển cả nhóm'],
@@ -451,32 +460,49 @@ function Section({
   )
 }
 
-/** Nút thao tác của chế độ "Chọn" (ghép / chuyển album / xoá). */
-function PickAction({
-  icon,
+/**
+ * Biểu tượng "ghép ảnh": một khung chia ba ô như bố cục ảnh ghép, ô lớn có hình núi + mặt trời để nhìn là biết ô chứa
+ * ảnh. Cùng nét với bộ icon lucide (24px, nét 2).
+ */
+function ComposeIcon({ className }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" className={className} aria-hidden>
+      <rect x="2.5" y="3" width="19" height="18" rx="3" />
+      <path d="M12.5 3v18M12.5 12h9" />
+      <path d="m2.5 17.5 3.5-4 3 3 3.5-3.5" />
+      <circle cx="7" cy="8" r="1.5" />
+    </svg>
+  )
+}
+
+/** Nút tròn chỉ có icon trên thanh thao tác nổi của chế độ "Chọn"; chú thích hiện khi rê chuột. */
+function BarButton({
   label,
   danger,
   disabled,
   onClick,
+  children,
 }: {
-  icon: ReactNode
   label: string
   danger?: boolean
   disabled?: boolean
   onClick: (e: ReactMouseEvent<HTMLButtonElement>) => void
+  children: ReactNode
 }) {
   return (
+    // aria-disabled thay cho disabled: nút bị khoá vẫn phải hiện được chú thích giải thích vì sao.
     <button
       type="button"
-      disabled={disabled}
-      onClick={onClick}
+      aria-label={label}
+      aria-disabled={disabled}
+      data-tip={label}
+      onClick={(e) => !disabled && onClick(e)}
       className={cx(
-        'flex h-8 items-center justify-center gap-1.5 rounded-full border text-[13px] font-semibold transition-colors disabled:pointer-events-none disabled:opacity-40',
-        danger ? 'border-danger/40 text-danger hover:bg-danger hover:text-white' : 'border-line bg-card text-ink hover:bg-sand',
+        'grid size-9 shrink-0 place-items-center rounded-full transition-colors',
+        disabled ? 'cursor-default opacity-35' : danger ? 'hover:bg-danger' : 'hover:bg-white/15',
       )}
     >
-      {icon}
-      {label}
+      {children}
     </button>
   )
 }
@@ -510,7 +536,6 @@ export function Library() {
     dismissImport,
     clearSelection,
     deletePhotos,
-    toggleSelect,
     replaceSelection,
     createAlbum,
     renameAlbum,
@@ -576,11 +601,9 @@ export function Library() {
   orderRef.current = order
   const byId = useMemo(() => new Map(photos.map((p) => [p.id, p])), [photos])
 
-  /** Bấm vào một ảnh: thường thì đưa vào / bỏ khỏi bố cục; ở chế độ "Chọn" thì chọn / bỏ chọn (Shift = cả dải). */
-  const onActivate = useCallback((id: string, shift: boolean) => {
-    const current = pickedRef.current
-    if (!current) return useStore.getState().toggleSelect(id)
-    const next = new Set(current)
+  /** Tích / bỏ tích một ảnh (Shift = cả dải từ ảnh bấm trước); chưa ở chế độ "Chọn" thì vào luôn với ảnh đó. */
+  const onPick = useCallback((id: string, shift: boolean) => {
+    const next = new Set(pickedRef.current ?? [])
     const list = orderRef.current
     const from = anchor.current ? list.indexOf(anchor.current) : -1
     const to = list.indexOf(id)
@@ -590,6 +613,12 @@ export function Library() {
     anchor.current = id
     setPicked(next)
   }, [])
+
+  /** Bấm vào một ảnh: mở ảnh đó trong khung; ở chế độ "Chọn" thì tích / bỏ tích. */
+  const onActivate = useCallback(
+    (id: string, shift: boolean) => (pickedRef.current ? onPick(id, shift) : useStore.getState().openPhoto(id)),
+    [onPick],
+  )
 
   const startPicking = () => {
     anchor.current = null
@@ -674,7 +703,9 @@ export function Library() {
       x,
       y,
       items: [
-        { label: inCollage ? 'Bỏ khỏi bố cục' : 'Đưa vào bố cục', run: () => toggleSelect(photo.id) },
+        ...(s.selected.length === 1 && inCollage ? [] : [{ label: 'Mở trong khung', run: () => s.openPhoto(photo.id) }]),
+        ...(pickedRef.current?.has(photo.id) ? [] : [{ label: 'Chọn ảnh này', run: () => onPick(photo.id, false) }]),
+        ...(inCollage && s.selected.length > 1 ? [{ label: 'Bỏ khỏi bản ghép', run: () => s.deselect(photo.id) }] : []),
         ...(photo.missing || !desktop.features.reveal ? [] : [{ label: 'Mở thư mục chứa ảnh', run: () => void desktop.library.reveal(photo.id) }]),
         ...moves,
         { label: ids.length > 1 ? `Xoá ${ids.length} ảnh khỏi thư viện` : 'Xoá khỏi thư viện', danger: true, divider: true, run: () => setDoomed(ids) },
@@ -919,6 +950,7 @@ export function Library() {
                   index={index - shimmers.length}
                   moving={!!drag && drag.ids.includes(photo.id)}
                   onActivate={onActivate}
+                  onPick={onPick}
                   onDelete={askDelete}
                   onMenu={openTileMenu}
                 />
@@ -937,8 +969,13 @@ export function Library() {
   /** Ảnh đang chọn theo thứ tự trên màn hình (thứ tự ghép). */
   const pickedInOrder = () => [...order.filter((id) => picked?.has(id)), ...[...(picked ?? [])].filter((id) => !order.includes(id))]
 
+  const compose = () => {
+    replaceSelection(pickedInOrder())
+    stopPicking()
+  }
+
   return (
-    <div className="flex h-full flex-col">
+    <div className="relative flex h-full flex-col">
       {/* Một hàng công cụ gọn; hướng dẫn chi tiết nằm ở trạng thái trống, tooltip và nút "?" để nhường chỗ cho ảnh. */}
       <div className="flex items-center gap-0.5 px-3 py-2.5 lg:px-4">
         <Button
@@ -975,6 +1012,7 @@ export function Library() {
             type="button"
             aria-pressed={picking}
             data-tip={picking ? 'Thoát chế độ chọn (Esc)' : 'Chọn nhiều ảnh để ghép, chuyển album hoặc xoá một lượt'}
+            aria-label={picking ? 'Thoát chế độ chọn' : 'Chọn nhiều ảnh'}
             onClick={() => (picking ? stopPicking() : startPicking())}
             className={cx(
               'flex h-8 shrink-0 items-center gap-1.5 rounded-full px-2.5 text-[13px] font-semibold transition-colors',
@@ -1086,69 +1124,10 @@ export function Library() {
             </button>
           </div>
         </div>
-      ) : picked ? (
-        // Chế độ "Chọn": chọn bao nhiêu ảnh cũng được, rồi làm một lượt.
-        <div role="toolbar" aria-label="Thao tác với ảnh đã chọn" className="animate-fade border-t border-line bg-surface px-3 py-2 lg:px-4">
-          <div className="flex items-center gap-1.5 text-[13px]">
-            <button
-              type="button"
-              aria-label="Thoát chế độ chọn"
-              data-tip="Thoát (Esc)"
-              onClick={stopPicking}
-              className="-ml-1 grid size-7 shrink-0 place-items-center rounded-full text-muted hover:bg-sand hover:text-ink"
-            >
-              <X className="size-4" />
-            </button>
-            <span className="min-w-0 flex-1 truncate text-soft">
-              {pickedCount ? (
-                <>
-                  Đã chọn <b className="text-ink">{pickedCount}</b> ảnh
-                </>
-              ) : (
-                'Bấm hoặc quét chuột để chọn ảnh'
-              )}
-            </span>
-            {order.length > 0 && (
-              <button
-                type="button"
-                data-tip="Ctrl + A"
-                onClick={() => setPicked(allPicked ? new Set() : new Set([...(picked ?? []), ...order]))}
-                className="shrink-0 whitespace-nowrap font-semibold text-coral-dark hover:underline"
-              >
-                {allPicked ? 'Bỏ chọn hết' : searching ? 'Chọn hết kết quả' : 'Chọn hết'}
-              </button>
-            )}
-          </div>
-          <div className="mt-2 grid grid-cols-3 gap-1.5">
-            <PickAction
-              icon={<LayoutGrid className="size-4" />}
-              label="Ghép"
-              disabled={!pickedCount || pickedCount > MAX_PHOTOS}
-              onClick={() => {
-                replaceSelection(pickedInOrder())
-                stopPicking()
-              }}
-            />
-            <PickAction
-              icon={<FolderInput className="size-4" />}
-              label="Album"
-              disabled={!pickedCount}
-              onClick={(e) => {
-                const r = e.currentTarget.getBoundingClientRect()
-                albumMenu(pickedInOrder(), r.left, r.bottom + 6, stopPicking)
-              }}
-            />
-            <PickAction icon={<Trash2 className="size-4" />} label="Xoá" danger disabled={!pickedCount} onClick={() => setDoomed(pickedInOrder())} />
-          </div>
-          {pickedCount > MAX_PHOTOS && (
-            <p className="mt-1.5 text-[12px] leading-snug text-muted">
-              Một ảnh ghép chứa tối đa {MAX_PHOTOS} ảnh: bỏ bớt {pickedCount - MAX_PHOTOS} ảnh để ghép.
-            </p>
-          )}
-        </div>
       ) : (
-        // Ảnh đang dùng trong bố cục, hiện thành một dải nhỏ: bỏ bớt hay tìm lại ảnh đã chọn mà không phải cuộn cả thư viện.
-        (replacing || selected.length > 0) && (
+        // Ảnh đang dùng trong bản ghép, hiện thành một dải nhỏ: bỏ bớt hay tìm lại ảnh mà không phải cuộn cả thư viện.
+        // Chỉ một ảnh thì đã thấy viền của nó trong lưới, không cần dải này.
+        (replacing || selected.length > 1) && (
           <div className="animate-fade border-t border-line px-3 pb-1.5 pt-2 lg:px-4">
             <div className="flex items-center justify-between gap-2 text-[13px] text-soft">
               {replacing ? (
@@ -1164,7 +1143,7 @@ export function Library() {
                 </button>
               )}
             </div>
-            {selected.length > 0 && (
+            {selected.length > 1 && (
               <ul aria-label="Ảnh trong bố cục" className="scroll-soft -mx-1 mt-1 flex gap-1.5 overflow-x-auto px-1 pb-1 pt-1.5">
                 {selected.map((id) => (
                   <TrayItem key={id} id={id} name={byId.get(id)?.name ?? ''} onLocate={locate} />
@@ -1177,7 +1156,12 @@ export function Library() {
 
       <div
         ref={scroller}
-        className={cx('scroll-soft relative min-h-0 flex-1 select-none overflow-y-auto border-t border-line px-3 pb-4 lg:px-4', drag && 'cursor-grabbing')}
+        className={cx(
+          'scroll-soft relative min-h-0 flex-1 select-none overflow-y-auto border-t border-line px-3 lg:px-4',
+          // Chừa chỗ cho thanh thao tác nổi ở đáy.
+          picking ? 'pb-20' : 'pb-4',
+          drag && 'cursor-grabbing',
+        )}
         onPointerDown={onPointerDown}
         onPointerMove={onPointerMove}
         onPointerUp={(e) => endDrag(e, true)}
@@ -1279,12 +1263,61 @@ export function Library() {
         )}
       </div>
 
+      {/* Chế độ "Chọn": thanh nổi ở đáy, chỉ có icon (rê chuột để xem chú thích). */}
+      {picked && (
+        <div
+          role="toolbar"
+          aria-label="Thao tác với ảnh đã chọn"
+          className="absolute inset-x-3 bottom-3 z-30 flex animate-pop items-center gap-0.5 rounded-2xl bg-[#1b1b2b] p-1.5 text-white shadow-lift dark:bg-[#2b2e40] dark:ring-1 dark:ring-white/10 lg:inset-x-4"
+        >
+          <BarButton label="Thoát chế độ chọn (Esc)" onClick={stopPicking}>
+            <X className="size-4.5" />
+          </BarButton>
+          <span className="min-w-0 flex-1 truncate px-1.5 text-[13px] font-semibold tabular-nums">
+            {pickedCount ? `Đã chọn ${pickedCount}` : 'Chọn ảnh…'}
+          </span>
+          <BarButton
+            label={
+              pickedCount > MAX_PHOTOS
+                ? `Ghép tối đa ${MAX_PHOTOS} ảnh: bỏ bớt ${pickedCount - MAX_PHOTOS} ảnh`
+                : pickedCount
+                  ? `Ghép ${pickedCount} ảnh này`
+                  : 'Ghép ảnh: tích chọn ảnh trước'
+            }
+            disabled={!pickedCount || pickedCount > MAX_PHOTOS}
+            onClick={compose}
+          >
+            <ComposeIcon className="size-5" />
+          </BarButton>
+          <BarButton
+            label={`${allPicked ? 'Bỏ chọn hết' : searching ? 'Chọn hết kết quả tìm' : 'Chọn hết'} (Ctrl+A)`}
+            disabled={!order.length}
+            onClick={() => setPicked(allPicked ? new Set() : new Set([...(picked ?? []), ...order]))}
+          >
+            <CheckCheck className="size-4.5" />
+          </BarButton>
+          <BarButton
+            label="Chuyển vào album"
+            disabled={!pickedCount}
+            onClick={(e) => {
+              const r = e.currentTarget.getBoundingClientRect()
+              albumMenu(pickedInOrder(), r.left, r.top - (albums.length + 2) * 36 - 18, stopPicking)
+            }}
+          >
+            <FolderInput className="size-4.5" />
+          </BarButton>
+          <BarButton label="Xoá khỏi thư viện" danger disabled={!pickedCount} onClick={() => setDoomed(pickedInOrder())}>
+            <Trash2 className="size-4.5" />
+          </BarButton>
+        </div>
+      )}
+
       {/* Mẹo cho người mới: một dải mỏng ở đáy, đóng một lần là thôi; muốn xem lại thì bấm nút "?". */}
-      {!tipSeen && photos.length > 0 && (
+      {!tipSeen && !picking && photos.length > 0 && (
         <div className="flex animate-fade items-start gap-2 border-t border-line bg-card px-3 py-2 lg:px-4">
           <Lightbulb className="mt-0.5 size-3.5 shrink-0 text-amber" />
           <p className="min-w-0 flex-1 text-xs leading-snug text-soft">
-            <b className="text-ink">Bấm</b> ảnh để ghép · <b className="text-ink">quét</b> để chọn nhiều · <b className="text-ink">kéo</b> để xếp album · <b className="text-ink">chuột phải</b> để xem thêm
+            <b className="text-ink">Bấm</b> ảnh để mở · <b className="text-ink">tích ✓</b> để chọn nhiều rồi ghép · <b className="text-ink">kéo</b> để xếp album · <b className="text-ink">chuột phải</b> để xem thêm
           </p>
           <button
             type="button"
