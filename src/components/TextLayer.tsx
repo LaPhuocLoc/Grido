@@ -943,8 +943,8 @@ function EffectRow({
   )
 }
 
-/** Chữ sáng thì viền / nền tối và ngược lại, để hiệu ứng vừa bật lên đã thấy rõ. */
-const contrast = (hex: string) => {
+/** Màu đen hoặc trắng, cái nào nổi hơn trên màu `hex` (chữ sáng thì viền / nền tối và ngược lại; ô trống trên nền khung). */
+export const contrast = (hex: string) => {
   const m = HEX.exec(hex)
   if (!m) return '#000000'
   const n = parseInt(m[1], 16)

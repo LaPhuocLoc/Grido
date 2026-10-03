@@ -3,7 +3,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { create } from 'zustand'
 import { designTitle, frameLabel } from '../lib/designs'
-import { buildSpec, exportDesigns } from '../lib/useCollage'
+import { buildSpec, exportDesigns, hasPhotos } from '../lib/useCollage'
 import { canvasSize, useStore, type ExportFormat } from '../store'
 import { DesignThumb, THUMB_H } from './Designs'
 import { Button, cx } from './ui'
@@ -19,7 +19,7 @@ const SHARPEN_NAME = { off: 'tắt', low: 'thấp', standard: 'vừa', high: 'ca
 export function useExportableCount() {
   const designs = useStore((s) => s.designs)
   const photos = useStore((s) => s.photos)
-  return useMemo(() => designs.filter((d) => buildSpec({ ...d.snapshot, photos })).length, [designs, photos])
+  return useMemo(() => designs.filter((d) => hasPhotos(buildSpec({ ...d.snapshot, photos }))).length, [designs, photos])
 }
 
 /**
@@ -33,7 +33,7 @@ export function BatchExportDialog() {
   const format = useStore((s) => s.exportFormat)
   const quality = useStore((s) => s.exportQuality)
   const sharpen = useStore((s) => s.exportSharpen)
-  const ready = useMemo(() => designs.filter((d) => buildSpec({ ...d.snapshot, photos })), [designs, photos])
+  const ready = useMemo(() => designs.filter((d) => hasPhotos(buildSpec({ ...d.snapshot, photos }))), [designs, photos])
   const [picked, setPicked] = useState<Set<string>>(new Set())
 
   // Mỗi lần mở: chọn sẵn tất cả.

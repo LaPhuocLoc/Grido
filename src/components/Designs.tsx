@@ -8,7 +8,7 @@ import { collageLayout } from '../lib/imaging/exportCollage'
 import { textLayoutStyle } from '../lib/text'
 import { buildSpec, canExportMany, useExportProgress } from '../lib/useCollage'
 import { openBatchExport, useExportableCount } from './BatchExport'
-import { canvasSize, isKeeper, useStore, type Design, type Snapshot } from '../store'
+import { canvasSize, isKeeper, photosIn, useStore, type Design, type Snapshot } from '../store'
 import { imageStyle } from './Stage'
 import { Button, cx } from './ui'
 
@@ -38,7 +38,7 @@ export const DesignThumb = memo(function DesignThumb({ snapshot, photos }: { sna
     >
       {spec.cells.map((cell, i) => {
         const rect = layout.cells[i]
-        if (!rect) return null
+        if (!rect || !cell) return null
         const placed = placeImage(cell.photo.width, cell.photo.height, rect.w * k, rect.h * k, cell.adjust)
         return (
           <span
@@ -120,7 +120,7 @@ function DesignCard({ design, photos, current }: { design: Design; photos: Photo
   const { snapshot } = design
   const title = designTitle(design.name, snapshot.texts)
   const size = canvasSize(snapshot)
-  const count = snapshot.selected.length
+  const count = photosIn(snapshot.selected).length
 
   return (
     <div className="group relative">

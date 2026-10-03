@@ -6,6 +6,11 @@ import type { LayoutNode } from '../layout/types'
 import { drawText, type TextItem } from '../text'
 import { renderCell } from './tasks'
 
+export interface CollageCell {
+  photo: Photo
+  adjust: CellAdjust
+}
+
 export interface CollageSpec {
   width: number
   height: number
@@ -15,7 +20,8 @@ export interface CollageSpec {
   gap: number
   radius: number
   tree: LayoutNode
-  cells: { photo: Photo; adjust: CellAdjust }[]
+  /** Theo thứ tự ô của `tree`; null = ô còn trống (chỉ thấy màu nền). */
+  cells: (CollageCell | null)[]
   texts: TextItem[]
 }
 
@@ -48,8 +54,10 @@ export async function renderCollage(
   const total = Math.min(rects.length, spec.cells.length)
   await Promise.all(
     rects.slice(0, total).map(async (rect, i) => {
-      if (rect.w < 1 || rect.h < 1) return
-      const { photo, adjust } = spec.cells[i]
+      const cell = spec.cells[i]
+      // Ô trống: chỉ còn màu nền của khung.
+      if (!cell || rect.w < 1 || rect.h < 1) return
+      const { photo, adjust } = cell
       const raster = await renderCell({
         // File gốc trước; đã bị dời đi (hoặc chưa có quyền đọc) thì dùng thẳng bản xem trước.
         sources: await desktop.images.cellSources(photo),

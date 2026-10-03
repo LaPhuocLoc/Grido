@@ -35,6 +35,13 @@ describe('buildSpec', () => {
     expect(collage.buildSpec(get())).toBeNull()
   })
 
+  it('keeps every photo in its own cell when another cell is empty or its photo is gone', () => {
+    get().setLayout('H(*,*,*)')
+    store.useStore.setState({ selected: [null, 'p3', 'p1'] })
+    const photos = get().photos.filter((p) => p.id !== 'p3')
+    expect(collage.buildSpec({ ...get(), photos })!.cells.map((c) => c?.photo.id ?? null)).toEqual([null, null, 'p1'])
+  })
+
   it('scales the frame and converts border settings from % of the short side to pixels', () => {
     get().toggleSelect('p1')
     get().toggleSelect('p2')
@@ -42,7 +49,7 @@ describe('buildSpec', () => {
     get().setAdjust('p2', { zoom: 2 })
     const spec = collage.buildSpec(get(), 2)!
     expect(spec).toMatchObject({ width: 2160, height: 3840, margin: 43, gap: 26, radius: 108 })
-    expect(spec.cells.map((c) => [c.photo.id, c.adjust.zoom])).toEqual([
+    expect(spec.cells.map((c) => [c!.photo.id, c!.adjust.zoom])).toEqual([
       ['p1', 1],
       ['p2', 2],
     ])
@@ -60,6 +67,23 @@ describe('exporting', () => {
     await collage.exportToFile()
     expect(fake.saved).toEqual([])
     expect(get().toasts.map((t) => t.message)).toEqual(['Chọn ít nhất một ảnh để ghép đã nhé.'])
+  })
+
+  it('asks for a photo when the layout has only empty cells', async () => {
+    get().clearSelection()
+    get().setLayout('H(*,*,*)')
+    await collage.exportToFile()
+    expect(fake.saved).toEqual([])
+    expect(renderCollage).not.toHaveBeenCalled()
+    expect(get().toasts.map((t) => t.message)).toEqual(['Chọn ít nhất một ảnh để ghép đã nhé.'])
+  })
+
+  it('exports a layout that still has empty cells, leaving those cells to the background', async () => {
+    get().setLayout('H(*,*,*)')
+    await collage.exportToFile()
+    const spec = renderCollage.mock.calls[0][0]
+    expect(spec.cells.map((c: { photo: { id: string } } | null) => c?.photo.id ?? null)).toEqual(['p1', 'p2', null])
+    expect(fake.saved).toHaveLength(1)
   })
 
   it('does no rendering work when the save dialog is cancelled', async () => {

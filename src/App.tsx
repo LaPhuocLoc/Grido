@@ -59,7 +59,8 @@ const DESIGNS: TabItem = { id: 'designs', label: 'Thiết kế', icon: FolderHea
 
 /** Người mới: mục nên bấm tiếp theo (lib/onboarding). Hết sau lần xuất ảnh đầu tiên. */
 const useGuide = (): GuideTarget | null =>
-  useStore((s) => nextStep({ done: s.guideDone, cells: s.tree ? s.selected.length : 0, visited: s.guideVisited }))
+  // Bố cục toàn ô trống thì vẫn là "chưa có ảnh": chấm chỉ về mục Ảnh.
+  useStore((s) => nextStep({ done: s.guideDone, cells: s.tree && s.selected.some((id) => id !== null) ? s.selected.length : 0, visited: s.guideVisited }))
 
 /** Chấm nhấp nháy chỉ mục nên bấm tiếp theo. */
 function GuideDot({ className }: { className?: string }) {
@@ -535,7 +536,7 @@ function UpdateDialog({ version, current, onConfirm, onCancel }: { version: stri
  * Hệ điều hành tự vẽ cụm nút cửa sổ lên trên (phải với Windows/Linux, trái với macOS) nên phải chừa chỗ.
  */
 function TitleBar() {
-  const hasCollage = useStore((s) => !!s.tree)
+  const hasCollage = useStore((s) => !!s.tree && s.selected.some((id) => id !== null))
   // Tên thiết kế đang mở; chuỗi rỗng khi chưa có thiết kế nào trên khung. Thiết kế vừa bị bỏ hết ảnh vẫn đang mở.
   const design = useStore((s) => {
     const open = currentDesign(s)
@@ -736,7 +737,7 @@ function TitleBar() {
  * Ctrl+E xuất thẳng với cài đặt đang có.
  */
 function ExportButton() {
-  const hasPhoto = useStore((s) => !!s.tree)
+  const hasPhoto = useStore((s) => !!s.tree && s.selected.some((id) => id !== null))
   const progress = useExportProgress((s) => s.progress)
   const guide = useGuide() === 'export'
   const [open, setOpen] = useState(false)

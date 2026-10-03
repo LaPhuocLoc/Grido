@@ -24,7 +24,7 @@ import { groupByAlbum, UNCATEGORIZED, type Album } from '../lib/albums'
 import { desktop, prefetchFile, thumbUrl, usePhotoUrl } from '../lib/desktop'
 import { MAX_PHOTOS } from '../lib/layout/registry'
 import { justify, searchPhotos, tileAspect } from '../lib/libraryView'
-import { useStore, type ImportItem } from '../store'
+import { photosIn, useStore, type ImportItem } from '../store'
 import { Button, cx } from './ui'
 
 /** Số ô đầu tiên được hiện lần lượt khi mở app; phần còn lại hiện cùng lúc để không phải chờ. */
@@ -81,8 +81,8 @@ interface MenuState {
  */
 function movingIds(photoId: string, picked: Set<string> | null): string[] {
   if (picked?.has(photoId)) return [...picked]
-  const { selected } = useStore.getState()
-  return selected.length > 1 && selected.includes(photoId) ? [...selected] : [photoId]
+  const inFrame = photosIn(useStore.getState().selected)
+  return inFrame.length > 1 && inFrame.includes(photoId) ? inFrame : [photoId]
 }
 
 /**
@@ -468,7 +468,11 @@ const CHUNK_PAD = 4
 export function Library() {
   const photos = useStore((s) => s.photos)
   const imports = useStore((s) => s.imports)
-  const selected = useStore((s) => s.selected)
+  const slots = useStore((s) => s.selected)
+  // Ảnh đang nằm trong khung; `slots` còn tính cả ô trống của bố cục.
+  const selected = useMemo(() => photosIn(slots), [slots])
+  const emptySlots = slots.length - selected.length
+  const fillingEmpty = useStore((s) => s.activeCell !== null && s.selected[s.activeCell] === null)
   const albums = useStore((s) => s.albums)
   const photoAlbum = useStore((s) => s.photoAlbum)
   const collapsedAlbums = useStore((s) => s.collapsedAlbums)
@@ -614,7 +618,8 @@ export function Library() {
 
   /** Nút thùng rác trên thanh công cụ: xoá ảnh đang chọn / đang trong khung, hoặc vào chế độ "Chọn" để tích ảnh cần xoá. */
   const deleteMenu = (x: number, y: number) => {
-    const { selected: inFrame, photos: all } = useStore.getState()
+    const { photos: all } = useStore.getState()
+    const inFrame = photosIn(useStore.getState().selected)
     const chosen = pickedInOrder()
     const items: MenuItem[] = []
     if (chosen.length) items.push({ label: `Xoá ${chosen.length} ảnh đã chọn`, danger: true, run: () => setDoomed(chosen) })
@@ -664,7 +669,8 @@ export function Library() {
       x,
       y,
       items: [
-        ...(s.selected.length === 1 && inCollage ? [] : [{ label: 'Mở trong khung', run: () => s.openPhoto(photo.id) }]),
+        ...(s.selected.length === 1 && inCollage ? [] : [{ label: 'Mở riêng ảnh này', run: () => s.replaceSelection([photo.id]) }]),
+        ...(!inCollage && s.selected.length > 0 ? [{ label: 'Thêm vào bản ghép', run: () => s.toggleSelect(photo.id) }] : []),
         ...(pickedRef.current?.has(photo.id) ? [] : [{ label: 'Chọn ảnh này', run: () => onPick(photo.id, false) }]),
         ...(inCollage && s.selected.length > 1 ? [{ label: 'Bỏ khỏi bản ghép', run: () => s.deselect(photo.id) }] : []),
         ...(photo.missing || !desktop.features.reveal ? [] : [{ label: 'Mở thư mục chứa ảnh', run: () => void desktop.library.reveal(photo.id) }]),
@@ -1088,17 +1094,19 @@ export function Library() {
       ) : (
         // Ảnh đang dùng trong bản ghép, hiện thành một dải nhỏ: bỏ bớt hay tìm lại ảnh mà không phải cuộn cả thư viện.
         // Chỉ một ảnh thì đã thấy viền của nó trong lưới, không cần dải này.
-        (replacing || selected.length > 1) && (
+        (replacing || selected.length > 1 || emptySlots > 0) && (
           <div className="animate-fade border-t border-line px-3 pb-1.5 pt-2 lg:px-4">
             <div className="flex items-center justify-between gap-2 text-[13px] text-soft">
               {replacing ? (
-                <b className="text-coral-dark">Bấm ảnh để đổi ảnh cho ô</b>
+                <b className="text-coral-dark">{fillingEmpty ? 'Bấm ảnh để đưa vào ô trống' : 'Bấm ảnh để đổi ảnh cho ô'}</b>
+              ) : emptySlots > 0 ? (
+                <b className="text-coral-dark">Bấm ảnh để lấp {emptySlots} ô trống</b>
               ) : (
                 <span>
                   Trong bố cục <b className="text-ink">{selected.length}</b>/{MAX_PHOTOS} ảnh
                 </span>
               )}
-              {selected.length > 0 && (
+              {slots.length > 0 && (
                 <button type="button" onClick={clearSelection} className="shrink-0 whitespace-nowrap font-semibold text-coral-dark hover:underline">
                   Bỏ hết
                 </button>

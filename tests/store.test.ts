@@ -470,6 +470,128 @@ describe('text', () => {
   })
 })
 
+describe('layout first: empty cells', () => {
+  it('lets a layout be chosen before any photo, as empty cells', () => {
+    get().setLayout('H(V2,V2)')
+    expect(get().selected).toEqual([null, null, null, null])
+    expect(get().tree).not.toBeNull()
+    // Khung giữ nguyên cỡ đang chọn, không nhảy theo ảnh nào cả.
+    expect(get().presetId).toBe('ig-portrait')
+  })
+
+  it('keeps the photos already placed and adds empty cells when a bigger layout is chosen', () => {
+    get().openPhoto('p1')
+    const frame = { presetId: get().presetId, customW: get().customW, customH: get().customH }
+    get().setLayout('H(V2,V2)')
+    expect(get().selected).toEqual(['p1', null, null, null])
+    expect(get()).toMatchObject(frame)
+  })
+
+  it('fills the next empty cell when a library photo is clicked', () => {
+    get().openPhoto('p1')
+    get().setLayout('H(*,*,*)')
+    get().openPhoto('p2')
+    expect(get().selected).toEqual(['p1', 'p2', null])
+    get().openPhoto('p3')
+    expect(get().selected).toEqual(['p1', 'p2', 'p3'])
+    expect(get().layoutId).toBe('H(*,*,*)')
+    // Hết ô trống: bấm một ảnh lại là mở riêng ảnh đó, như trước.
+    get().openPhoto('p4')
+    expect(get().selected).toEqual(['p4'])
+  })
+
+  it('ignores a click on a photo that is already in the collage while cells are still empty', () => {
+    get().openPhoto('p1')
+    get().setLayout('H(*,*,*)')
+    get().openPhoto('p1')
+    expect(get().selected).toEqual(['p1', null, null])
+  })
+
+  it('puts the clicked photo into the chosen empty cell, then moves on to the next empty one', () => {
+    get().setLayout('H(*,*,*)')
+    get().setActiveCell(2)
+    get().openPhoto('p5')
+    expect(get().selected).toEqual([null, null, 'p5'])
+    expect(get().activeCell).toBe(0)
+    get().openPhoto('p6')
+    get().openPhoto('p7')
+    expect(get().selected).toEqual(['p6', 'p7', 'p5'])
+    expect(get().activeCell).toBeNull()
+  })
+
+  it('moves a photo into an empty cell when it is dragged there', () => {
+    get().openPhoto('p1')
+    get().setLayout('H(*,*,*)')
+    get().swapCells(0, 2)
+    expect(get().selected).toEqual([null, null, 'p1'])
+  })
+
+  it('drops the photos that no longer fit when a smaller layout is chosen, and can undo it', () => {
+    get().replaceSelection(['p1', 'p2', 'p3', 'p4'])
+    pause()
+    get().setLayout('H(*,*)')
+    expect(get().selected).toEqual(['p1', 'p2'])
+    expect(get().toasts.at(-1)?.message).toBe('Đã bỏ 2 ảnh không còn chỗ trong bố cục mới.')
+    get().undo()
+    expect(get().selected).toEqual(['p1', 'p2', 'p3', 'p4'])
+  })
+
+  it('closes the gaps when shrinking, so photos are kept before empty cells', () => {
+    get().setLayout('H(V2,V2)')
+    get().setActiveCell(3)
+    get().openPhoto('p1')
+    get().setLayout('H(*,*)')
+    expect(get().selected).toEqual(['p1', null])
+  })
+
+  it('keeps every cell where it is when another layout of the same size is chosen', () => {
+    get().setLayout('H(*,*,*)')
+    get().setActiveCell(1)
+    get().openPhoto('p1')
+    get().setLayout('V(*,*,*)')
+    expect(get().selected).toEqual([null, 'p1', null])
+  })
+
+  it('removes the cell together with its photo, and removes an empty cell the same way', () => {
+    get().openPhoto('p1')
+    get().setLayout('H(V2,V2)')
+    get().openPhoto('p2')
+    get().deselect('p1')
+    expect(get().selected).toEqual(['p2', null, null])
+    get().setActiveCell(2)
+    get().removeActiveCell()
+    expect(get().selected).toEqual(['p2', null])
+    expect(get().layoutId).toBe('H(*,*)')
+  })
+
+  it('does not spin forever shuffling a collage with a single photo among empty cells', () => {
+    get().setLayout('H(*,*,*)')
+    get().shuffle()
+    expect(get().selected).toEqual([null, null, null])
+  })
+
+  it('does not keep a design that only ever had empty cells', () => {
+    get().setLayout('H(*,*)')
+    expect(mod.currentDesign(get())).toBeNull()
+    get().newDesign()
+    expect(get()).toMatchObject({ selected: [], tree: null })
+    expect(get().designs).toEqual([])
+  })
+
+  it('keeps the empty cells of a design across a restart and when a photo is deleted', async () => {
+    get().openPhoto('p1')
+    get().setLayout('H(*,*,*)')
+    get().setActiveCell(2)
+    get().openPhoto('p2')
+    expect(get().selected).toEqual(['p1', null, 'p2'])
+    vi.advanceTimersByTime(1000)
+    await boot()
+    expect(get().selected).toEqual(['p1', null, 'p2'])
+    await get().deletePhotos(['p1'])
+    expect(get().selected).toEqual([null, 'p2'])
+  })
+})
+
 describe('newcomer guide', () => {
   it('remembers which hints were done across a restart, each one once', async () => {
     expect(get().hintsSeen).toEqual([])
@@ -515,7 +637,7 @@ describe('newcomer guide', () => {
     localStorage.setItem('grido-settings', JSON.stringify({ ...saved, version: 5 }))
     await boot()
     expect(get().guideDone).toBe(true)
-    expect(get().hintsSeen).toEqual(['pan', 'zoom', 'swap', 'resize', 'marquee'])
+    expect(get().hintsSeen).toEqual(['fill', 'pan', 'zoom', 'swap', 'resize', 'marquee'])
   })
 
   it('keeps guiding a returning user who never made a design', async () => {
@@ -547,7 +669,7 @@ describe('sample photos', () => {
     stubFetch()
     await get().trySamples()
     expect(get().photos.map((p) => p.name).sort()).toEqual(['hai-chu-meo', 'may-ban-nuoc', 'nui-phu-si', 'onomichi', 'pho-tuyet', 'ponyo'])
-    const name = (id: string) => get().photos.find((p) => p.id === id)!.name
+    const name = (id: string | null) => get().photos.find((p) => p.id === id)!.name
     expect(get().selected.map(name)).toEqual(['onomichi', 'nui-phu-si', 'pho-tuyet', 'ponyo'])
     expect(get()).toMatchObject({ layoutId: 'V(2:*,H3)', presetId: 'ig-portrait', activeText: null })
     expect(get().texts.map((t) => t.text)).toEqual(['NHẬT BẢN', 'những ngày rong chơi'])

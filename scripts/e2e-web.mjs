@@ -135,6 +135,26 @@ try {
   check('lần đầu mở: lời mời thả ảnh, nút thử ảnh mẫu, nút Xuất ảnh còn khoá', /Thả ảnh vào đây/.test(first.text) && first.samples && first.exportDisabled, JSON.stringify(first))
   check('dải công cụ theo thứ tự làm việc, không còn mục Xuất', first.rail.join(' ') === 'Ảnh Bố cục Khung Viền Chữ Thiết kế', first.rail.join(' '))
 
+  // Chọn bố cục trước khi có ảnh: khung hiện các ô trống, chưa xuất được.
+  const layoutFirst = await chrome.evaluate(`
+    const click = (find) => [...document.querySelectorAll('button')].find(find).click()
+    const pause = () => new Promise((r) => setTimeout(r, 500))
+    click((b) => b.textContent.includes('chọn bố cục trước'))
+    await pause()
+    click((b) => b.getAttribute('aria-label') === '3 ảnh')
+    await pause()
+    click((b) => b.getAttribute('aria-label') === 'Bố cục 1')
+    await pause()
+    const seen = {
+      slots: document.querySelectorAll('main button[aria-label^="Ô trống"]').length,
+      exportDisabled: [...document.querySelectorAll('header button')].find((b) => b.textContent.includes('Xuất ảnh')).disabled,
+    }
+    // Quay lại mục Ảnh để các bước sau nhìn thấy thư viện.
+    click((b) => b.closest('nav') && b.textContent.trim() === 'Ảnh')
+    await pause()
+    return seen`)
+  check('chọn bố cục 3 ảnh khi chưa có ảnh: khung có 3 ô trống, chưa xuất được', layoutFirst.slots === 3 && layoutFirst.exportDisabled, JSON.stringify(layoutFirst))
+
   await chrome.drop(photos)
   await wait(5000)
   let lib = await chrome.evaluate(LIBRARY)
@@ -150,14 +170,16 @@ try {
   const popup = await chrome.evaluate(`
     document.querySelector('[data-photo] button').click()
     await new Promise((r) => setTimeout(r, 800))
+    const slotsLeft = document.querySelectorAll('main button[aria-label^="Ô trống"]').length
     const button = [...document.querySelectorAll('header button')].find((b) => b.textContent.includes('Xuất ảnh'))
     const enabled = !button.disabled
     button.click()
     await new Promise((r) => setTimeout(r, 500))
     const text = document.querySelector('[role=dialog][aria-label="Xuất ảnh"]')?.innerText ?? ''
     window.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape' }))
-    return { enabled, text }`)
-  check('có ảnh trên khung thì nút Xuất ảnh mở bảng xuất (JPEG / PNG)', popup.enabled && /JPEG/.test(popup.text) && /PNG/.test(popup.text) && !/WebP/.test(popup.text), popup.text)
+    return { enabled, text, slotsLeft }`)
+  check('bấm một ảnh trong thư viện là ảnh vào ô trống kế tiếp', popup.slotsLeft === 2, String(popup.slotsLeft))
+  check('có ảnh trên khung thì nút Xuất ảnh mở bảng xuất (JPEG / PNG), có nhắc còn ô trống', popup.enabled && /JPEG/.test(popup.text) && /PNG/.test(popup.text) && !/WebP/.test(popup.text) && /Còn 2 ô trống/.test(popup.text), popup.text)
 
   await chrome.send('Network.enable')
   await chrome.send('Network.emulateNetworkConditions', { offline: true, latency: 0, downloadThroughput: 0, uploadThroughput: 0 })

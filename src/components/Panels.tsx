@@ -5,7 +5,7 @@ import { placeImage } from '../lib/geometry'
 import { collageLayout } from '../lib/imaging/exportCollage'
 import { computeLayout } from '../lib/layout/compute'
 import { parseLayout } from '../lib/layout/dsl'
-import { getLayouts, totalLayoutCount } from '../lib/layout/registry'
+import { getLayouts, MAX_PHOTOS } from '../lib/layout/registry'
 import type { LayoutCategory, LayoutNode } from '../lib/layout/types'
 import {
   BACKGROUNDS,
@@ -19,7 +19,7 @@ import {
   type Platform,
 } from '../lib/presets'
 import { buildSpec, canExportMany, exportToFile, useExportProgress } from '../lib/useCollage'
-import { canvasSize, originalCanvasOf, pctToPx, currentDesign, useStore, type ExportFormat, type ExportSharpen } from '../store'
+import { canvasSize, originalCanvasOf, pctToPx, currentDesign, photosIn, useStore, type ExportFormat, type ExportSharpen } from '../store'
 import { openBatchExport, useExportableCount } from './BatchExport'
 import { BrandIcon } from './BrandIcon'
 import { FontPicker } from './FontPicker'
@@ -40,7 +40,7 @@ export function SizePanel() {
   const customW = useStore((s) => s.customW)
   const customH = useStore((s) => s.customH)
   const favoritePresets = useStore((s) => s.favoritePresets)
-  const firstPhoto = useStore((s) => s.photos.find((p) => p.id === s.selected[0]))
+  const firstPhoto = useStore((s) => s.photos.find((p) => p.id === photosIn(s.selected)[0]))
   const { set, toggleFavoritePreset, applyOriginalSize } = useStore.getState()
   // Mở tab có khung đang dùng: "Phổ biến" nếu khung nằm trong đó, không thì đúng nền tảng của khung.
   const [group, setGroup] = useState<PresetGroup>(() =>
@@ -280,8 +280,17 @@ const tile = (active: boolean) =>
 const tileAction =
   'absolute right-0.5 top-0.5 grid size-6 place-items-center rounded-full bg-card shadow-sm transition-all hover:scale-110 active:scale-90 focus-visible:opacity-100'
 
+/** Mở mục Bố cục khi khung còn trống thì đứng sẵn ở số ảnh này. */
+const DEFAULT_LAYOUT_COUNT = 3
+
 export function LayoutPanel() {
-  const n = useStore((s) => s.selected.length)
+  // Số ô của bố cục đang nằm trên khung (0 = khung trống).
+  const cells = useStore((s) => s.selected.length)
+  // Số ảnh đang xem bố cục: mặc định theo khung, nhưng chọn được số khác để lấy bố cục trước rồi đưa ảnh vào sau.
+  const [n, setCount] = useState(cells || DEFAULT_LAYOUT_COUNT)
+  useEffect(() => {
+    if (cells) setCount(cells)
+  }, [cells])
   const layoutId = useStore((s) => s.layoutId)
   const tree = useStore((s) => s.tree)
   const favorites = useStore((s) => s.favorites)
@@ -293,24 +302,13 @@ export function LayoutPanel() {
   const size = canvasSize({ presetId, customW, customH })
   const [category, setCategory] = useState<CategoryId>('all')
 
-  const all = useMemo(() => (n ? getLayouts(n) : []), [n])
-  const total = useMemo(totalLayoutCount, [])
+  const all = useMemo(() => getLayouts(n), [n])
   const favSet = useMemo(() => new Set(favorites), [favorites])
   const saved = useMemo(() => savedLayouts.filter((l) => l.n === n), [savedLayouts, n])
   // Bố cục đã lưu đang được dùng nếu cây hiện tại giống hệt (kể cả tỉ lệ ô đã kéo).
   const treeSignature = useMemo(() => JSON.stringify(tree), [tree])
   // Khung quá dẹt/quá cao thì thumbnail vẫn giữ trong khoảng dễ nhìn.
   const ratio = Math.min(2, Math.max(0.56, size.width / size.height))
-
-  if (!n)
-    return (
-      <div className="rounded-2xl bg-sand p-5 text-center">
-        <p className="font-display text-base font-bold">Chưa chọn ảnh nào</p>
-        <p className="mt-1 text-[13px] leading-relaxed text-soft">
-          Chọn từ 1 đến 12 ảnh trong thư viện, Tiệm Ghép Ảnh có sẵn <b>{total}</b> bố cục để bạn thử.
-        </p>
-      </div>
-    )
 
   const counts: Record<CategoryId, number> = {
     all: all.length,
@@ -331,7 +329,27 @@ export function LayoutPanel() {
   const grid = 'grid grid-cols-[repeat(auto-fill,minmax(68px,1fr))] items-start gap-2'
 
   return (
-    <Section title={`Bố cục cho ${n} ảnh`} hint={`${all.length} kiểu`}>
+    <Section title="Số ảnh" hint={`${all.length} kiểu`}>
+      <div role="radiogroup" aria-label="Số ảnh của bố cục" className="grid grid-cols-12 gap-1">
+        {Array.from({ length: MAX_PHOTOS }, (_, i) => i + 1).map((count) => (
+          <button
+            key={count}
+            type="button"
+            role="radio"
+            aria-checked={count === n}
+            aria-label={`${count} ảnh`}
+            onClick={() => setCount(count)}
+            className={cx(
+              'relative grid aspect-square place-items-center rounded-full text-[13px] font-semibold tabular-nums transition-colors active:scale-90',
+              count === n ? 'bg-ink text-paper' : 'bg-sand text-soft hover:text-ink',
+            )}
+          >
+            {count}
+            {/* Chấm nhỏ: bố cục trên khung đang có bấy nhiêu ô. */}
+            {count === cells && count !== n && <span className="absolute -bottom-0.5 size-1 rounded-full bg-coral" />}
+          </button>
+        ))}
+      </div>
       <div className="flex flex-wrap gap-1.5">
         {CATEGORIES.map((c) => {
           const personal = c.id === 'fav' || c.id === 'saved'
@@ -356,21 +374,23 @@ export function LayoutPanel() {
         })}
       </div>
 
-      <Button
-        className="h-9 w-full text-[13px]"
-        onClick={() => {
-          if (saveLayout()) setCategory('saved')
-        }}
-      >
-        <Bookmark className="size-4" />
-        Lưu bố cục đang dùng
-      </Button>
+      {tree && n === cells && (
+        <Button
+          className="h-9 w-full text-[13px]"
+          onClick={() => {
+            if (saveLayout()) setCategory('saved')
+          }}
+        >
+          <Bookmark className="size-4" />
+          Lưu bố cục đang dùng
+        </Button>
+      )}
 
       {category === 'saved' ? (
         saved.length ? (
           <div key="saved" className={cx(grid, 'animate-fade')}>
             {saved.map((l, i) => {
-              const active = JSON.stringify(l.tree) === treeSignature
+              const active = n === cells && JSON.stringify(l.tree) === treeSignature
               return (
                 <div key={l.id} className="group relative">
                   <button
@@ -404,7 +424,7 @@ export function LayoutPanel() {
       ) : shown.length ? (
         <div key={category} className={cx(grid, 'animate-fade')}>
           {shown.map((l, i) => {
-            const active = l.id === layoutId
+            const active = n === cells && l.id === layoutId
             const fav = favSet.has(l.id)
             return (
               <div key={l.id} className="group relative">
@@ -640,7 +660,8 @@ export function ExportPanel({ onLeave }: { onLeave?: () => void } = {}) {
   // Ảnh mất file gốc (bị dời / xoá) phải xuất từ bản xem trước. Ảnh chỉ đang chờ trình duyệt cho phép đọc thì không
   // tính: lúc bấm xuất app sẽ hỏi.
   const missingIds = new Set(state.photos.filter((p) => p.missing && !p.locked).map((p) => p.id))
-  const missing = state.tree ? state.selected.filter((id) => missingIds.has(id)).length : 0
+  const missing = state.tree ? photosIn(state.selected).filter((id) => missingIds.has(id)).length : 0
+  const emptyCells = state.tree ? state.selected.length - photosIn(state.selected).length : 0
   const quality = Math.round(exportQuality * 100)
 
   return (
@@ -684,8 +705,13 @@ export function ExportPanel({ onLeave }: { onLeave?: () => void } = {}) {
       </div>
       <p className="-mt-1.5 px-1 text-xs leading-relaxed text-muted">{FORMAT_NOTES[exportFormat]}</p>
 
-      {(upscaled > 0 || missing > 0) && (
+      {(upscaled > 0 || missing > 0 || emptyCells > 0) && (
         <ul className="space-y-1.5">
+          {emptyCells > 0 && (
+            <ExportWarning tip="Ô chưa có ảnh sẽ chỉ có màu nền của khung. Bấm vào ô trống rồi chọn ảnh trong thư viện, hoặc chọn bố cục ít ô hơn.">
+              Còn {emptyCells} ô trống
+            </ExportWarning>
+          )}
           {upscaled > 0 && (
             <ExportWarning tip="Ảnh bị phóng to quá độ phân giải của chính nó nên có thể hơi mềm. Giảm zoom ảnh trong ô hoặc chọn khung nhỏ hơn.">
               {upscaled} ảnh bị phóng to quá cỡ gốc
@@ -703,7 +729,7 @@ export function ExportPanel({ onLeave }: { onLeave?: () => void } = {}) {
         <Button
           variant="primary"
           className="h-12 w-full text-[15px]"
-          disabled={!state.tree || progress !== null}
+          disabled={!state.tree || emptyCells === state.selected.length || progress !== null}
           onClick={() => void exportToFile()}
         >
           {progress !== null ? <LoaderCircle className="size-5 animate-spin" /> : <Download className="size-5" />}

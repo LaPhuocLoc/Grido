@@ -17,6 +17,7 @@ import {
   RotateCw,
   Shuffle,
   Sparkles,
+  Trash2,
   SquareCheck,
   SquareDashedMousePointer,
   Type,
@@ -38,7 +39,7 @@ import { nextHint, type Hint } from '../lib/onboarding'
 import { buildSpec } from '../lib/useCollage'
 import { clampPan, clampViewZoom, MAX_VIEW_ZOOM, MIN_VIEW_ZOOM, zoomByWheel } from '../lib/view'
 import { canvasSize, currentDesign, useStore } from '../store'
-import { TextLayer, TextToolbar } from './TextLayer'
+import { contrast, TextLayer, TextToolbar } from './TextLayer'
 import { Button, cx, IconButton } from './ui'
 
 const STAGE_PADDING = 16
@@ -114,7 +115,7 @@ export function Stage() {
   // Thiết kế đang mở nhưng đã bỏ hết ảnh: vẫn vẽ khung với nền và chữ của nó, để người dùng thấy thiết kế còn nguyên.
   const openEmpty = useStore((s) => !s.tree && currentDesign(s) !== null)
   const hintsSeen = useStore((s) => s.hintsSeen)
-  const { setAdjust, setActiveCell, setActiveText, swapCells, setTree, shuffle, randomLayout, toggleSelect, undo, redo, markHint } =
+  const { setAdjust, setActiveCell, setActiveText, swapCells, setTree, shuffle, randomLayout, toggleSelect, removeActiveCell, undo, redo, markHint } =
     useStore.getState()
   const { selected, tree } = source
   const size = canvasSize(source)
@@ -157,7 +158,7 @@ export function Stage() {
   const overflowing = size.width * k > box.w || size.height * k > box.h
   const spec = useMemo((): CollageSpec | null => {
     const base = buildSpec(liveTree ? { ...source, tree: liveTree } : source)
-    if (base && live) base.cells = base.cells.map((c) => (c.photo.id === live.id ? { ...c, adjust: live.adjust } : c))
+    if (base && live) base.cells = base.cells.map((c) => (c?.photo.id === live.id ? { ...c, adjust: live.adjust } : c))
     if (base || !openEmpty) return base
     const { width, height } = canvasSize(source)
     return { width, height, bg: source.bg, margin: 0, gap: 0, radius: 0, tree: { kind: 'cell' }, cells: [], texts: source.texts }
@@ -187,10 +188,11 @@ export function Stage() {
 
   const paintLive = (next: { id: string; adjust: CellAdjust }) => {
     const { spec, layout, k } = latest.current
-    const i = spec ? spec.cells.findIndex((c) => c.photo.id === next.id) : -1
+    const i = spec ? spec.cells.findIndex((c) => c?.photo.id === next.id) : -1
     const rect = layout?.cells[i]
-    if (!spec || !rect) return
-    const { photo } = spec.cells[i]
+    const cell = spec?.cells[i]
+    if (!cell || !rect) return
+    const { photo } = cell
     const placed = placeImage(photo.width, photo.height, rect.w * k, rect.h * k, next.adjust)
     const style = imageStyle(placed, next.adjust)
     const el = imgEls.current.get(next.id)
@@ -234,16 +236,18 @@ export function Stage() {
   }
 
   const onCellDown = (e: ReactPointerEvent, cell: number) => {
-    if (e.button !== 0 || !spec) return
+    const target = spec?.cells[cell]
+    if (e.button !== 0 || !target) return
     // Giữ Shift rồi kéo trên ảnh: khoanh vùng chọn chữ thay vì dời ảnh.
     if (e.shiftKey) return startMarquee(e)
     e.currentTarget.setPointerCapture(e.pointerId)
-    drag.current = { cell, startX: e.clientX, startY: e.clientY, startAdjust: spec.cells[cell].adjust, moved: false }
+    drag.current = { cell, startX: e.clientX, startY: e.clientY, startAdjust: target.adjust, moved: false }
   }
 
   const onCellMove = (e: ReactPointerEvent) => {
     const d = drag.current
-    if (!d || !spec || !layout) return
+    const moving = d && spec?.cells[d.cell]
+    if (!d || !moving || !spec || !layout) return
     const dx = e.clientX - d.startX
     const dy = e.clientY - d.startY
     if (!d.moved && Math.hypot(dx, dy) < 5) return
@@ -253,7 +257,7 @@ export function Stage() {
       setDragging(d.cell)
     }
 
-    const { photo } = spec.cells[d.cell]
+    const { photo } = moving
     const p = toCanvas(e)
     const over = hitCell(layout.cells, p.x, p.y)
     if (over >= 0 && over !== d.cell) {
@@ -318,7 +322,9 @@ export function Stage() {
     const rect = layout.cells[cell]
     const cx = r.left + (rect.x + rect.w / 2) * k
     const cy = r.top + (rect.y + rect.h / 2) * k
-    const { photo, adjust } = spec.cells[cell]
+    const target = spec.cells[cell]
+    if (!target) return
+    const { photo, adjust } = target
     zoomDrag.current = { id: photo.id, start: adjust, cx, cy, d0: Math.max(8, Math.hypot(e.clientX - cx, e.clientY - cy)) }
   }
   const onZoomMove = (e: ReactPointerEvent) => {
@@ -351,10 +357,11 @@ export function Stage() {
     }
     const p = toCanvas(e)
     const cell = hitCell(layout.cells, p.x, p.y)
-    if (cell < 0) return
+    const target = spec.cells[cell]
+    if (!target) return
     e.preventDefault()
     settle()
-    const { photo, adjust: a } = spec.cells[cell]
+    const { photo, adjust: a } = target
     setAdjust(photo.id, { zoom: clamp(a.zoom * Math.exp(-e.deltaY * 0.0015), 1, MAX_ZOOM) })
     markHint('zoom')
   }
@@ -365,7 +372,15 @@ export function Stage() {
     return () => el.removeEventListener('wheel', handler)
   }, [])
 
-  const active = spec && activeCell !== null ? spec.cells[activeCell] : undefined
+  const active = (spec && activeCell !== null && spec.cells[activeCell]) || undefined
+  // Đang chọn một ô trống: chờ người dùng bấm ảnh trong thư viện để đưa vào ô đó.
+  const activeEmpty = !!spec && activeCell !== null && activeCell < spec.cells.length && !spec.cells[activeCell]
+  /** Bấm một ô trống: chọn ô đó rồi mở thư viện để lấy ảnh. */
+  const pickSlot = (cell: number) => {
+    if (activeCell === cell) return setActiveCell(null)
+    setActiveCell(cell)
+    useStore.setState({ tab: 'library', leftCollapsed: false })
+  }
   const activeItem = spec?.texts.find((t) => t.id === activeText)
   const deselect = () => {
     setActiveCell(null)
@@ -414,14 +429,20 @@ export function Stage() {
   // Thứ tự DOM cố định theo id ảnh: khi trộn / đổi chỗ, React chỉ đổi style chứ không dời node,
   // nhờ vậy transition chạy được và ảnh trượt sang ô mới thay vì nhảy cóc.
   const order = useMemo(
-    () => (spec ? spec.cells.map((_, i) => i).sort((a, b) => (spec.cells[a].photo.id < spec.cells[b].photo.id ? -1 : 1)) : []),
+    () =>
+      spec
+        ? spec.cells
+            .map((_, i) => i)
+            .filter((i) => spec.cells[i])
+            .sort((a, b) => (spec.cells[a]!.photo.id < spec.cells[b]!.photo.id ? -1 : 1))
+        : [],
     [spec],
   )
 
-  /** Khung ô và khung toàn bộ ảnh (kể cả phần bị ô che) theo px màn hình. */
+  /** Khung ô và khung toàn bộ ảnh (kể cả phần bị ô che) theo px màn hình. Chỉ gọi cho ô đang có ảnh. */
   const frames = (i: number) => {
     const rect = layout!.cells[i]
-    const cell = spec!.cells[i]
+    const cell = spec!.cells[i]!
     const placed = placeImage(cell.photo.width, cell.photo.height, rect.w * k, rect.h * k, cell.adjust)
     return {
       rect,
@@ -434,7 +455,7 @@ export function Stage() {
     }
   }
 
-  const liveCell = spec && live ? spec.cells.findIndex((c) => c.photo.id === live.id) : -1
+  const liveCell = spec && live ? spec.cells.findIndex((c) => c?.photo.id === live.id) : -1
   const busy = dragging !== null || liveTree !== null || live !== null
   const hoverCell = !busy && hover !== null && hover !== activeCell && spec?.cells[hover] && layout?.cells[hover] ? hover : null
   const activeIndex = active && layout?.cells[activeCell!] ? activeCell! : null
@@ -446,9 +467,10 @@ export function Stage() {
     spec && layout
       ? nextHint({
           cells: spec.cells.length,
+          photos: spec.cells.filter(Boolean).length,
           // Các dòng trong cùng một nhóm vốn đã đi chung, không cần khoanh vùng.
           texts: new Set(spec.texts.map((t) => t.group ?? t.id)).size,
-          canPan: spec.cells.some((_, i) => !!layout.cells[i] && frames(i).overflows),
+          canPan: spec.cells.some((c, i) => !!c && !!layout.cells[i] && frames(i).overflows),
           seen: hintsSeen,
         })
       : null
@@ -552,7 +574,7 @@ export function Stage() {
           // Thanh công cụ chữ nằm ngay dưới hàng nút trên cùng: chỉ chừa chỗ cho nó khi đang chọn chữ.
           activeItem ? 'mt-[108px]' : 'mt-14',
           // Chỉ chừa chỗ cho thanh công cụ ảnh khi nó đang hiện, để khung ghép được to nhất có thể trên mobile.
-          active ? 'mb-16' : 'mb-3 lg:mb-12',
+          active || activeEmpty ? 'mb-16' : 'mb-3 lg:mb-12',
         )}
         onPointerDown={(e) => e.target === e.currentTarget && startMarquee(e)}
         onPointerMove={moveMarquee}
@@ -602,7 +624,7 @@ export function Stage() {
               {order.map((i) => {
                 const rect = layout.cells[i]
                 const cell = spec.cells[i]
-                if (!rect) return null
+                if (!rect || !cell) return null
                 const placed = placeImage(cell.photo.width, cell.photo.height, rect.w * k, rect.h * k, cell.adjust)
                 return (
                   <div
@@ -650,6 +672,38 @@ export function Stage() {
                       <span className="pointer-events-none absolute inset-0 rounded-[inherit] bg-coral/25 shadow-[inset_0_0_0_4px_var(--color-coral)]" />
                     )}
                   </div>
+                )
+              })}
+              {/* Ô trống: chỗ chờ ảnh. Bấm để chọn ô rồi lấy ảnh trong thư viện; kéo một ảnh khác thả vào cũng được. */}
+              {spec.cells.map((cell, i) => {
+                const rect = layout.cells[i]
+                if (cell || !rect) return null
+                const chosen = activeCell === i || swapTarget === i
+                return (
+                  <button
+                    key={`slot-${i}`}
+                    type="button"
+                    aria-pressed={activeCell === i}
+                    aria-label={`Ô trống ${i + 1}: bấm để chọn ảnh cho ô này`}
+                    onClick={() => pickSlot(i)}
+                    className={cx('group absolute grid animate-cell place-items-center', glide && 'glide')}
+                    style={{
+                      left: rect.x * k,
+                      top: rect.y * k,
+                      width: rect.w * k,
+                      height: rect.h * k,
+                      borderRadius: Math.min(spec.radius, rect.w / 2, rect.h / 2) * k,
+                      // Đen trên nền sáng, trắng trên nền tối: ô trống nhìn rõ trên mọi màu nền của khung.
+                      color: contrast(spec.bg),
+                    }}
+                  >
+                    <span className="absolute inset-0 rounded-[inherit] border-2 border-dashed border-current bg-current opacity-[0.07] transition-opacity group-hover:opacity-[0.14]" />
+                    <span className="absolute inset-0 rounded-[inherit] border-2 border-dashed border-current opacity-35 transition-opacity group-hover:opacity-70" />
+                    {chosen && <span className="absolute inset-0 rounded-[inherit] bg-coral/20 shadow-[inset_0_0_0_3px_var(--color-coral)]" />}
+                    {Math.min(rect.w, rect.h) * k > 36 && (
+                      <ImagePlus className={cx('relative size-6 transition-opacity', chosen ? 'text-coral' : 'opacity-45 group-hover:opacity-80')} />
+                    )}
+                  </button>
                 )
               })}
               {tree &&
@@ -843,6 +897,16 @@ export function Stage() {
             </IconButton>
           </div>
         </div>
+      ) : activeEmpty ? (
+        <div className="absolute inset-x-0 bottom-2.5 z-30 flex justify-center px-2.5">
+          <div className="flex animate-pop items-center gap-2 rounded-full bg-card py-1.5 pl-4 pr-1.5 text-[13px] font-semibold text-soft shadow-lift">
+            <Images className="size-4 shrink-0 text-coral-dark" />
+            Bấm ảnh trong thư viện để vào ô này
+            <IconButton label="Bỏ ô trống này (Delete)" onClick={removeActiveCell}>
+              <Trash2 className="size-4.5" />
+            </IconButton>
+          </div>
+        </div>
       ) : activeItem ? (
         <TextToolbar item={activeItem} unit={Math.min(size.width, size.height) / 100} />
       ) : (
@@ -985,6 +1049,7 @@ function DividerHandle({
 }
 
 const HINT_UI: Record<Hint, { icon: LucideIcon; label: string }> = {
+  fill: { icon: ImagePlus, label: 'Bấm ảnh trong thư viện để lấp ô trống' },
   pan: { icon: Move, label: 'Kéo ảnh để căn trong ô' },
   zoom: { icon: ZoomIn, label: 'Lăn chuột trên ảnh để phóng to' },
   swap: { icon: ArrowLeftRight, label: 'Kéo ảnh sang ô khác để đổi chỗ' },
@@ -1022,6 +1087,20 @@ const FLOW: { icon: LucideIcon; label: string; tip: string }[] = [
   { icon: Type, label: 'Chữ', tip: 'Hơn 400 mẫu chữ và 500 phông tiếng Việt, gõ thẳng trên ảnh' },
   { icon: Download, label: 'Xuất', tip: 'Xuất nét như Lightroom, lấy thẳng từ ảnh gốc. Xuất được nhiều thiết kế một lượt' },
 ]
+
+/** Lối đi thứ hai cho người quen chọn bố cục trước rồi mới đưa ảnh vào. */
+function LayoutFirst({ className }: { className?: string }) {
+  return (
+    <button
+      type="button"
+      onClick={() => useStore.setState({ tab: 'layout', leftCollapsed: false })}
+      className={cx('mx-auto flex items-center gap-1.5 rounded-full px-3 py-1.5 text-[13px] font-semibold text-soft transition-colors hover:bg-sand hover:text-ink', className)}
+    >
+      <LayoutGrid className="size-4" />
+      Hoặc chọn bố cục trước
+    </button>
+  )
+}
 
 function EmptyStage() {
   // Chưa có ảnh nào (kể cả đang nhập dở): người mới, cần lời mời và đường đi. Có ảnh rồi thì chỉ cần nhắc cách chọn.
@@ -1071,6 +1150,7 @@ function EmptyStage() {
               Thử với ảnh mẫu
             </Button>
           </div>
+          <LayoutFirst className="mt-3 lg:mt-4" />
         </div>
         {flow}
       </div>
@@ -1096,6 +1176,7 @@ function EmptyStage() {
           Tích nhiều ảnh rồi bấm Ghép
         </li>
       </ul>
+      <LayoutFirst className="mt-3" />
     </div>
   )
 }

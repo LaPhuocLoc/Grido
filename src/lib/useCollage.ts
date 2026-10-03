@@ -6,7 +6,7 @@ import { desktop } from './desktop'
 import { DEFAULT_ADJUST } from './geometry'
 import { encodeCanvas } from './imaging/encode'
 import { exportExif } from './imaging/exif'
-import { renderCollage, type CollageSpec } from './imaging/exportCollage'
+import { renderCollage, type CollageCell, type CollageSpec } from './imaging/exportCollage'
 import { jpegSubsampling } from './imaging/metadata'
 
 type StoreState = ReturnType<typeof useStore.getState>
@@ -22,11 +22,12 @@ export function buildSpec(s: SpecSource, scale = 1): CollageSpec | null {
   const width = Math.round(base.width * scale)
   const height = Math.round(base.height * scale)
   const byId = new Map(s.photos.map((p) => [p.id, p]))
-  const cells = s.selected
-    .map((id) => byId.get(id))
-    .filter((p): p is Photo => !!p)
+  const cells = s.selected.map((id) => {
+    // Ô trống, hoặc ảnh không còn trong thư viện: ô đó để trống, các ô khác giữ nguyên chỗ.
+    const photo = id === null ? undefined : byId.get(id)
     // Gộp với mặc định để bản nháp lưu từ phiên bản cũ (thiếu trường mới) vẫn dùng được.
-    .map((photo) => ({ photo, adjust: { ...DEFAULT_ADJUST, ...s.adjust[photo.id] } }))
+    return photo ? { photo, adjust: { ...DEFAULT_ADJUST, ...s.adjust[photo.id] } } : null
+  })
   return {
     width,
     height,
@@ -38,6 +39,18 @@ export function buildSpec(s: SpecSource, scale = 1): CollageSpec | null {
     cells,
     texts: s.texts,
   }
+}
+
+/** Các ô đang có ảnh (bỏ qua ô trống), theo thứ tự ô. */
+const filledCells = (spec: CollageSpec): CollageCell[] => spec.cells.filter((c): c is CollageCell => c !== null)
+
+/** Ảnh ghép có ít nhất một ảnh (bố cục toàn ô trống thì chưa có gì để xuất). */
+export const hasPhotos = (spec: CollageSpec | null): spec is CollageSpec => !!spec && filledCells(spec).length > 0
+
+/** Ảnh duy nhất của khung (kể cả khi nó nằm ở nhiều ô); undefined nếu khung có từ hai ảnh khác nhau trở lên, hoặc chưa có ảnh. */
+function onlyPhoto(spec: CollageSpec): Photo | undefined {
+  const cells = filledCells(spec)
+  return new Set(cells.map((c) => c.photo.id)).size === 1 ? cells[0].photo : undefined
 }
 
 const EXT: Record<ExportFormat, string> = { 'image/jpeg': 'jpg', 'image/png': 'png' }
@@ -130,8 +143,8 @@ async function renderAndWrite(spec: CollageSpec, target: string, onProgress: (p:
   )
   onProgress(0.85)
   // Xuất một ảnh: kèm EXIF của ảnh đó như Lightroom. Ảnh ghép nhiều ảnh: chỉ ghi kích thước, giờ xuất, không gian màu.
-  const single = new Set(spec.cells.map((c) => c.photo.id)).size === 1
-  const exif = exportExif(single ? spec.cells[0].photo.exifData : undefined, spec.width, spec.height)
+  const only = onlyPhoto(spec)
+  const exif = exportExif(only?.exifData, spec.width, spec.height)
   const bytes = await encodeCanvas(canvas, s.exportFormat, s.exportQuality, exif)
   canvas.width = canvas.height = 0
   onProgress(0.97)
@@ -173,12 +186,11 @@ export async function exportToFile() {
   if (busy || useExportProgress.getState().progress !== null) return
   // File xuất đúng bằng kích thước khung (1×).
   const spec = buildSpec(s)
-  if (!spec) return s.toast('Chọn ít nhất một ảnh để ghép đã nhé.')
+  if (!spec || !filledCells(spec).length) return s.toast('Chọn ít nhất một ảnh để ghép đã nhé.')
   busy = true
   try {
     // Xuất một ảnh: đặt tên theo ảnh đó để dễ nhận ra; ảnh ghép thì theo thời điểm xuất.
-    const photos = new Set(spec.cells.map((c) => c.photo.id))
-    const fileName = `${photos.size === 1 ? spec.cells[0].photo.name : `tiem-ghep-anh-${stamp()}`}.${EXT[s.exportFormat]}`
+    const fileName = `${onlyPhoto(spec)?.name ?? `tiem-ghep-anh-${stamp()}`}.${EXT[s.exportFormat]}`
 
     // Bản web: lưu thẳng vào thư mục người dùng chọn một lần. Hỏi nơi lưu / quyền trước: người dùng huỷ thì khỏi tốn công dựng ảnh.
     const folderName = await readyFolder()
@@ -226,7 +238,7 @@ export const canExportMany = () => !!desktop.exportFile.folder
 export async function exportDesigns(ids: string[]) {
   const s = useStore.getState()
   if (busy || useExportProgress.getState().progress !== null || !canExportMany()) return
-  const designs = ids.map((id) => s.designs.find((d) => d.id === id)).filter((d) => !!d && buildSpec({ ...d.snapshot, photos: s.photos }))
+  const designs = ids.map((id) => s.designs.find((d) => d.id === id)).filter((d) => !!d && hasPhotos(buildSpec({ ...d.snapshot, photos: s.photos })))
   if (!designs.length) return s.toast('Chọn ít nhất một thiết kế có ảnh để xuất nhé.')
   busy = true
   const fromPreview: string[] = []
@@ -240,9 +252,8 @@ export async function exportDesigns(ids: string[]) {
       useExportProgress.setState({ progress: i / designs.length, batch: { done: i, total: designs.length } })
       // Dựng thông số ngay lúc xuất: ảnh có thể vừa được cho phép đọc file gốc.
       const spec = buildSpec({ ...design!.snapshot, photos: useStore.getState().photos })
-      if (!spec) continue
-      const single = new Set(spec.cells.map((c) => c.photo.id)).size === 1
-      const title = design!.name ?? autoName(design!.snapshot.texts) ?? (single ? spec.cells[0].photo.name : null)
+      if (!spec || !hasPhotos(spec)) continue
+      const title = design!.name ?? autoName(design!.snapshot.texts) ?? onlyPhoto(spec)?.name ?? null
       const base = (title && safeName(title)) || `tiem-ghep-anh-${when}`
       const target = await desktop.exportFile.pick(`${base}.${EXT[s.exportFormat]}`)
       if (!target) continue

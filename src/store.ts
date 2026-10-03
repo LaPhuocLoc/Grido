@@ -45,6 +45,12 @@ export interface Toast {
   action?: { label: string; run: () => void }
 }
 
+/** Một ô của bố cục: id ảnh, hoặc null khi ô còn trống. */
+export type Slot = string | null
+
+/** Id các ảnh đang nằm trong bố cục (bỏ qua ô trống), theo thứ tự ô. */
+export const photosIn = (selected: Slot[]): string[] => selected.filter((id): id is string => id !== null)
+
 export type Tab = 'designs' | 'library' | 'layout' | 'size' | 'style' | 'text'
 
 /** Bố cục người dùng tự lưu (giữ cả tỉ lệ ô đã kéo chỉnh). */
@@ -130,8 +136,11 @@ const COALESCE_MS = 600
 interface State extends Settings {
   photos: Photo[]
   imports: ImportItem[]
-  /** Id ảnh theo đúng thứ tự ô trong bố cục. */
-  selected: string[]
+  /**
+   * Từng ô của bố cục, theo thứ tự ô: id ảnh nằm trong ô, hoặc null nếu ô còn trống (người dùng chọn bố cục trước, đưa
+   * ảnh vào sau). Luôn dài đúng bằng số ô của `tree`.
+   */
+  selected: Slot[]
   layoutId: string | null
   tree: LayoutNode | null
   adjust: Record<string, CellAdjust>
@@ -327,9 +336,11 @@ const BLANK = { selected: [], layoutId: null, tree: null, adjust: {}, texts: [],
 
 /**
  * Thiết kế còn thứ đáng giữ: có ảnh, hoặc đã bỏ hết ảnh nhưng còn chữ (khung, viền, chữ vẫn nguyên, chỉ chờ chọn ảnh khác).
+ * Bố cục toàn ô trống thì chưa phải thứ đáng giữ.
  * Bỏ hết ảnh không làm mất thiết kế: nó vẫn đang mở cho tới khi người dùng tạo / mở thiết kế khác hoặc tự tay xoá.
  */
-const hasContent = (snap: Pick<Snapshot, 'tree' | 'selected' | 'texts'>) => hasCollage(snap) || snap.texts.some((t) => t.text.trim())
+const hasContent = (snap: Pick<Snapshot, 'tree' | 'selected' | 'texts'>) =>
+  (hasCollage(snap) && snap.selected.some((id) => id !== null)) || snap.texts.some((t) => t.text.trim())
 
 /** Thiết kế đáng được liệt kê và giữ lại: còn ảnh, còn chữ, hoặc đã được người dùng tự đặt tên. */
 export const isKeeper = (d: Design) => hasContent(d.snapshot) || !!d.name
@@ -349,8 +360,9 @@ const withoutEmpty = (designs: Design[], keep: string | null) => designs.filter(
 
 /** Bỏ ảnh không còn trong thư viện khỏi một thiết kế đã lưu; số ảnh đổi thì lấy bố cục đầu tiên của số ảnh mới. */
 function pruneSnapshot(snap: Snapshot, alive: (id: string) => boolean): Snapshot {
-  if (snap.selected.every(alive)) return snap
-  const selected = snap.selected.filter(alive)
+  const kept = (id: Slot) => id === null || alive(id)
+  if (snap.selected.every(kept)) return snap
+  const selected = snap.selected.filter(kept)
   const adjust = Object.fromEntries(Object.entries(snap.adjust).filter(([id]) => alive(id)))
   if (!selected.length) return { ...snap, selected, adjust, layoutId: null, tree: null }
   const layoutId = getLayouts(selected.length)[0].id
@@ -368,9 +380,10 @@ const pruneDesigns = (s: State, alive: (id: string) => boolean) =>
 
 /** Bỏ những ảnh không còn trong thư viện khỏi bản ghép (kèm tinh chỉnh của chúng). Không có gì để bỏ thì không đổi state. */
 function withoutMissing(state: State, alive: (id: string) => boolean): Partial<State> {
-  if (state.selected.every(alive) && Object.keys(state.adjust).every(alive)) return {}
+  const kept = (id: Slot) => id === null || alive(id)
+  if (state.selected.every(kept) && Object.keys(state.adjust).every(alive)) return {}
   return {
-    ...withSelection(state, state.selected.filter(alive)),
+    ...withSelection(state, state.selected.filter(kept)),
     adjust: Object.fromEntries(Object.entries(state.adjust).filter(([id]) => alive(id))),
   }
 }
@@ -398,14 +411,35 @@ function freshSelection(state: State, ids: string[]): Partial<State> {
 
 const toggled = (list: string[], id: string) => (list.includes(id) ? list.filter((f) => f !== id) : [id, ...list])
 
-/** Khi số ảnh đổi thì bố cục cũ không còn hợp lệ → chọn bố cục đầu tiên của số ảnh mới. */
-function withSelection(state: State, selected: string[]): Partial<State> {
+/** Khi số ô đổi thì bố cục cũ không còn hợp lệ → chọn bố cục đầu tiên của số ô mới. */
+function withSelection(state: State, selected: Slot[]): Partial<State> {
   if (selected.length === 0) return { selected, layoutId: null, tree: null, activeCell: null }
   if (selected.length === state.selected.length && state.tree) return { selected, activeCell: null }
   const layoutId = getLayouts(selected.length)[0].id
   // Bản ghép mới bắt đầu bằng khung đúng tỉ lệ / độ phân giải gốc của ảnh đầu tiên.
-  const size = state.selected.length === 0 ? originalSize(state, selected[0]) : {}
+  const size = state.selected.length === 0 ? originalSize(state, photosIn(selected)[0]) : {}
   return { selected, layoutId, tree: parseLayout(layoutId), activeCell: null, ...size }
+}
+
+/**
+ * Đổi sang bố cục `tree`. Cùng số ô thì ô nào giữ nguyên ô đó. Nhiều ô hơn thì thêm ô trống. Ít ô hơn thì dồn ảnh lên
+ * trước, ảnh không còn chỗ rời khỏi khung (vẫn nằm trong thư viện).
+ */
+function fitSlots(selected: Slot[], tree: LayoutNode): { selected: Slot[]; dropped: number } {
+  const cells = countCells(tree)
+  if (cells === selected.length) return { selected, dropped: 0 }
+  const photos = cells < selected.length ? photosIn(selected) : selected
+  const kept = photos.slice(0, cells)
+  return { selected: [...kept, ...Array<Slot>(cells - kept.length).fill(null)], dropped: photosIn(selected).length - photosIn(kept).length }
+}
+
+/** Đổi bố cục (có sẵn hoặc đã lưu), kể cả khi số ô khác số ảnh đang có. */
+function applyLayout(layoutId: string, tree: LayoutNode): void {
+  const s = useStore.getState()
+  const { selected, dropped } = fitSlots(s.selected, tree)
+  useStore.setState({ layoutId, tree, selected, activeCell: null })
+  if (dropped)
+    s.toast(`Đã bỏ ${dropped} ảnh không còn chỗ trong bố cục mới.`, 'info', { label: 'Hoàn tác', run: () => useStore.getState().undo() })
 }
 
 export const useStore = create<State>()(
@@ -576,11 +610,18 @@ export const useStore = create<State>()(
         const s = get()
         // Đang chọn một ô trong khung → ảnh vừa bấm sẽ vào ô đó thay vì thêm ô mới;
         // nếu ảnh ấy đang nằm ở ô khác thì hai ô đổi chỗ cho nhau.
-        if (s.activeCell !== null && s.selected[s.activeCell] && s.selected[s.activeCell] !== id) {
+        if (s.activeCell !== null && s.activeCell < s.selected.length && s.selected[s.activeCell] !== id) {
           const next = [...s.selected]
+          const wasEmpty = next[s.activeCell] === null
           const from = next.indexOf(id)
           if (from >= 0) next[from] = next[s.activeCell]
           next[s.activeCell] = id
+          // Vừa lấp một ô trống: chuyển sang ô trống kế tiếp để bấm tiếp là lấp tiếp; hết ô trống thì thôi chọn ô.
+          if (wasEmpty) {
+            const empty = next.indexOf(null)
+            set({ selected: next, activeCell: empty >= 0 ? empty : null })
+            return s.markHint('fill')
+          }
           return set({ selected: next })
         }
         if (s.selected.includes(id))
@@ -590,6 +631,12 @@ export const useStore = create<State>()(
               s.selected.filter((x) => x !== id),
             ),
           )
+        // Còn ô trống thì ảnh vào ô trống đầu tiên, bố cục giữ nguyên.
+        const empty = s.selected.indexOf(null)
+        if (empty >= 0) {
+          set({ selected: s.selected.map((x, i) => (i === empty ? id : x)), activeCell: null })
+          return s.markHint('fill')
+        }
         if (s.selected.length >= MAX_PHOTOS) return s.toast(`Một ảnh ghép chứa tối đa ${MAX_PHOTOS} ảnh.`)
         set(withSelection(s, [...s.selected, id]))
       },
@@ -598,8 +645,11 @@ export const useStore = create<State>()(
         const s = get()
         const fresh = ids.filter((id) => !s.selected.includes(id))
         if (!fresh.length) return
-        const room = MAX_PHOTOS - s.selected.length
-        if (room > 0) set(withSelection(s, [...s.selected, ...fresh.slice(0, room)]))
+        const room = MAX_PHOTOS - photosIn(s.selected).length
+        // Lấp các ô trống trước, còn dư mới thêm ô.
+        const queue = fresh.slice(0, Math.max(0, room))
+        const filled = s.selected.map((x) => (x === null && queue.length ? queue.shift()! : x))
+        if (room > 0) set(withSelection({ ...s, selected: filled.length === s.selected.length && !queue.length ? filled : s.selected }, [...filled, ...queue]))
         if (fresh.length > room)
           s.toast(room > 0 ? `Chỉ thêm được ${room} ảnh: một ảnh ghép chứa tối đa ${MAX_PHOTOS} ảnh.` : `Một ảnh ghép chứa tối đa ${MAX_PHOTOS} ảnh.`)
       },
@@ -616,6 +666,8 @@ export const useStore = create<State>()(
         const s = get()
         // Đang chọn một ô trong khung: ảnh vừa bấm vào ô đó (như trước).
         if (s.activeCell !== null) return s.toggleSelect(id)
+        // Bố cục còn ô trống: ảnh vừa bấm lấp ô trống kế tiếp. Ảnh đã nằm trong khung thì không làm gì.
+        if (s.selected.includes(null)) return s.selected.includes(id) ? undefined : s.toggleSelect(id)
         if (s.selected.length === 1 && s.selected[0] === id) return
         set(freshSelection(s, [id]))
       },
@@ -624,7 +676,8 @@ export const useStore = create<State>()(
 
       shuffle: () =>
         set((s) => {
-          if (s.selected.length < 2) return {}
+          // Toàn ô giống nhau (một ảnh, hoặc chỉ có ô trống) thì trộn kiểu gì cũng vậy.
+          if (new Set(s.selected).size < 2) return {}
           const next = [...s.selected]
           // Fisher–Yates; lặp lại nếu vô tình ra đúng thứ tự cũ.
           do {
@@ -643,7 +696,7 @@ export const useStore = create<State>()(
           return { selected: next, activeCell: b }
         }),
 
-      setLayout: (id) => set({ layoutId: id, tree: parseLayout(id) }),
+      setLayout: (id) => applyLayout(id, parseLayout(id)),
 
       toggleFavorite: (id) => set((s) => ({ favorites: toggled(s.favorites, id) })),
       toggleFavoriteFont: (id) => set((s) => ({ favoriteFonts: toggled(s.favoriteFonts, id) })),
@@ -657,8 +710,8 @@ export const useStore = create<State>()(
         // Khung đang trống sẵn thì chỉ cần đưa người dùng tới chỗ chọn ảnh (và nói rõ, kẻo bấm mà tưởng không có gì xảy ra).
         const put = currentDesign(s)
         if (!put) {
-          // Có thể còn sót một thiết kế trống trơn bên dưới (vừa chọn ảnh rồi bỏ): dọn luôn.
-          if (s.currentDesignId) load({ ...BLANK, currentDesignId: null, designs: withoutEmpty(s.designs, null) })
+          // Có thể còn sót một thiết kế trống trơn bên dưới (vừa chọn ảnh rồi bỏ, hoặc bố cục toàn ô trống): dọn luôn.
+          if (s.currentDesignId || s.tree) load({ ...BLANK, currentDesignId: null, designs: withoutEmpty(s.designs, null) })
           set({ tab: 'library', leftCollapsed: false })
           return s.toast('Khung đang trống sẵn. Chọn ảnh trong thư viện để bắt đầu thiết kế mới.')
         }
@@ -709,7 +762,7 @@ export const useStore = create<State>()(
         })
       },
 
-      applyOriginalSize: () => set((s) => originalSize(s, s.selected[0])),
+      applyOriginalSize: () => set((s) => originalSize(s, photosIn(s.selected)[0])),
 
       saveLayout: () => {
         const s = get()
@@ -727,7 +780,7 @@ export const useStore = create<State>()(
 
       applySavedLayout: (id) => {
         const saved = get().savedLayouts.find((l) => l.id === id)
-        if (saved) set({ layoutId: saved.id, tree: structuredClone(saved.tree) })
+        if (saved) applyLayout(saved.id, structuredClone(saved.tree))
       },
 
       removeSavedLayout: (id) => set((s) => ({ savedLayouts: s.savedLayouts.filter((l) => l.id !== id) })),
@@ -747,8 +800,11 @@ export const useStore = create<State>()(
 
       removeActiveCell: () => {
         const s = get()
-        const id = s.activeCell === null ? undefined : s.selected[s.activeCell]
-        if (id) s.toggleSelect(id)
+        if (s.activeCell === null || s.activeCell >= s.selected.length) return
+        const id = s.selected[s.activeCell]
+        // Ô có ảnh: bỏ ảnh là bỏ luôn ô đó. Ô trống: bỏ ô.
+        if (id) set(withSelection(s, s.selected.filter((x) => x !== id)))
+        else set(withSelection(s, s.selected.filter((_, i) => i !== s.activeCell)))
       },
 
       addText: () => {
@@ -1146,7 +1202,7 @@ function step(from: 'past' | 'future', to: 'past' | 'future'): void {
   const alive = new Set(s.photos.map((p) => p.id))
   const stack = [...s[from]]
   let target = stack.pop()
-  while (target && !target.selected.every((id) => alive.has(id))) target = stack.pop()
+  while (target && !photosIn(target.selected).every((id) => alive.has(id))) target = stack.pop()
   if (!target) {
     useStore.setState({ [from]: [] } as Partial<State>)
     return

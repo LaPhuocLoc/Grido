@@ -23,19 +23,21 @@ export function nextStep(s: { done: boolean; cells: number; visited: readonly st
   return GUIDE_TABS.find((tab) => !s.visited.includes(tab) && (tab !== 'layout' || s.cells > 1)) ?? 'export'
 }
 
-export const HINTS = ['pan', 'zoom', 'swap', 'resize', 'marquee'] as const
+export const HINTS = ['fill', 'pan', 'zoom', 'swap', 'resize', 'marquee'] as const
 export type Hint = (typeof HINTS)[number]
 
 /**
  * Gợi ý thao tác đang cần hiện trên khung ghép (mỗi lần một cái); làm được thao tác nào thì gợi ý đó không hiện lại.
- * `canPan`: có ảnh tràn ra ngoài ô của nó, tức là kéo thì ảnh mới dịch được. `texts`: số dòng chữ / nhóm chữ độc lập.
+ * `cells`: số ô của bố cục; `photos`: số ô đã có ảnh. `canPan`: có ảnh tràn ra ngoài ô của nó, tức là kéo thì ảnh mới dịch được. `texts`: số dòng chữ / nhóm chữ độc lập.
  */
-export function nextHint(s: { cells: number; texts: number; canPan: boolean; seen: readonly string[] }): Hint | null {
+export function nextHint(s: { cells: number; photos: number; texts: number; canPan: boolean; seen: readonly string[] }): Hint | null {
   if (!s.cells) return null
   const fits: Record<Hint, boolean> = {
+    // Bố cục còn ô trống (chọn bố cục trước, đưa ảnh vào sau).
+    fill: s.photos < s.cells,
     pan: s.canPan,
-    zoom: true,
-    swap: s.cells > 1,
+    zoom: s.photos > 0,
+    swap: s.cells > 1 && s.photos > 0,
     resize: s.cells > 1,
     marquee: s.texts > 1,
   }
