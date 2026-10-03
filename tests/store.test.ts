@@ -480,7 +480,7 @@ describe('layout first: empty cells', () => {
   })
 
   it('keeps the photos already placed and adds empty cells when a bigger layout is chosen', () => {
-    get().openPhoto('p1')
+    get().toggleSelect('p1')
     const frame = { presetId: get().presetId, customW: get().customW, customH: get().customH }
     get().setLayout('H(V2,V2)')
     expect(get().selected).toEqual(['p1', null, null, null])
@@ -488,46 +488,46 @@ describe('layout first: empty cells', () => {
   })
 
   it('fills the next empty cell when a library photo is clicked', () => {
-    get().openPhoto('p1')
+    get().toggleSelect('p1')
     get().setLayout('H(*,*,*)')
-    get().openPhoto('p2')
+    get().toggleSelect('p2')
     expect(get().selected).toEqual(['p1', 'p2', null])
-    get().openPhoto('p3')
+    get().toggleSelect('p3')
     expect(get().selected).toEqual(['p1', 'p2', 'p3'])
     expect(get().layoutId).toBe('H(*,*,*)')
-    // Hết ô trống: bấm một ảnh lại là mở riêng ảnh đó, như trước.
-    get().openPhoto('p4')
-    expect(get().selected).toEqual(['p4'])
+    // Hết ô trống: bấm thêm một ảnh là thêm một ô.
+    get().toggleSelect('p4')
+    expect(get().selected).toEqual(['p1', 'p2', 'p3', 'p4'])
   })
 
-  it('ignores a click on a photo that is already in the collage while cells are still empty', () => {
-    get().openPhoto('p1')
+  it('takes a photo out together with its cell when it is clicked again while cells are still empty', () => {
+    get().toggleSelect('p1')
     get().setLayout('H(*,*,*)')
-    get().openPhoto('p1')
-    expect(get().selected).toEqual(['p1', null, null])
+    get().toggleSelect('p1')
+    expect(get().selected).toEqual([null, null])
   })
 
   it('puts the clicked photo into the chosen empty cell, then moves on to the next empty one', () => {
     get().setLayout('H(*,*,*)')
     get().setActiveCell(2)
-    get().openPhoto('p5')
+    get().toggleSelect('p5')
     expect(get().selected).toEqual([null, null, 'p5'])
     expect(get().activeCell).toBe(0)
-    get().openPhoto('p6')
-    get().openPhoto('p7')
+    get().toggleSelect('p6')
+    get().toggleSelect('p7')
     expect(get().selected).toEqual(['p6', 'p7', 'p5'])
     expect(get().activeCell).toBeNull()
   })
 
   it('moves a photo into an empty cell when it is dragged there', () => {
-    get().openPhoto('p1')
+    get().toggleSelect('p1')
     get().setLayout('H(*,*,*)')
     get().swapCells(0, 2)
     expect(get().selected).toEqual([null, null, 'p1'])
   })
 
   it('puts a photo dragged from the library into the cell it is dropped on', () => {
-    get().openPhoto('p1')
+    get().toggleSelect('p1')
     get().setLayout('H(*,*,*)')
     get().placePhoto(2, 'p2')
     expect(get().selected).toEqual(['p1', null, 'p2'])
@@ -568,7 +568,7 @@ describe('layout first: empty cells', () => {
   it('closes the gaps when shrinking, so photos are kept before empty cells', () => {
     get().setLayout('H(V2,V2)')
     get().setActiveCell(3)
-    get().openPhoto('p1')
+    get().toggleSelect('p1')
     get().setLayout('H(*,*)')
     expect(get().selected).toEqual(['p1', null])
   })
@@ -576,15 +576,15 @@ describe('layout first: empty cells', () => {
   it('keeps every cell where it is when another layout of the same size is chosen', () => {
     get().setLayout('H(*,*,*)')
     get().setActiveCell(1)
-    get().openPhoto('p1')
+    get().toggleSelect('p1')
     get().setLayout('V(*,*,*)')
     expect(get().selected).toEqual([null, 'p1', null])
   })
 
   it('removes the cell together with its photo, and removes an empty cell the same way', () => {
-    get().openPhoto('p1')
+    get().toggleSelect('p1')
     get().setLayout('H(V2,V2)')
-    get().openPhoto('p2')
+    get().toggleSelect('p2')
     get().deselect('p1')
     expect(get().selected).toEqual(['p2', null, null])
     get().setActiveCell(2)
@@ -608,10 +608,10 @@ describe('layout first: empty cells', () => {
   })
 
   it('keeps the empty cells of a design across a restart and when a photo is deleted', async () => {
-    get().openPhoto('p1')
+    get().toggleSelect('p1')
     get().setLayout('H(*,*,*)')
     get().setActiveCell(2)
-    get().openPhoto('p2')
+    get().toggleSelect('p2')
     expect(get().selected).toEqual(['p1', null, 'p2'])
     vi.advanceTimersByTime(1000)
     await boot()
@@ -648,7 +648,7 @@ describe('frame orientation', () => {
   const frame = () => ({ presetId: get().presetId, ...mod.canvasSize(get()) })
 
   it('turns the landscape frame of a landscape photo into a portrait one at the same resolution, and back', () => {
-    get().openPhoto('p1')
+    get().toggleSelect('p1')
     const original = frame()
     expect(original.presetId).toBe('original')
     expect(original.width).toBeGreaterThan(original.height)
@@ -1252,32 +1252,25 @@ describe('selecting many photos at once', () => {
   })
 })
 
-describe('opening a photo from the library', () => {
+describe('opening one photo on its own', () => {
   it('puts just that photo in the frame, sized to it, and switching keeps following the photo', () => {
-    get().openPhoto('p1')
+    get().replaceSelection(['p1'])
     expect(get().selected).toEqual(['p1'])
     expect(get().presetId).toBe('original')
     get().replaceSelection(['p1', 'p2', 'p3'])
     pause()
-    get().openPhoto('p2')
+    get().replaceSelection(['p2'])
     expect(get().selected).toEqual(['p2'])
     get().undo()
     expect(get().selected).toEqual(['p1', 'p2', 'p3'])
   })
 
   it('keeps a frame the user picked when switching photos', () => {
-    get().openPhoto('p1')
+    get().replaceSelection(['p1'])
     get().set({ presetId: 'ig-portrait' })
-    get().openPhoto('p2')
+    get().replaceSelection(['p2'])
     expect(get().selected).toEqual(['p2'])
     expect(get().presetId).toBe('ig-portrait')
-  })
-
-  it('fills the active cell instead when one is being replaced', () => {
-    get().replaceSelection(['p1', 'p2'])
-    get().setActiveCell(1)
-    get().openPhoto('p5')
-    expect(get().selected).toEqual(['p1', 'p5'])
   })
 })
 

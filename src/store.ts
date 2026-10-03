@@ -210,15 +210,17 @@ interface State extends Settings {
   /** Chuyển ảnh vào album, hoặc về "Chưa phân loại" khi albumId là null. */
   movePhotos: (ids: string[], albumId: string | null) => void
   toggleAlbumCollapsed: (id: string) => void
+  /**
+   * Bấm một ảnh trong thư viện: đưa ảnh vào bản ghép, bấm lần nữa thì bỏ ra (bỏ luôn ô của nó). Đang chọn một ô thì ảnh
+   * vào ô đó; bố cục còn ô trống thì ảnh lấp ô trống kế tiếp; không thì thêm một ô, tối đa MAX_PHOTOS ảnh.
+   */
   toggleSelect: (id: string) => void
   /** Đưa nhiều ảnh vào bố cục một lượt (quét chọn trong thư viện); ảnh đã có sẵn thì bỏ qua. */
   selectMany: (ids: string[]) => void
   /** Bỏ một ảnh khỏi bố cục (dải ảnh đang dùng ở đầu thư viện). */
   deselect: (id: string) => void
-  /** Ghép đúng những ảnh này thành một bản ghép mới (thay cho các ảnh đang có trong bố cục). */
+  /** Ghép đúng những ảnh này thành một bản ghép mới (thay cho các ảnh đang có trong bố cục); một ảnh = mở riêng ảnh đó. */
   replaceSelection: (ids: string[]) => void
-  /** Bấm một ảnh trong thư viện: mở riêng ảnh đó trong khung (đang chọn một ô thì đổi ảnh cho ô đó). */
-  openPhoto: (id: string) => void
   clearSelection: () => void
   shuffle: () => void
   swapCells: (a: number, b: number) => void
@@ -692,16 +694,6 @@ export const useStore = create<State>()(
         const s = get()
         if (ids.length > MAX_PHOTOS) return s.toast(`Một ảnh ghép chứa tối đa ${MAX_PHOTOS} ảnh.`)
         set(freshSelection(s, ids))
-      },
-
-      openPhoto: (id) => {
-        const s = get()
-        // Đang chọn một ô trong khung: ảnh vừa bấm vào ô đó (như trước).
-        if (s.activeCell !== null) return s.toggleSelect(id)
-        // Bố cục còn ô trống: ảnh vừa bấm lấp ô trống kế tiếp. Ảnh đã nằm trong khung thì không làm gì.
-        if (s.selected.includes(null)) return s.selected.includes(id) ? undefined : s.toggleSelect(id)
-        if (s.selected.length === 1 && s.selected[0] === id) return
-        set(freshSelection(s, [id]))
       },
 
       clearSelection: () => set((s) => withSelection(s, [])),

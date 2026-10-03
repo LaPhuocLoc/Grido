@@ -87,9 +87,10 @@ function movingIds(photoId: string, picked: Set<string> | null): string[] {
 }
 
 /**
- * Một ảnh trong thư viện, hiện trọn khung theo đúng tỉ lệ (không cắt vuông). Bấm vào ảnh = mở ảnh đó trong khung chỉnh
- * sửa (ở chế độ "Chọn": tích / bỏ tích); ô ✓ ở góc = tích ảnh và vào chế độ "Chọn" để ghép nhiều ảnh; kéo ảnh = chuyển
- * sang album khác, hoặc thả vào một ô của khung; xoá khỏi thư viện là nút thùng rác riêng (hoặc menu chuột phải) nên không thể bấm nhầm.
+ * Một ảnh trong thư viện, hiện trọn khung theo đúng tỉ lệ (không cắt vuông). Bấm vào ảnh = đưa ảnh vào bản ghép, bấm lần
+ * nữa = bỏ ra. Ở chế độ "Chọn" (nút "Chọn" hoặc quét chuột) thì bấm = tích / bỏ tích, chọn bao nhiêu ảnh cũng được để
+ * xoá / chuyển album / ghép; kéo ảnh = chuyển sang album khác, hoặc thả vào một ô của khung; xoá khỏi thư viện là nút
+ * thùng rác riêng (hoặc menu chuột phải) nên không thể bấm nhầm.
  * memo: chọn / bỏ chọn một ảnh chỉ vẽ lại đúng ô đó.
  */
 const Tile = memo(function Tile({
@@ -99,13 +100,13 @@ const Tile = memo(function Tile({
   w,
   h,
   selected,
+  slot,
   swept,
   doomed,
   moving,
   picking,
   index,
   onActivate,
-  onPick,
   onMenu,
 }: {
   photo: Photo
@@ -116,6 +117,8 @@ const Tile = memo(function Tile({
   h: number
   /** Đang nằm trong khung, hoặc (chế độ "Chọn") đang được tích. */
   selected: boolean
+  /** Thứ tự của ảnh trong bản ghép (1, 2, 3…), 0 = không nằm trong bản ghép hoặc đang ở chế độ "Chọn". */
+  slot: number
   /** Ảnh đang nằm trong vùng quét chọn (chưa thả chuột). */
   swept: boolean
   /** Ảnh đang chờ xác nhận xoá. */
@@ -126,8 +129,6 @@ const Tile = memo(function Tile({
   picking: boolean
   index: number
   onActivate: (id: string, shift: boolean) => void
-  /** Bấm ô ✓: tích / bỏ tích ảnh (vào chế độ "Chọn" nếu chưa ở đó). */
-  onPick: (id: string, shift: boolean) => void
   onMenu: (photo: Photo, x: number, y: number) => void
 }) {
   const [loaded, setLoaded] = useState(false)
@@ -148,7 +149,9 @@ const Tile = memo(function Tile({
         type="button"
         aria-pressed={selected}
         aria-label={
-          picking ? `${selected ? 'Bỏ chọn' : 'Chọn'} ảnh ${photo.name}` : `Mở ảnh ${photo.name} trong khung`
+          picking
+            ? `${selected ? 'Bỏ chọn' : 'Chọn'} ảnh ${photo.name}`
+            : `${selected ? 'Bỏ ảnh' : 'Đưa ảnh'} ${photo.name} ${selected ? 'khỏi' : 'vào'} bản ghép`
         }
         onPointerEnter={() => prefetchFile(photo.id)}
         onClick={(e) => onActivate(photo.id, e.shiftKey)}
@@ -189,26 +192,22 @@ const Tile = memo(function Tile({
           </span>
         )}
       </button>
-      {/* Ô tích ở góc: luôn hiện mờ (rõ lên khi rê chuột hoặc ở chế độ "Chọn"); bấm vào là tích ảnh để ghép / xoá nhiều ảnh. */}
-      {!doomed && (
-        <button
-          type="button"
-          role="checkbox"
-          aria-checked={picking && selected}
-          aria-label={`${picking && selected ? 'Bỏ chọn' : 'Chọn'} ảnh ${photo.name}`}
-          data-tip={picking ? undefined : 'Chọn ảnh này (để ghép nhiều ảnh, chuyển album hoặc xoá)'}
-          data-no-drag
-          onClick={(e) => onPick(photo.id, e.shiftKey)}
+      {/* Ảnh đang nằm trong bản ghép: số thứ tự ở góc phải (chế độ "Chọn" thì chỗ này là dấu tích). */}
+      {slot > 0 && !doomed && !swept && (
+        <span className="pointer-events-none absolute right-1.5 top-1.5 grid h-5 min-w-5 place-items-center rounded-full bg-coral px-1 text-[11px] font-bold tabular-nums text-white shadow">
+          {slot}
+        </span>
+      )}
+      {/* Dấu tích ở góc chỉ có ở chế độ "Chọn" (và lúc đang quét chọn): mờ khi chưa chọn, sáng lên khi đã chọn. */}
+      {(picking || swept) && !doomed && (
+        <span
           className={cx(
-            'absolute left-1.5 top-1.5 grid size-5.5 place-items-center rounded-md border-2 transition-[opacity,background-color,border-color] duration-150',
-            (picking && selected) || swept
-              ? 'border-coral bg-coral text-white shadow'
-              : 'border-white/90 bg-black/30 text-transparent shadow-sm hover:bg-black/50',
-            !picking && !swept && 'opacity-55 focus-visible:opacity-100 group-hover:opacity-100',
+            'pointer-events-none absolute right-1.5 top-1.5 grid size-5 place-items-center rounded-full transition-colors duration-150',
+            selected || swept ? 'bg-coral text-white shadow' : 'bg-black/45 text-white/80 ring-1 ring-white/70',
           )}
         >
-          <Check className="size-3.5" strokeWidth={3.5} />
-        </button>
+          <Check className="size-3" strokeWidth={3.5} />
+        </span>
       )}
     </li>
   )
@@ -564,9 +563,19 @@ export function Library() {
     setPicked(next)
   }, [])
 
-  /** Bấm vào một ảnh: mở ảnh đó trong khung; ở chế độ "Chọn" thì tích / bỏ tích. */
+  /** Bấm vào một ảnh: đưa vào bản ghép, bấm lần nữa thì bỏ ra; ở chế độ "Chọn" thì tích / bỏ tích. */
   const onActivate = useCallback(
-    (id: string, shift: boolean) => (pickedRef.current ? onPick(id, shift) : useStore.getState().openPhoto(id)),
+    (id: string, shift: boolean) => {
+      if (pickedRef.current) return onPick(id, shift)
+      const s = useStore.getState()
+      // Bản ghép đã đủ ảnh: chỉ luôn cách chọn nhiều hơn (để xoá, chuyển album), kẻo người dùng tưởng không chọn tiếp được.
+      if (s.activeCell === null && !s.selected.includes(id) && !s.selected.includes(null) && s.selected.length >= MAX_PHOTOS)
+        return s.toast(`Một ảnh ghép chứa tối đa ${MAX_PHOTOS} ảnh. Muốn chọn nhiều hơn để xoá hay chuyển album thì bấm nút Chọn.`, 'info', {
+          label: 'Chọn nhiều ảnh',
+          run: () => onPick(id, false),
+        })
+      s.toggleSelect(id)
+    },
     [onPick],
   )
 
@@ -630,7 +639,7 @@ export function Library() {
       items.push({ label: 'Chọn ảnh để xoá…', run: startPicking })
       if (inFrame.length)
         items.push({
-          label: inFrame.length > 1 ? `Xoá ${inFrame.length} ảnh trong bản ghép` : 'Xoá ảnh đang mở',
+          label: inFrame.length > 1 ? `Xoá ${inFrame.length} ảnh trong bản ghép` : 'Xoá ảnh đang ở trong khung',
           run: () => setDoomed([...inFrame]),
         })
     }
@@ -675,7 +684,7 @@ export function Library() {
         ...(s.selected.length === 1 && inCollage ? [] : [{ label: 'Mở riêng ảnh này', run: () => s.replaceSelection([photo.id]) }]),
         ...(!inCollage && s.selected.length > 0 ? [{ label: 'Thêm vào bản ghép', run: () => s.toggleSelect(photo.id) }] : []),
         ...(pickedRef.current?.has(photo.id) ? [] : [{ label: 'Chọn ảnh này', run: () => onPick(photo.id, false) }]),
-        ...(inCollage && s.selected.length > 1 ? [{ label: 'Bỏ khỏi bản ghép', run: () => s.deselect(photo.id) }] : []),
+        ...(inCollage ? [{ label: 'Bỏ khỏi bản ghép', run: () => s.deselect(photo.id) }] : []),
         ...(photo.missing || !desktop.features.reveal ? [] : [{ label: 'Mở thư mục chứa ảnh', run: () => void desktop.library.reveal(photo.id) }]),
         ...moves,
         { label: ids.length > 1 ? `Xoá ${ids.length} ảnh khỏi thư viện` : 'Xoá khỏi thư viện', danger: true, divider: true, run: () => setDoomed(ids) },
@@ -927,13 +936,13 @@ export function Library() {
                   w={w}
                   h={h}
                   selected={picked ? picked.has(photo.id) : selectedSet.has(photo.id)}
+                  slot={picked ? 0 : selected.indexOf(photo.id) + 1}
                   swept={!!swept && swept.has(photo.id)}
                   doomed={doomed.has(photo.id)}
                   picking={picking}
                   index={index - shimmers.length}
                   moving={!!drag && drag.ids.includes(photo.id)}
                   onActivate={onActivate}
-                  onPick={onPick}
                   onMenu={openTileMenu}
                 />
               )
@@ -1109,8 +1118,8 @@ export function Library() {
         </div>
       ) : (
         // Ảnh đang dùng trong bản ghép, hiện thành một dải nhỏ: bỏ bớt hay tìm lại ảnh mà không phải cuộn cả thư viện.
-        // Chỉ một ảnh thì đã thấy viền của nó trong lưới, không cần dải này.
-        (replacing || selected.length > 1 || emptySlots > 0) && (
+        // Một ảnh thì chỉ cần dòng đếm (ảnh đó đã có viền + số trong lưới), từ hai ảnh mới hiện dải ảnh nhỏ.
+        (replacing || selected.length > 0 || emptySlots > 0) && (
           <div className="animate-fade border-t border-line px-3 pb-1.5 pt-2 lg:px-4">
             <div className="flex items-center justify-between gap-2 text-[13px] text-soft">
               {replacing ? (

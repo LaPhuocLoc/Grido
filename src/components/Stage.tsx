@@ -1108,7 +1108,7 @@ function HintChip({ hint, onClose }: { hint: Hint; onClose: () => void }) {
 /** Bốn bước làm một ảnh ghép, bằng icon; chi tiết từng bước nằm trong chú thích khi rê chuột. */
 const FLOW: { icon: LucideIcon; label: string; tip: string }[] = [
   { icon: Images, label: 'Thêm ảnh', tip: 'Chọn ảnh hoặc kéo thả cả thư mục. Ảnh dùng ngay tại chỗ, không tải đi đâu cả' },
-  { icon: LayoutGrid, label: 'Ghép', tip: 'Tích nhiều ảnh rồi bấm Ghép. Bố cục tự gợi ý theo ảnh, khung đúng cỡ Facebook, Instagram, TikTok' },
+  { icon: LayoutGrid, label: 'Ghép', tip: 'Bấm lần lượt các ảnh muốn ghép (tối đa 10). Bố cục tự gợi ý theo ảnh, khung đúng cỡ Facebook, Instagram, TikTok' },
   { icon: Type, label: 'Chữ', tip: 'Hơn 400 mẫu chữ và 500 phông tiếng Việt, gõ thẳng trên ảnh' },
   { icon: Download, label: 'Xuất', tip: 'Xuất nét như Lightroom, lấy thẳng từ ảnh gốc. Xuất được nhiều thiết kế một lượt' },
 ]
@@ -1194,11 +1194,11 @@ function EmptyStage() {
       <ul className="mt-3 flex flex-wrap justify-center gap-2 text-[13px] font-semibold text-soft">
         <li className="flex items-center gap-1.5 rounded-full bg-card px-3 py-1.5 shadow-sm">
           <MousePointerClick className="size-4 text-coral-dark" />
-          Bấm một ảnh để mở
+          Bấm từng ảnh để ghép
         </li>
         <li className="flex items-center gap-1.5 rounded-full bg-card px-3 py-1.5 shadow-sm">
           <SquareCheck className="size-4 text-coral-dark" />
-          Tích nhiều ảnh rồi bấm Ghép
+          Bấm “Chọn” để xoá, xếp album nhiều ảnh
         </li>
       </ul>
       <LayoutFirst className="mt-3" />
