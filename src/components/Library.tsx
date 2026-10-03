@@ -3,20 +3,20 @@ import {
   CheckCheck,
   ChevronDown,
   CircleAlert,
-  CircleHelp,
   Ellipsis,
   FolderInput,
   FolderOpen,
   FolderPlus,
+  Grid2x2,
+  Grid3x3,
   ImagePlus,
   Lightbulb,
   ListChecks,
   Search,
+  Square,
   Trash2,
   TriangleAlert,
   X,
-  ZoomIn,
-  ZoomOut,
 } from 'lucide-react'
 import { memo, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, type MouseEvent as ReactMouseEvent, type PointerEvent as ReactPointerEvent, type ReactNode } from 'react'
 import { createPortal } from 'react-dom'
@@ -42,6 +42,12 @@ const ROWS_PER_CHUNK = 6
 const GAP = 6
 /** Chiều cao hàng ảnh theo cỡ xem: nhỏ / vừa / lớn. */
 const ROW_TARGET = [64, 96, 144]
+/** Ba cỡ ảnh của thư viện, từ lớn tới nhỏ như menu "View" của Windows (`zoom` là chỉ số trong ROW_TARGET). */
+const SIZES: { zoom: number; label: string; icon: ReactNode }[] = [
+  { zoom: 2, label: 'Ảnh lớn', icon: <Square className="size-4" /> },
+  { zoom: 1, label: 'Ảnh vừa', icon: <Grid2x2 className="size-4" /> },
+  { zoom: 0, label: 'Ảnh nhỏ', icon: <Grid3x3 className="size-4" /> },
+]
 /** Số ô giữ chỗ tối đa cho ảnh đang được nhập. */
 const MAX_SHIMMERS = 12
 /** Vùng thả "tạo album mới từ những ảnh đang kéo". */
@@ -53,6 +59,10 @@ const AUTO_SCROLL_EDGE = 48
 
 interface MenuItem {
   label: string
+  /** Biểu tượng đứng trước nhãn. */
+  icon?: ReactNode
+  /** Menu chọn một trong nhiều (cỡ ảnh…): true = mục đang dùng, hiện một chấm ở đầu dòng. */
+  checked?: boolean
   danger?: boolean
   /** Kẻ một đường ngăn phía trên mục này. */
   divider?: boolean
@@ -96,7 +106,6 @@ const Tile = memo(function Tile({
   index,
   onActivate,
   onPick,
-  onDelete,
   onMenu,
 }: {
   photo: Photo
@@ -119,7 +128,6 @@ const Tile = memo(function Tile({
   onActivate: (id: string, shift: boolean) => void
   /** Bấm ô ✓: tích / bỏ tích ảnh (vào chế độ "Chọn" nếu chưa ở đó). */
   onPick: (id: string, shift: boolean) => void
-  onDelete: (id: string) => void
   onMenu: (photo: Photo, x: number, y: number) => void
 }) {
   const [loaded, setLoaded] = useState(false)
@@ -202,18 +210,6 @@ const Tile = memo(function Tile({
           <Check className="size-3.5" strokeWidth={3.5} />
         </button>
       )}
-      {!doomed && !picking && (
-        <button
-          type="button"
-          aria-label={`Xoá ảnh ${photo.name} khỏi thư viện`}
-          data-tip="Xoá khỏi thư viện"
-          data-no-drag
-          onClick={() => onDelete(photo.id)}
-          className="absolute bottom-1.5 right-1.5 grid size-6 place-items-center rounded-full bg-black/60 text-white opacity-0 transition-[opacity,background-color] duration-150 hover:bg-danger focus-visible:opacity-100 group-hover:opacity-100"
-        >
-          <Trash2 className="size-3" />
-        </button>
-      )}
     </li>
   )
 })
@@ -268,71 +264,30 @@ function Menu({ menu, onClose }: { menu: MenuState; onClose: () => void }) {
         }}
         onPointerDown={(e) => e.stopPropagation()}
       >
-        {menu.items.map((item) => (
+        {menu.items.map((item) => {
+          const radio = item.checked !== undefined
+          return (
           <button
             key={item.label}
             type="button"
-            role="menuitem"
+            role={radio ? 'menuitemradio' : 'menuitem'}
+            aria-checked={radio ? item.checked : undefined}
             onClick={() => {
               onClose()
               item.run()
             }}
             className={cx(
-              'flex h-9 w-full items-center rounded-xl px-3 text-left text-[13px] font-medium transition-colors hover:bg-sand',
+              'flex h-9 w-full items-center gap-2.5 rounded-xl px-3 text-left text-[13px] font-medium transition-colors hover:bg-sand',
               item.danger ? 'text-danger' : 'text-ink',
               item.divider && 'relative mt-2 before:absolute before:inset-x-2 before:-top-1 before:h-px before:bg-line',
             )}
           >
+            {radio && <span className={cx('size-1.5 shrink-0 rounded-full', item.checked ? 'bg-ink' : 'bg-transparent')} />}
+            {item.icon && <span className="grid shrink-0 place-items-center text-soft [&>svg]:size-4">{item.icon}</span>}
             <span className="truncate">{item.label}</span>
           </button>
-        ))}
-      </div>
-    </div>,
-    document.body,
-  )
-}
-
-/** Mọi thao tác của thư viện, gom vào một chỗ để không phải rải chữ hướng dẫn khắp panel. */
-const TIPS: [string, string][] = [
-  ['Bấm vào ảnh', 'mở ảnh đó trong khung để chỉnh, chèn chữ, xuất; bấm ảnh khác để đổi (Ctrl + Z để quay lại)'],
-  ['Ô ✓ ở góc ảnh, nút “Chọn”, hoặc giữ chuột quét qua nhiều ảnh', 'chọn bao nhiêu ảnh cũng được (Shift + bấm để chọn cả dải, Ctrl + A để chọn hết), rồi ghép, chuyển album hoặc xoá một lượt ở thanh dưới đáy'],
-  ['Ô tìm kiếm', 'tìm theo tên file, thư mục, máy ảnh, ống kính, giả lập phim hoặc ngày chụp (vd. 28/03/2026)'],
-  ['Dải ảnh trong bố cục', 'bấm một ảnh để tìm tới nó trong thư viện, nút × để bỏ ra'],
-  ['Kéo ảnh', 'chuyển sang album khác; tích nhiều ảnh rồi kéo để chuyển cả nhóm'],
-  ['Chuột phải vào ảnh', 'chuyển album, mở thư mục chứa ảnh, xoá khỏi thư viện'],
-  ['Kéo file vào cửa sổ', 'thêm ảnh hoặc cả thư mục; dán ảnh bằng Ctrl+V cũng được'],
-  ['Bấm đúp tên album', 'đổi tên; nút ⋯ để thêm ảnh thẳng vào album hoặc xoá album'],
-]
-
-/** Bảng mẹo bung ra dưới nút "?". */
-function TipsPopover({ x, y, onClose }: { x: number; y: number; onClose: () => void }) {
-  useEffect(() => {
-    const key = (e: KeyboardEvent) => e.key === 'Escape' && onClose()
-    window.addEventListener('keydown', key)
-    window.addEventListener('resize', onClose)
-    return () => {
-      window.removeEventListener('keydown', key)
-      window.removeEventListener('resize', onClose)
-    }
-  }, [onClose])
-  return createPortal(
-    <div className="fixed inset-0 z-50" onPointerDown={onClose}>
-      <div
-        role="dialog"
-        aria-label="Mẹo thao tác"
-        className="absolute w-72 animate-pop rounded-2xl border border-line bg-card p-4 shadow-lift"
-        style={{ top: y, left: Math.max(8, Math.min(x - 288, window.innerWidth - 296)) }}
-        onPointerDown={(e) => e.stopPropagation()}
-      >
-        <p className="font-display text-sm font-bold text-ink">Mẹo thao tác</p>
-        <dl className="mt-2.5 space-y-2.5">
-          {TIPS.map(([action, result]) => (
-            <div key={action}>
-              <dt className="text-[13px] font-semibold text-ink">{action}</dt>
-              <dd className="text-xs leading-snug text-soft">{result}</dd>
-            </div>
-          ))}
-        </dl>
+          )
+        })}
       </div>
     </div>,
     document.body,
@@ -521,8 +476,6 @@ export function Library() {
   const replacing = useStore((s) => s.activeCell !== null)
   const tipSeen = useStore((s) => s.libraryTipSeen)
   const zoom = useStore((s) => s.libraryZoom)
-  const [tips, setTips] = useState<{ x: number; y: number } | null>(null)
-  const closeTips = useCallback(() => setTips(null), [])
   const {
     pickPhotos,
     pickFolder,
@@ -579,7 +532,6 @@ export function Library() {
   // Thả chuột sau khi kéo vẫn sinh ra một cú click lên ảnh → phải nuốt nó, nếu không ảnh bị chọn / bỏ chọn ngoài ý muốn.
   const swallowClick = useRef(false)
   const closeMenu = useCallback(() => setMenu(null), [])
-  const askDelete = useCallback((id: string) => setDoomed([id]), [])
 
   // Lọc theo ô tìm kiếm. Đang tìm thì mở hết các album (kết quả nằm trong album thu gọn vẫn phải thấy) và ẩn mục không có
   // kết quả nào.
@@ -660,6 +612,24 @@ export function Library() {
     const album = albums.some((a) => a.id === photoAlbum[id]) ? photoAlbum[id] : UNCATEGORIZED
     if (collapsedAlbums.includes(album)) toggleAlbumCollapsed(album)
     setTimeout(go, 60)
+  }
+
+  /** Nút thùng rác trên thanh công cụ: xoá ảnh đang chọn / đang trong khung, hoặc vào chế độ "Chọn" để tích ảnh cần xoá. */
+  const deleteMenu = (x: number, y: number) => {
+    const { selected: inFrame, photos: all } = useStore.getState()
+    const chosen = pickedInOrder()
+    const items: MenuItem[] = []
+    if (chosen.length) items.push({ label: `Xoá ${chosen.length} ảnh đã chọn`, danger: true, run: () => setDoomed(chosen) })
+    else {
+      items.push({ label: 'Chọn ảnh để xoá…', run: startPicking })
+      if (inFrame.length)
+        items.push({
+          label: inFrame.length > 1 ? `Xoá ${inFrame.length} ảnh trong bản ghép` : 'Xoá ảnh đang mở',
+          run: () => setDoomed([...inFrame]),
+        })
+    }
+    items.push({ label: `Xoá tất cả ${all.length} ảnh`, danger: true, divider: true, run: () => setDoomed(all.map((p) => p.id)) })
+    setMenu({ x, y, alignRight: true, items })
   }
 
   const albumMenu = (ids: string[], x: number, y: number, after?: () => void) => {
@@ -944,7 +914,6 @@ export function Library() {
                   moving={!!drag && drag.ids.includes(photo.id)}
                   onActivate={onActivate}
                   onPick={onPick}
-                  onDelete={askDelete}
                   onMenu={openTileMenu}
                 />
               )
@@ -1019,19 +988,21 @@ export function Library() {
         <button type="button" aria-label="Tạo album" data-tip="Tạo album để phân loại ảnh" onClick={() => newAlbum()} className="grid size-8 shrink-0 place-items-center rounded-full text-muted transition-colors hover:bg-sand hover:text-ink">
           <FolderPlus className="size-4" />
         </button>
-        <button
-          type="button"
-          aria-label="Mẹo thao tác"
-          aria-haspopup="dialog"
-          data-tip="Mẹo thao tác"
-          onClick={(e) => {
-            const r = e.currentTarget.getBoundingClientRect()
-            setTips({ x: r.right, y: r.bottom + 6 })
-          }}
-          className="grid size-8 shrink-0 place-items-center rounded-full text-muted transition-colors hover:bg-sand hover:text-ink"
-        >
-          <CircleHelp className="size-4" />
-        </button>
+        {photos.length > 0 && (
+          <button
+            type="button"
+            aria-label="Xoá ảnh khỏi thư viện"
+            aria-haspopup="menu"
+            data-tip="Xoá ảnh khỏi thư viện…"
+            onClick={(e) => {
+              const r = e.currentTarget.getBoundingClientRect()
+              deleteMenu(r.right, r.bottom + 6)
+            }}
+            className="grid size-8 shrink-0 place-items-center rounded-full text-muted transition-colors hover:bg-sand hover:text-danger"
+          >
+            <Trash2 className="size-4" />
+          </button>
+        )}
       </div>
 
       {/* Tìm ảnh + cỡ ảnh: thư viện vài nghìn ảnh thì cuộn tìm bằng mắt là không xong. */}
@@ -1065,23 +1036,22 @@ export function Library() {
           </label>
           <button
             type="button"
-            aria-label="Ảnh nhỏ hơn"
-            data-tip="Ảnh nhỏ hơn (xem được nhiều ảnh hơn)"
-            disabled={zoom <= 0}
-            onClick={() => set({ libraryZoom: zoom - 1 })}
-            className="ml-1 grid size-8 shrink-0 place-items-center rounded-full text-muted transition-colors hover:bg-sand hover:text-ink disabled:pointer-events-none disabled:opacity-35"
+            aria-label="Cỡ ảnh"
+            aria-haspopup="menu"
+            data-tip="Cỡ ảnh"
+            onClick={(e) => {
+              const r = e.currentTarget.getBoundingClientRect()
+              setMenu({
+                x: r.right,
+                y: r.bottom + 6,
+                alignRight: true,
+                items: SIZES.map((v) => ({ label: v.label, icon: v.icon, checked: v.zoom === zoom, run: () => set({ libraryZoom: v.zoom }) })),
+              })
+            }}
+            className="ml-1 flex h-8 shrink-0 items-center gap-0.5 rounded-full px-2 text-muted transition-colors hover:bg-sand hover:text-ink"
           >
-            <ZoomOut className="size-4" />
-          </button>
-          <button
-            type="button"
-            aria-label="Ảnh lớn hơn"
-            data-tip="Ảnh lớn hơn"
-            disabled={zoom >= ROW_TARGET.length - 1}
-            onClick={() => set({ libraryZoom: zoom + 1 })}
-            className="grid size-8 shrink-0 place-items-center rounded-full text-muted transition-colors hover:bg-sand hover:text-ink disabled:pointer-events-none disabled:opacity-35"
-          >
-            <ZoomIn className="size-4" />
+            {(SIZES.find((v) => v.zoom === zoom) ?? SIZES[1]).icon}
+            <ChevronDown className="size-3" />
           </button>
         </div>
       )}
@@ -1305,7 +1275,7 @@ export function Library() {
         </div>
       )}
 
-      {/* Mẹo cho người mới: một dải mỏng ở đáy, đóng một lần là thôi; muốn xem lại thì bấm nút "?". */}
+      {/* Mẹo cho người mới: một dải mỏng ở đáy, đóng một lần là thôi. */}
       {!tipSeen && !picking && photos.length > 0 && (
         <div className="flex animate-fade items-start gap-2 border-t border-line bg-card px-3 py-2 lg:px-4">
           <Lightbulb className="mt-0.5 size-3.5 shrink-0 text-amber" />
@@ -1315,7 +1285,7 @@ export function Library() {
           <button
             type="button"
             aria-label="Ẩn mẹo"
-            data-tip="Ẩn mẹo (xem lại bằng nút ?)"
+            data-tip="Ẩn mẹo"
             onClick={() => set({ libraryTipSeen: true })}
             className="-mr-1 grid size-5 shrink-0 place-items-center rounded-full text-muted hover:bg-sand hover:text-ink"
           >
@@ -1323,8 +1293,6 @@ export function Library() {
           </button>
         </div>
       )}
-
-      {tips && <TipsPopover x={tips.x} y={tips.y} onClose={closeTips} />}
 
       {/* Hình bay theo con trỏ khi kéo ảnh sang album khác. */}
       {drag &&
