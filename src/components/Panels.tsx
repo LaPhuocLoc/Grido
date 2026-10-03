@@ -1,4 +1,23 @@
-import { ArrowLeftRight, Bookmark, CircleCheck, Download, Flame, Folder, Heart, Image as ImageIcon, Images, LoaderCircle, TriangleAlert, Type, X } from 'lucide-react'
+import {
+  ArrowLeftRight,
+  Bookmark,
+  ChevronRight,
+  CircleCheck,
+  Download,
+  Flame,
+  Folder,
+  Heart,
+  Image as ImageIcon,
+  Images,
+  LoaderCircle,
+  RectangleHorizontal,
+  RectangleVertical,
+  Square,
+  TriangleAlert,
+  Type,
+  X,
+  type LucideIcon,
+} from 'lucide-react'
 import { memo, useEffect, useMemo, useState, type CSSProperties, type ReactNode } from 'react'
 import { desktop } from '../lib/desktop'
 import { placeImage } from '../lib/geometry'
@@ -13,9 +32,11 @@ import {
   MAX_CANVAS,
   MIN_CANVAS,
   ORIGINAL_PRESET_ID,
+  orientationOf,
   PLATFORMS,
   POPULAR_PRESETS,
   SIZE_PRESETS,
+  type Orientation,
   type Platform,
 } from '../lib/presets'
 import { buildSpec, canExportMany, exportToFile, useExportProgress } from '../lib/useCollage'
@@ -280,6 +301,16 @@ const tile = (active: boolean) =>
 const tileAction =
   'absolute right-0.5 top-0.5 grid size-6 place-items-center rounded-full bg-card shadow-sm transition-all hover:scale-110 active:scale-90 focus-visible:opacity-100'
 
+/**
+ * Bố cục chỉ chia ô, còn dọc hay ngang là do khung. Mở một ảnh ngang thì khung ngang theo ảnh, nên mọi bố cục trong danh
+ * sách đều hiện ngang: công tắc này nằm ngay trên danh sách để đổi chiều khung mà không phải sang mục Khung.
+ */
+const ORIENTATIONS: { id: Orientation; label: string; icon: LucideIcon }[] = [
+  { id: 'portrait', label: 'Dọc', icon: RectangleVertical },
+  { id: 'square', label: 'Vuông', icon: Square },
+  { id: 'landscape', label: 'Ngang', icon: RectangleHorizontal },
+]
+
 /** Mở mục Bố cục khi khung còn trống thì đứng sẵn ở số ảnh này. */
 const DEFAULT_LAYOUT_COUNT = 3
 
@@ -298,8 +329,9 @@ export function LayoutPanel() {
   const presetId = useStore((s) => s.presetId)
   const customW = useStore((s) => s.customW)
   const customH = useStore((s) => s.customH)
-  const { setLayout, toggleFavorite, saveLayout, applySavedLayout, removeSavedLayout } = useStore.getState()
+  const { setLayout, toggleFavorite, saveLayout, applySavedLayout, removeSavedLayout, setOrientation } = useStore.getState()
   const size = canvasSize({ presetId, customW, customH })
+  const orientation = orientationOf(size)
   const [category, setCategory] = useState<CategoryId>('all')
 
   const all = useMemo(() => getLayouts(n), [n])
@@ -329,87 +361,162 @@ export function LayoutPanel() {
   const grid = 'grid grid-cols-[repeat(auto-fill,minmax(68px,1fr))] items-start gap-2'
 
   return (
-    <Section title="Số ảnh" hint={`${all.length} kiểu`}>
-      <div role="radiogroup" aria-label="Số ảnh của bố cục" className="grid grid-cols-12 gap-1">
-        {Array.from({ length: MAX_PHOTOS }, (_, i) => i + 1).map((count) => (
+    <div className="space-y-5">
+      <Section
+        title="Chiều khung"
+        hint={
           <button
-            key={count}
             type="button"
-            role="radio"
-            aria-checked={count === n}
-            aria-label={`${count} ảnh`}
-            onClick={() => setCount(count)}
-            className={cx(
-              'relative grid aspect-square place-items-center rounded-full text-[13px] font-semibold tabular-nums transition-colors active:scale-90',
-              count === n ? 'bg-ink text-paper' : 'bg-sand text-soft hover:text-ink',
-            )}
+            data-tip="Chọn đúng cỡ cho Instagram, Facebook, TikTok hoặc tự nhập"
+            onClick={() => useStore.setState({ tab: 'size' })}
+            className="flex items-center font-semibold text-soft hover:text-ink"
           >
-            {count}
-            {/* Chấm nhỏ: bố cục trên khung đang có bấy nhiêu ô. */}
-            {count === cells && count !== n && <span className="absolute -bottom-0.5 size-1 rounded-full bg-coral" />}
+            Cỡ khác
+            <ChevronRight className="size-3.5" />
           </button>
-        ))}
-      </div>
-      <div className="flex flex-wrap gap-1.5">
-        {CATEGORIES.map((c) => {
-          const personal = c.id === 'fav' || c.id === 'saved'
-          // Mục cá nhân luôn hiện (kể cả khi trống) để người dùng biết có tính năng này.
-          if (!counts[c.id] && !personal) return null
-          return (
+        }
+      >
+        <div role="radiogroup" aria-label="Chiều khung" className="flex gap-1 rounded-full bg-sand p-1">
+          {ORIENTATIONS.map(({ id, label, icon: Icon }) => (
             <button
-              key={c.id}
+              key={id}
               type="button"
-              aria-pressed={category === c.id}
-              onClick={() => setCategory(c.id)}
+              role="radio"
+              aria-checked={id === orientation}
+              onClick={() => setOrientation(id)}
               className={cx(
-                'flex h-8 items-center gap-1 rounded-full px-3 text-[13px] font-semibold transition-colors active:scale-95',
-                category === c.id ? 'bg-ink text-paper' : 'bg-sand text-soft hover:text-ink',
+                'flex h-8 flex-1 items-center justify-center gap-1.5 rounded-full text-[13px] font-semibold transition-all duration-200 active:scale-95',
+                id === orientation ? 'bg-surface text-ink shadow-sm' : 'text-soft hover:text-ink',
               )}
             >
-              {c.id === 'fav' && <Heart className="size-3.5" />}
-              {c.id === 'saved' && <Bookmark className="size-3.5" />}
-              {c.label} <span className="font-normal opacity-60">{counts[c.id]}</span>
+              <Icon className="size-4" />
+              {label}
             </button>
+          ))}
+        </div>
+      </Section>
+      <Section title="Số ảnh" hint={`${all.length} kiểu`}>
+        <div role="radiogroup" aria-label="Số ảnh của bố cục" className="grid grid-cols-12 gap-1">
+          {Array.from({ length: MAX_PHOTOS }, (_, i) => i + 1).map((count) => (
+            <button
+              key={count}
+              type="button"
+              role="radio"
+              aria-checked={count === n}
+              aria-label={`${count} ảnh`}
+              onClick={() => setCount(count)}
+              className={cx(
+                'relative grid aspect-square place-items-center rounded-full text-[13px] font-semibold tabular-nums transition-colors active:scale-90',
+                count === n ? 'bg-ink text-paper' : 'bg-sand text-soft hover:text-ink',
+              )}
+            >
+              {count}
+              {/* Chấm nhỏ: bố cục trên khung đang có bấy nhiêu ô. */}
+              {count === cells && count !== n && <span className="absolute -bottom-0.5 size-1 rounded-full bg-coral" />}
+            </button>
+          ))}
+        </div>
+        <div className="flex flex-wrap gap-1.5">
+          {CATEGORIES.map((c) => {
+            const personal = c.id === 'fav' || c.id === 'saved'
+            // Mục cá nhân luôn hiện (kể cả khi trống) để người dùng biết có tính năng này.
+            if (!counts[c.id] && !personal) return null
+            return (
+              <button
+                key={c.id}
+                type="button"
+                aria-pressed={category === c.id}
+                onClick={() => setCategory(c.id)}
+                className={cx(
+                  'flex h-8 items-center gap-1 rounded-full px-3 text-[13px] font-semibold transition-colors active:scale-95',
+                  category === c.id ? 'bg-ink text-paper' : 'bg-sand text-soft hover:text-ink',
+                )}
+              >
+                {c.id === 'fav' && <Heart className="size-3.5" />}
+                {c.id === 'saved' && <Bookmark className="size-3.5" />}
+                {c.label} <span className="font-normal opacity-60">{counts[c.id]}</span>
+              </button>
+            )
+          })}
+        </div>
+
+        {tree && n === cells && (
+          <Button
+            className="h-9 w-full text-[13px]"
+            onClick={() => {
+              if (saveLayout()) setCategory('saved')
+            }}
+          >
+            <Bookmark className="size-4" />
+            Lưu bố cục đang dùng
+          </Button>
+        )}
+
+        {category === 'saved' ? (
+          saved.length ? (
+            <div key="saved" className={cx(grid, 'animate-fade')}>
+              {saved.map((l, i) => {
+                const active = n === cells && JSON.stringify(l.tree) === treeSignature
+                return (
+                  <div key={l.id} className="group relative">
+                    <button
+                      type="button"
+                      aria-pressed={active}
+                      aria-label={`Bố cục đã lưu ${i + 1}`}
+                      onClick={() => applySavedLayout(l.id)}
+                      className={tile(active)}
+                    >
+                      <LayoutThumb id={l.id} tree={l.tree} ratio={ratio} active={active} />
+                    </button>
+                    <button
+                      type="button"
+                      aria-label={`Xoá bố cục đã lưu ${i + 1}`}
+                      data-tip="Xoá khỏi mục Đã lưu"
+                      onClick={() => removeSavedLayout(l.id)}
+                      className={cx(tileAction, 'text-soft opacity-0 hover:text-coral-dark group-hover:opacity-100 [@media(hover:none)]:opacity-80')}
+                    >
+                      <X className="size-3.5" />
+                    </button>
+                  </div>
+                )
+              })}
+            </div>
+          ) : (
+            <p className="rounded-2xl bg-sand p-4 text-[13px] leading-relaxed text-soft">
+              Chưa lưu bố cục nào cho {n} ảnh. Kéo các đường viền để chỉnh tỉ lệ ô theo ý bạn, rồi bấm{' '}
+              <b className="text-ink">Lưu bố cục đang dùng</b> để lần sau chọn lại.
+            </p>
           )
-        })}
-      </div>
-
-      {tree && n === cells && (
-        <Button
-          className="h-9 w-full text-[13px]"
-          onClick={() => {
-            if (saveLayout()) setCategory('saved')
-          }}
-        >
-          <Bookmark className="size-4" />
-          Lưu bố cục đang dùng
-        </Button>
-      )}
-
-      {category === 'saved' ? (
-        saved.length ? (
-          <div key="saved" className={cx(grid, 'animate-fade')}>
-            {saved.map((l, i) => {
-              const active = n === cells && JSON.stringify(l.tree) === treeSignature
+        ) : shown.length ? (
+          <div key={category} className={cx(grid, 'animate-fade')}>
+            {shown.map((l, i) => {
+              const active = n === cells && l.id === layoutId
+              const fav = favSet.has(l.id)
               return (
                 <div key={l.id} className="group relative">
                   <button
                     type="button"
                     aria-pressed={active}
-                    aria-label={`Bố cục đã lưu ${i + 1}`}
-                    onClick={() => applySavedLayout(l.id)}
+                    aria-label={`Bố cục ${i + 1}`}
+                    onClick={() => setLayout(l.id)}
                     className={tile(active)}
                   >
-                    <LayoutThumb id={l.id} tree={l.tree} ratio={ratio} active={active} />
+                    <LayoutThumb id={l.id} ratio={ratio} active={active} />
                   </button>
                   <button
                     type="button"
-                    aria-label={`Xoá bố cục đã lưu ${i + 1}`}
-                    data-tip="Xoá khỏi mục Đã lưu"
-                    onClick={() => removeSavedLayout(l.id)}
-                    className={cx(tileAction, 'text-soft opacity-0 hover:text-coral-dark group-hover:opacity-100 [@media(hover:none)]:opacity-80')}
+                    aria-pressed={fav}
+                    aria-label={fav ? `Bỏ thích bố cục ${i + 1}` : `Thích bố cục ${i + 1}`}
+                    data-tip={fav ? 'Bỏ khỏi Yêu thích' : 'Thêm vào Yêu thích'}
+                    onClick={() => toggleFavorite(l.id)}
+                    className={cx(
+                      tileAction,
+                      fav
+                        ? 'text-coral'
+                        : 'text-soft opacity-0 hover:text-coral group-hover:opacity-100 [@media(hover:none)]:opacity-60',
+                    )}
                   >
-                    <X className="size-3.5" />
+                    <Heart key={String(fav)} className={cx('size-3.5', fav && 'animate-pop fill-current')} />
                   </button>
                 </div>
               )
@@ -417,52 +524,12 @@ export function LayoutPanel() {
           </div>
         ) : (
           <p className="rounded-2xl bg-sand p-4 text-[13px] leading-relaxed text-soft">
-            Chưa lưu bố cục nào cho {n} ảnh. Kéo các đường viền để chỉnh tỉ lệ ô theo ý bạn, rồi bấm{' '}
-            <b className="text-ink">Lưu bố cục đang dùng</b> để lần sau chọn lại.
+            Chưa có bố cục yêu thích nào cho {n} ảnh. Bấm biểu tượng <Heart className="inline size-3.5 align-[-2px]" /> ở góc
+            một bố cục để thêm vào đây.
           </p>
-        )
-      ) : shown.length ? (
-        <div key={category} className={cx(grid, 'animate-fade')}>
-          {shown.map((l, i) => {
-            const active = n === cells && l.id === layoutId
-            const fav = favSet.has(l.id)
-            return (
-              <div key={l.id} className="group relative">
-                <button
-                  type="button"
-                  aria-pressed={active}
-                  aria-label={`Bố cục ${i + 1}`}
-                  onClick={() => setLayout(l.id)}
-                  className={tile(active)}
-                >
-                  <LayoutThumb id={l.id} ratio={ratio} active={active} />
-                </button>
-                <button
-                  type="button"
-                  aria-pressed={fav}
-                  aria-label={fav ? `Bỏ thích bố cục ${i + 1}` : `Thích bố cục ${i + 1}`}
-                  data-tip={fav ? 'Bỏ khỏi Yêu thích' : 'Thêm vào Yêu thích'}
-                  onClick={() => toggleFavorite(l.id)}
-                  className={cx(
-                    tileAction,
-                    fav
-                      ? 'text-coral'
-                      : 'text-soft opacity-0 hover:text-coral group-hover:opacity-100 [@media(hover:none)]:opacity-60',
-                  )}
-                >
-                  <Heart key={String(fav)} className={cx('size-3.5', fav && 'animate-pop fill-current')} />
-                </button>
-              </div>
-            )
-          })}
-        </div>
-      ) : (
-        <p className="rounded-2xl bg-sand p-4 text-[13px] leading-relaxed text-soft">
-          Chưa có bố cục yêu thích nào cho {n} ảnh. Bấm biểu tượng <Heart className="inline size-3.5 align-[-2px]" /> ở góc
-          một bố cục để thêm vào đây.
-        </p>
-      )}
-    </Section>
+        )}
+      </Section>
+    </div>
   )
 }
 

@@ -24,6 +24,7 @@ import { groupByAlbum, UNCATEGORIZED, type Album } from '../lib/albums'
 import { desktop, prefetchFile, thumbUrl, usePhotoUrl } from '../lib/desktop'
 import { MAX_PHOTOS } from '../lib/layout/registry'
 import { justify, searchPhotos, tileAspect } from '../lib/libraryView'
+import { stageDropAt, type StageDrop } from '../lib/stageDrop'
 import { photosIn, useStore, type ImportItem } from '../store'
 import { Button, cx } from './ui'
 
@@ -88,7 +89,7 @@ function movingIds(photoId: string, picked: Set<string> | null): string[] {
 /**
  * Một ảnh trong thư viện, hiện trọn khung theo đúng tỉ lệ (không cắt vuông). Bấm vào ảnh = mở ảnh đó trong khung chỉnh
  * sửa (ở chế độ "Chọn": tích / bỏ tích); ô ✓ ở góc = tích ảnh và vào chế độ "Chọn" để ghép nhiều ảnh; kéo ảnh = chuyển
- * sang album khác; xoá khỏi thư viện là nút thùng rác riêng (hoặc menu chuột phải) nên không thể bấm nhầm.
+ * sang album khác, hoặc thả vào một ô của khung; xoá khỏi thư viện là nút thùng rác riêng (hoặc menu chuột phải) nên không thể bấm nhầm.
  * memo: chọn / bỏ chọn một ảnh chỉ vẽ lại đúng ô đó.
  */
 const Tile = memo(function Tile({
@@ -477,6 +478,8 @@ export function Library() {
   const photoAlbum = useStore((s) => s.photoAlbum)
   const collapsedAlbums = useStore((s) => s.collapsedAlbums)
   const replacing = useStore((s) => s.activeCell !== null)
+  // Ảnh đang kéo đã sang tới khung làm việc: chỉ ảnh đang cầm đi vào ô.
+  const overStage = useStore((s) => s.dropTarget !== null)
   const zoom = useStore((s) => s.libraryZoom)
   const {
     pickPhotos,
@@ -525,7 +528,7 @@ export function Library() {
   const [drag, setDrag] = useState<{ ids: string[]; over: string | null } | null>(null)
   const scroller = useRef<HTMLDivElement>(null)
   const ghost = useRef<HTMLDivElement>(null)
-  const press = useRef<{ id: string; x: number; y: number; pointerId: number; ids: string[] | null; over: string | null; lastY: number; raf: number } | null>(null)
+  const press = useRef<{ id: string; x: number; y: number; pointerId: number; ids: string[] | null; over: string | null; cell: StageDrop; lastX: number; lastY: number; raf: number } | null>(null)
   /** Quét chọn: giữ chuột ở chỗ trống rồi kéo thành một vùng, mọi ảnh chạm vùng đó được chọn khi thả tay. */
   const [swept, setSwept] = useState<Set<string> | null>(null)
   const marquee = useRef<HTMLDivElement>(null)
@@ -697,7 +700,7 @@ export function Library() {
       sweep.current = { pointerId: e.pointerId, x: e.clientX - r.left, y: e.clientY - r.top + box.scrollTop, sx: e.clientX, sy: e.clientY, cx: e.clientX, cy: e.clientY, active: false, ids: [], raf: 0 }
       return
     }
-    press.current = { id: tile.dataset.photo!, x: e.clientX, y: e.clientY, pointerId: e.pointerId, ids: null, over: null, lastY: e.clientY, raf: 0 }
+    press.current = { id: tile.dataset.photo!, x: e.clientX, y: e.clientY, pointerId: e.pointerId, ids: null, over: null, cell: null, lastX: e.clientX, lastY: e.clientY, raf: 0 }
   }
   /** Vẽ lại vùng quét theo vị trí con trỏ mới nhất và tìm những ảnh nó chạm tới. */
   const paintSweep = () => {
@@ -786,17 +789,25 @@ export function Library() {
         const box = scroller.current
         if (!box || !press.current) return
         const r = box.getBoundingClientRect()
-        const y = press.current.lastY
+        const { lastX: x, lastY: y } = press.current
         const speed = y < r.top + AUTO_SCROLL_EDGE ? y - (r.top + AUTO_SCROLL_EDGE) : y > r.bottom - AUTO_SCROLL_EDGE ? y - (r.bottom - AUTO_SCROLL_EDGE) : 0
-        if (speed) box.scrollTop += speed * 0.25
+        // Con trỏ đã sang khung làm việc (đang nhắm một ô) thì danh sách đứng yên.
+        if (speed && x >= r.left && x <= r.right) box.scrollTop += speed * 0.25
         press.current.raf = requestAnimationFrame(tick)
       }
       p.raf = requestAnimationFrame(tick)
       setDrag({ ids: p.ids, over: null })
     }
+    p.lastX = e.clientX
     p.lastY = e.clientY
     if (ghost.current) ghost.current.style.transform = `translate(${e.clientX + 14}px, ${e.clientY + 12}px)`
-    const over = dropAt(e.clientX, e.clientY)
+    // Ra khỏi thư viện, lơ lửng trên khung làm việc: ô nằm dưới con trỏ sáng lên, thả là ảnh vào ô đó.
+    const cell = stageDropAt(e.clientX, e.clientY)
+    if (cell !== p.cell) {
+      p.cell = cell
+      useStore.setState({ dropTarget: cell })
+    }
+    const over = cell === null ? dropAt(e.clientX, e.clientY) : null
     if (over !== p.over) {
       p.over = over
       setDrag({ ids: p.ids, over })
@@ -812,6 +823,11 @@ export function Library() {
     // Cú click (nếu có) tới ngay sau pointerup; không có thì cờ cũng tự hạ để không nuốt nhầm cú bấm sau.
     setTimeout(() => (swallowClick.current = false))
     setDrag(null)
+    useStore.setState({ dropTarget: null })
+    const cell = commit ? stageDropAt(e.clientX, e.clientY) : null
+    // Thả vào khung: chỉ ảnh đang cầm đi vào ô (kéo một ảnh của bản ghép thì cả nhóm đi cùng là chuyện của album).
+    if (cell === 'stage') return useStore.getState().replaceSelection([p.id])
+    if (cell !== null) return useStore.getState().placePhoto(cell, p.id)
     const over = commit ? dropAt(e.clientX, e.clientY) : null
     if (over === NEW_ALBUM) newAlbum(p.ids)
     else if (over) movePhotos(p.ids, over === UNCATEGORIZED ? null : over)
@@ -1277,13 +1293,13 @@ export function Library() {
         </div>
       )}
 
-      {/* Hình bay theo con trỏ khi kéo ảnh sang album khác. */}
+      {/* Hình bay theo con trỏ khi kéo ảnh sang album khác hoặc vào khung. */}
       {drag &&
         createPortal(
           <div ref={ghost} className="pointer-events-none fixed left-0 top-0 z-50" style={{ transform: `translate(${press.current?.x ?? 0}px, ${press.current?.y ?? 0}px)` }}>
             <div className="relative size-14 animate-pop">
-              <img src={thumbUrl(drag.ids[0]) || undefined} alt="" className="size-full rounded-xl object-cover shadow-lift ring-2 ring-white" />
-              {drag.ids.length > 1 && (
+              <img src={thumbUrl(press.current?.id ?? drag.ids[0]) || undefined} alt="" className="size-full rounded-xl object-cover shadow-lift ring-2 ring-white" />
+              {drag.ids.length > 1 && !overStage && (
                 <span className="absolute -right-2 -top-2 grid h-6 min-w-6 place-items-center rounded-full bg-coral px-1.5 text-xs font-bold text-white shadow">
                   {drag.ids.length}
                 </span>

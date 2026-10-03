@@ -71,7 +71,41 @@ export const MIN_CANVAS = 200
 /** Cạnh dài tối đa của khung, cũng là của file xuất ra. Đủ lớn để "Ảnh gốc" giữ nguyên độ phân giải ảnh máy ảnh (vd 4672×7008). */
 export const MAX_CANVAS = 10000
 
-export const BACKGROUNDS = ['#ffffff', '#faf6f0', '#f1e4d3', '#e8d5c4', '#d9e2d5', '#cfd9e6', '#2b2622', '#000000']
+/** Chiều của khung: dọc, vuông hay ngang. */
+export type Orientation = 'portrait' | 'square' | 'landscape'
+
+export const orientationOf = ({ width, height }: { width: number; height: number }): Orientation =>
+  width === height ? 'square' : width < height ? 'portrait' : 'landscape'
+
+/** Khung vuông không có cạnh dài để đảo: đổi sang dọc / ngang thì lấy 4:5, tỉ lệ bài đăng quen thuộc nhất. */
+const FROM_SQUARE = 1.25
+
+/**
+ * Khung width×height đổi sang chiều `to`, giữ nguyên độ phân giải: dọc ↔ ngang là đảo hai cạnh, vuông là lấy cạnh ngắn.
+ * `squareRatio` là tỉ lệ cạnh dài / cạnh ngắn dùng khi khung đang vuông (mặc định 4:5).
+ */
+export function orientCanvas(
+  size: { width: number; height: number },
+  to: Orientation,
+  squareRatio = FROM_SQUARE,
+): { width: number; height: number } {
+  let short = Math.min(size.width, size.height)
+  let long = Math.max(size.width, size.height)
+  if (to === 'square') return { width: short, height: short }
+  if (long === short) {
+    long = Math.min(MAX_CANVAS, Math.round(short * squareRatio))
+    short = Math.round(long / squareRatio)
+  }
+  return to === 'portrait' ? { width: short, height: long } : { width: long, height: short }
+}
+
+/** Khung có sẵn đúng cỡ width×height, ưu tiên cùng nền tảng với khung đang dùng. */
+export function presetOfSize({ width, height }: { width: number; height: number }, platform?: Platform): SizePreset | undefined {
+  const same = SIZE_PRESETS.filter((p) => p.width === width && p.height === height)
+  return same.find((p) => p.platform === platform) ?? same[0]
+}
+
+export const BACKGROUNDS =['#ffffff', '#faf6f0', '#f1e4d3', '#e8d5c4', '#d9e2d5', '#cfd9e6', '#2b2622', '#000000']
 
 /** Khung "Ảnh gốc" cho một ảnh width×height: giữ tỉ lệ, thu lại nếu vượt giới hạn khung. */
 export function originalCanvas(width: number, height: number): { width: number; height: number } {

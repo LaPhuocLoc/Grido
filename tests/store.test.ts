@@ -526,6 +526,35 @@ describe('layout first: empty cells', () => {
     expect(get().selected).toEqual([null, null, 'p1'])
   })
 
+  it('puts a photo dragged from the library into the cell it is dropped on', () => {
+    get().openPhoto('p1')
+    get().setLayout('H(*,*,*)')
+    get().placePhoto(2, 'p2')
+    expect(get().selected).toEqual(['p1', null, 'p2'])
+    expect(get().hintsSeen).toContain('fill')
+    // Thả lên ô đang có ảnh: ảnh mới thay vào, ảnh cũ rời khung (vẫn nằm trong thư viện).
+    get().placePhoto(0, 'p3')
+    expect(get().selected).toEqual(['p3', null, 'p2'])
+    // Ảnh đã nằm ở ô khác: hai ô đổi chỗ, không ảnh nào bị nhân đôi.
+    get().placePhoto(0, 'p2')
+    expect(get().selected).toEqual(['p2', null, 'p3'])
+    get().placePhoto(1, 'p2')
+    expect(get().selected).toEqual([null, 'p2', 'p3'])
+    expect(get().layoutId).toBe('H(*,*,*)')
+  })
+
+  it('ignores a drop outside the layout, and keeps waiting on the empty cell that was picked', () => {
+    get().setLayout('H(*,*,*)')
+    get().setActiveCell(0)
+    get().placePhoto(3, 'p1')
+    get().placePhoto(-1, 'p1')
+    expect(get().selected).toEqual([null, null, null])
+    get().placePhoto(2, 'p1')
+    expect(get().activeCell).toBe(0)
+    get().placePhoto(0, 'p2')
+    expect(get().activeCell).toBeNull()
+  })
+
   it('drops the photos that no longer fit when a smaller layout is chosen, and can undo it', () => {
     get().replaceSelection(['p1', 'p2', 'p3', 'p4'])
     pause()
@@ -589,6 +618,52 @@ describe('layout first: empty cells', () => {
     expect(get().selected).toEqual(['p1', null, 'p2'])
     await get().deletePhotos(['p1'])
     expect(get().selected).toEqual([null, 'p2'])
+  })
+})
+
+describe('frame orientation', () => {
+  const frame = () => ({ presetId: get().presetId, ...mod.canvasSize(get()) })
+
+  it('turns the landscape frame of a landscape photo into a portrait one at the same resolution, and back', () => {
+    get().openPhoto('p1')
+    const original = frame()
+    expect(original.presetId).toBe('original')
+    expect(original.width).toBeGreaterThan(original.height)
+    get().setOrientation('portrait')
+    expect(frame()).toEqual({ presetId: 'custom', width: original.height, height: original.width })
+    // Ảnh và bố cục không đổi, chỉ khung đổi chiều.
+    expect(get().selected).toEqual(['p1'])
+    get().setOrientation('landscape')
+    expect(frame()).toEqual(original)
+    // Ghé qua "Vuông" rồi quay lại vẫn về đúng khung ảnh gốc, không thành 5:4.
+    get().setOrientation('square')
+    expect(frame()).toEqual({ presetId: 'custom', width: original.height, height: original.height })
+    get().setOrientation('landscape')
+    expect(frame()).toEqual(original)
+  })
+
+  it('makes a square from the short side, and uses the matching ready-made frame when there is one', () => {
+    get().setLayout('H(*,*)')
+    expect(frame()).toEqual({ presetId: 'ig-portrait', width: 1080, height: 1350 })
+    get().setOrientation('square')
+    expect(frame()).toEqual({ presetId: 'ig-square', width: 1080, height: 1080 })
+    get().setOrientation('landscape')
+    expect(frame()).toEqual({ presetId: 'custom', width: 1350, height: 1080 })
+    get().setOrientation('portrait')
+    expect(frame()).toEqual({ presetId: 'ig-portrait', width: 1080, height: 1350 })
+    expect(get().selected).toEqual([null, null])
+  })
+
+  it('does nothing when the frame already has that orientation, and is one undo step', () => {
+    get().setLayout('H(*,*)')
+    get().set({ presetId: 'story' })
+    pause()
+    get().setOrientation('portrait')
+    expect(frame().presetId).toBe('story')
+    get().setOrientation('landscape')
+    expect(frame()).toEqual({ presetId: 'custom', width: 1920, height: 1080 })
+    get().undo()
+    expect(frame().presetId).toBe('story')
   })
 })
 

@@ -86,6 +86,16 @@ async function launch() {
       const data = { items: [], files: [file], dragOperationsMask: 1 }
       for (const type of ['dragEnter', 'dragOver', 'drop']) await send('Input.dispatchDragEvent', { type, x: 700, y: 400, data })
     },
+    /** Giữ chuột trái ở (x0, y0), kéo tới (x1, y1) rồi thả, như người dùng kéo một ảnh. */
+    drag: async (x0, y0, x1, y1) => {
+      const mouse = (type, x, y, buttons = 1) => send('Input.dispatchMouseEvent', { type, x, y, button: 'left', buttons, clickCount: 1 })
+      await mouse('mouseMoved', x0, y0, 0)
+      await mouse('mousePressed', x0, y0)
+      for (let i = 1; i <= 10; i++) await mouse('mouseMoved', x0 + ((x1 - x0) * i) / 10, y0 + ((y1 - y0) * i) / 10)
+      await wait(200)
+      await mouse('mouseReleased', x1, y1, 0)
+      await wait(600)
+    },
     close: async () => {
       ws.close()
       child.kill()
@@ -149,11 +159,22 @@ try {
       slots: document.querySelectorAll('main button[aria-label^="Ô trống"]').length,
       exportDisabled: [...document.querySelectorAll('header button')].find((b) => b.textContent.includes('Xuất ảnh')).disabled,
     }
+    // Công tắc chiều khung ngay trên danh sách bố cục: đổi khung dọc sang ngang rồi trả lại.
+    const turn = (label) => [...document.querySelectorAll('[aria-label="Chiều khung"] [role=radio]')].find((b) => b.textContent.trim() === label).click()
+    const frame = () => document.querySelector('main [data-frame]').getBoundingClientRect()
+    seen.portrait = frame().width < frame().height
+    turn('Ngang')
+    await pause()
+    seen.landscape = frame().width > frame().height
+    turn('Dọc')
+    await pause()
+    seen.back = frame().width < frame().height
     // Quay lại mục Ảnh để các bước sau nhìn thấy thư viện.
     click((b) => b.closest('nav') && b.textContent.trim() === 'Ảnh')
     await pause()
     return seen`)
   check('chọn bố cục 3 ảnh khi chưa có ảnh: khung có 3 ô trống, chưa xuất được', layoutFirst.slots === 3 && layoutFirst.exportDisabled, JSON.stringify(layoutFirst))
+  check('mục Bố cục đổi được khung dọc sang ngang và ngược lại', layoutFirst.portrait && layoutFirst.landscape && layoutFirst.back, JSON.stringify(layoutFirst))
 
   await chrome.drop(photos)
   await wait(5000)
@@ -180,6 +201,20 @@ try {
     return { enabled, text, slotsLeft }`)
   check('bấm một ảnh trong thư viện là ảnh vào ô trống kế tiếp', popup.slotsLeft === 2, String(popup.slotsLeft))
   check('có ảnh trên khung thì nút Xuất ảnh mở bảng xuất (JPEG / PNG), có nhắc còn ô trống', popup.enabled && /JPEG/.test(popup.text) && /PNG/.test(popup.text) && !/WebP/.test(popup.text) && /Còn 2 ô trống/.test(popup.text), popup.text)
+
+  // Kéo một ảnh từ thư viện thả vào ô trống cuối cùng (không phải ô trống kế tiếp).
+  const aim = await chrome.evaluate(`
+    const middle = (el) => { const r = el.getBoundingClientRect(); return { x: r.left + r.width / 2, y: r.top + r.height / 2 } }
+    const free = [...document.querySelectorAll('[data-photo]')].find((t) => t.querySelector('button').getAttribute('aria-pressed') !== 'true')
+    return { from: middle(free), to: middle(document.querySelector('main [data-cell="2"]')) }`)
+  await chrome.drag(aim.from.x, aim.from.y, aim.to.x, aim.to.y)
+  const dropped = await chrome.evaluate(`
+    return {
+      slotsLeft: document.querySelectorAll('main button[aria-label^="Ô trống"]').length,
+      lastFilled: !!document.querySelector('main [data-cell="2"] img'),
+      middleEmpty: document.querySelector('main [data-cell="1"]').tagName === 'BUTTON',
+    }`)
+  check('kéo ảnh từ thư viện thả vào ô nào thì ảnh vào đúng ô đó', dropped.slotsLeft === 1 && dropped.lastFilled && dropped.middleEmpty, JSON.stringify(dropped))
 
   await chrome.send('Network.enable')
   await chrome.send('Network.emulateNetworkConditions', { offline: true, latency: 0, downloadThroughput: 0, uploadThroughput: 0 })

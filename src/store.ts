@@ -20,9 +20,13 @@ import {
   MAX_CANVAS,
   MIN_CANVAS,
   ORIGINAL_PRESET_ID,
+  orientationOf,
+  orientCanvas,
   originalCanvas,
+  presetOfSize,
   RETIRED_PRESETS,
   SIZE_PRESETS,
+  type Orientation,
 } from './lib/presets'
 
 /** Ảnh đang được nhập vào thư viện (tạo bản xem trước + thumbnail). */
@@ -145,6 +149,8 @@ interface State extends Settings {
   tree: LayoutNode | null
   adjust: Record<string, CellAdjust>
   activeCell: number | null
+  /** Ảnh đang kéo từ thư viện lơ lửng trên ô nào của khung ('stage' = khung còn trống). Không lưu, không vào lịch sử. */
+  dropTarget: number | 'stage' | null
   tab: Tab
   texts: TextItem[]
   activeText: string | null
@@ -216,6 +222,8 @@ interface State extends Settings {
   clearSelection: () => void
   shuffle: () => void
   swapCells: (a: number, b: number) => void
+  /** Thả một ảnh của thư viện vào ô `cell`: thay ảnh đang ở đó; ảnh đã nằm ở ô khác thì hai ô đổi chỗ. */
+  placePhoto: (cell: number, id: string) => void
   setLayout: (id: string) => void
   toggleFavorite: (id: string) => void
   toggleFavoriteFont: (id: string) => void
@@ -234,6 +242,8 @@ interface State extends Settings {
   removeDesign: (id: string) => void
   /** Đưa khung về tỉ lệ và độ phân giải gốc của ảnh đầu tiên trong bản ghép. */
   applyOriginalSize: () => void
+  /** Đổi khung sang dọc / vuông / ngang, giữ nguyên độ phân giải (xem `orientCanvas`). */
+  setOrientation: (to: Orientation) => void
   /** Lưu bố cục đang dùng; trả về false nếu chưa có gì để lưu hoặc đã lưu rồi. */
   saveLayout: () => boolean
   applySavedLayout: (id: string) => void
@@ -421,6 +431,18 @@ function withSelection(state: State, selected: Slot[]): Partial<State> {
   return { selected, layoutId, tree: parseLayout(layoutId), activeCell: null, ...size }
 }
 
+/** Khung trước lúc bấm "Vuông": bấm lại Dọc / Ngang trên đúng khung vuông đó thì về cỡ cũ thay vì 4:5. */
+let squared: { side: number; ratio: number } | null = null
+
+/** Đặt ảnh `id` vào ô `cell`; ảnh đang nằm ở ô khác thì hai ô đổi chỗ cho nhau. */
+function putInCell(selected: Slot[], cell: number, id: string): Slot[] {
+  const next = [...selected]
+  const from = next.indexOf(id)
+  if (from >= 0) next[from] = next[cell]
+  next[cell] = id
+  return next
+}
+
 /**
  * Đổi sang bố cục `tree`. Cùng số ô thì ô nào giữ nguyên ô đó. Nhiều ô hơn thì thêm ô trống. Ít ô hơn thì dồn ảnh lên
  * trước, ảnh không còn chỗ rời khỏi khung (vẫn nằm trong thư viện).
@@ -471,6 +493,7 @@ export const useStore = create<State>()(
       tree: null,
       adjust: {},
       activeCell: null,
+      dropTarget: null,
       tab: 'library',
       texts: [],
       activeText: null,
@@ -611,11 +634,8 @@ export const useStore = create<State>()(
         // Đang chọn một ô trong khung → ảnh vừa bấm sẽ vào ô đó thay vì thêm ô mới;
         // nếu ảnh ấy đang nằm ở ô khác thì hai ô đổi chỗ cho nhau.
         if (s.activeCell !== null && s.activeCell < s.selected.length && s.selected[s.activeCell] !== id) {
-          const next = [...s.selected]
-          const wasEmpty = next[s.activeCell] === null
-          const from = next.indexOf(id)
-          if (from >= 0) next[from] = next[s.activeCell]
-          next[s.activeCell] = id
+          const wasEmpty = s.selected[s.activeCell] === null
+          const next = putInCell(s.selected, s.activeCell, id)
           // Vừa lấp một ô trống: chuyển sang ô trống kế tiếp để bấm tiếp là lấp tiếp; hết ô trống thì thôi chọn ô.
           if (wasEmpty) {
             const empty = next.indexOf(null)
@@ -696,6 +716,15 @@ export const useStore = create<State>()(
           return { selected: next, activeCell: b }
         }),
 
+      placePhoto: (cell, id) => {
+        const s = get()
+        if (cell < 0 || cell >= s.selected.length || s.selected[cell] === id) return
+        const next = putInCell(s.selected, cell, id)
+        // Đang chờ lấp một ô trống khác thì vẫn chờ ô đó; còn lại thôi chọn ô.
+        set({ selected: next, activeCell: s.activeCell !== null && next[s.activeCell] === null ? s.activeCell : null })
+        if (s.selected[cell] === null) s.markHint('fill')
+      },
+
       setLayout: (id) => applyLayout(id, parseLayout(id)),
 
       toggleFavorite: (id) => set((s) => ({ favorites: toggled(s.favorites, id) })),
@@ -763,6 +792,19 @@ export const useStore = create<State>()(
       },
 
       applyOriginalSize: () => set((s) => originalSize(s, photosIn(s.selected)[0])),
+
+      setOrientation: (to) =>
+        set((s) => {
+          const size = canvasSize(s)
+          if (orientationOf(size) === to) return {}
+          const next = orientCanvas(size, to, squared?.side === size.width ? squared.ratio : undefined)
+          if (to === 'square') squared = { side: next.width, ratio: Math.max(size.width, size.height) / next.width }
+          // Quay về đúng cỡ ảnh gốc thì lại là khung "Ảnh gốc"; trùng một khung có sẵn thì dùng khung đó.
+          const original = originalSize(s, photosIn(s.selected)[0])
+          if (original.customW === next.width && original.customH === next.height) return original
+          const preset = presetOfSize(next, SIZE_PRESETS.find((p) => p.id === s.presetId)?.platform)
+          return preset ? { presetId: preset.id } : { presetId: CUSTOM_PRESET_ID, customW: next.width, customH: next.height }
+        }),
 
       saveLayout: () => {
         const s = get()

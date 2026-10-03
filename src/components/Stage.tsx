@@ -114,6 +114,8 @@ export function Stage() {
   const canRedo = useStore((s) => s.future.length > 0)
   // Thiết kế đang mở nhưng đã bỏ hết ảnh: vẫn vẽ khung với nền và chữ của nó, để người dùng thấy thiết kế còn nguyên.
   const openEmpty = useStore((s) => !s.tree && currentDesign(s) !== null)
+  // Ảnh đang kéo từ thư viện lơ lửng trên ô nào (xem lib/stageDrop).
+  const dropTarget = useStore((s) => s.dropTarget)
   const hintsSeen = useStore((s) => s.hintsSeen)
   const { setAdjust, setActiveCell, setActiveText, swapCells, setTree, shuffle, randomLayout, toggleSelect, removeActiveCell, undo, redo, markHint } =
     useStore.getState()
@@ -511,7 +513,7 @@ export function Stage() {
 
   return (
     // isolate: các lớp z-index của khung ghép chỉ so với nhau, không trèo lên menu của thanh tiêu đề.
-    <div ref={root} className="relative isolate flex h-full min-h-0 flex-col overflow-hidden stage-bg">
+    <div ref={root} data-stage className="relative isolate flex h-full min-h-0 flex-col overflow-hidden stage-bg">
       <div className="pointer-events-none absolute inset-x-0 top-0 z-30 flex items-center justify-between gap-2 p-2.5 lg:p-3">
         <div className="pointer-events-auto flex items-center gap-1.5">
           <span className="rounded-full bg-card px-3 py-1.5 text-xs font-semibold tabular-nums text-soft shadow-sm">
@@ -597,11 +599,16 @@ export function Stage() {
             />
           </>
         )}
+        {/* Kéo ảnh từ thư viện vào khung còn trống: thả là mở ảnh đó. */}
+        {dropTarget === 'stage' && (
+          <span className="pointer-events-none absolute inset-3 z-20 animate-fade rounded-3xl border-2 border-dashed border-coral bg-coral/10" />
+        )}
         {!spec || !layout ? (
           <EmptyStage />
         ) : (
           <div
             ref={stage}
+            data-frame
             // absolute: kích thước khung không được ảnh hưởng ngược lại vùng chứa (tránh vòng lặp đo ↔ vẽ).
             className={cx('absolute left-1/2 top-1/2 touch-none select-none', glide && 'glide')}
             style={{ width: size.width * k, height: size.height * k, translate: `calc(-50% + ${pan.x}px) calc(-50% + ${pan.y}px)` }}
@@ -629,6 +636,7 @@ export function Stage() {
                 return (
                   <div
                     key={cell.photo.id}
+                    data-cell={i}
                     onPointerDown={(e) => onCellDown(e, i)}
                     onPointerMove={onCellMove}
                     onPointerUp={onCellUp}
@@ -668,21 +676,22 @@ export function Stage() {
                         backgroundImage: `url(${thumbUrl(cell.photo.id)})`,
                       }}
                     />
-                    {swapTarget === i && (
+                    {(swapTarget === i || dropTarget === i) && (
                       <span className="pointer-events-none absolute inset-0 rounded-[inherit] bg-coral/25 shadow-[inset_0_0_0_4px_var(--color-coral)]" />
                     )}
                   </div>
                 )
               })}
-              {/* Ô trống: chỗ chờ ảnh. Bấm để chọn ô rồi lấy ảnh trong thư viện; kéo một ảnh khác thả vào cũng được. */}
+              {/* Ô trống: chỗ chờ ảnh. Bấm để chọn ô rồi lấy ảnh trong thư viện; kéo ảnh từ thư viện hay từ ô khác thả vào cũng được. */}
               {spec.cells.map((cell, i) => {
                 const rect = layout.cells[i]
                 if (cell || !rect) return null
-                const chosen = activeCell === i || swapTarget === i
+                const chosen = activeCell === i || swapTarget === i || dropTarget === i
                 return (
                   <button
                     key={`slot-${i}`}
                     type="button"
+                    data-cell={i}
                     aria-pressed={activeCell === i}
                     aria-label={`Ô trống ${i + 1}: bấm để chọn ảnh cho ô này`}
                     onClick={() => pickSlot(i)}
@@ -1049,7 +1058,7 @@ function DividerHandle({
 }
 
 const HINT_UI: Record<Hint, { icon: LucideIcon; label: string }> = {
-  fill: { icon: ImagePlus, label: 'Bấm ảnh trong thư viện để lấp ô trống' },
+  fill: { icon: ImagePlus, label: 'Bấm hoặc kéo ảnh từ thư viện vào ô trống' },
   pan: { icon: Move, label: 'Kéo ảnh để căn trong ô' },
   zoom: { icon: ZoomIn, label: 'Lăn chuột trên ảnh để phóng to' },
   swap: { icon: ArrowLeftRight, label: 'Kéo ảnh sang ô khác để đổi chỗ' },
