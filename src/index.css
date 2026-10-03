@@ -257,6 +257,20 @@ img {
   content-visibility: auto;
 }
 
+/* Ảnh vừa được tìm tới từ dải "trong bố cục": nháy viền cho dễ thấy. */
+.tile-flash > button {
+  animation: tile-flash 1.5s var(--ease-glide);
+}
+@keyframes tile-flash {
+  0%,
+  45% {
+    box-shadow: 0 0 0 3px var(--color-paper), 0 0 0 6px var(--color-coral);
+  }
+  100% {
+    box-shadow: 0 0 0 3px transparent, 0 0 0 6px transparent;
+  }
+}
+
 /* Khung thả file: viền nét đứt màu thương hiệu. */
 .drop-frame {
   outline: 2.5px dashed var(--color-coral);

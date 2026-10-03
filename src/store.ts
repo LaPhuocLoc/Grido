@@ -85,6 +85,8 @@ interface Settings {
   panelWidth: number
   /** Người dùng đã đóng dải mẹo thao tác ở cuối thư viện. */
   libraryTipSeen: boolean
+  /** Cỡ ảnh trong thư viện: 0 nhỏ (xem được nhiều), 1 vừa, 2 lớn. */
+  libraryZoom: number
   /** Cách xem kho font: lưới ảnh mẫu, hoặc danh sách viết câu chữ đang chọn bằng từng font. */
   fontView: 'grid' | 'list'
 }
@@ -190,6 +192,10 @@ interface State extends Settings {
   toggleSelect: (id: string) => void
   /** Đưa nhiều ảnh vào bố cục một lượt (quét chọn trong thư viện); ảnh đã có sẵn thì bỏ qua. */
   selectMany: (ids: string[]) => void
+  /** Bỏ một ảnh khỏi bố cục (dải ảnh đang dùng ở đầu thư viện). */
+  deselect: (id: string) => void
+  /** Ghép đúng những ảnh này thành một bản ghép mới (thay cho các ảnh đang có trong bố cục). */
+  replaceSelection: (ids: string[]) => void
   clearSelection: () => void
   shuffle: () => void
   swapCells: (a: number, b: number) => void
@@ -392,11 +398,12 @@ export const useStore = create<State>()(
       bg: '#ffffff',
       exportFormat: 'image/jpeg',
       exportQuality: 1,
-      exportSharpen: 'high',
+      exportSharpen: 'off',
       theme: 'system',
       leftCollapsed: false,
       panelWidth: PANEL_WIDTH,
       libraryTipSeen: false,
+      libraryZoom: 1,
       fontView: 'list',
 
       photos: [],
@@ -483,9 +490,12 @@ export const useStore = create<State>()(
           const photos = await desktop.library.list()
           set({ photos })
           void refreshStale()
+          // Chrome chỉ hỏi gộp mọi ảnh trong lần đầu của mỗi lần tải trang; bị huỷ thì nó chuyển sang hỏi từng file một.
           const locked = photos.filter((p) => p.locked).length
-          if (locked) get().toast(`Còn ${locked} ảnh chưa được cấp quyền đọc file gốc. Bấm "Cho phép" lần nữa để cấp tiếp.`)
-          else get().toast('Đã đọc được file gốc của mọi ảnh.', 'success')
+          if (locked)
+            get().toast(
+              `Còn ${locked} ảnh chưa được cho phép đọc file gốc nên sẽ xuất từ bản xem trước. Tải lại trang rồi xuất lại, chọn "Cho phép mỗi lần truy cập" để trình duyệt hỏi một lần cho tất cả.`,
+            )
         } catch (err) {
           get().toast((err as Error).message, 'error')
         }
@@ -568,6 +578,15 @@ export const useStore = create<State>()(
         if (room > 0) set(withSelection(s, [...s.selected, ...fresh.slice(0, room)]))
         if (fresh.length > room)
           s.toast(room > 0 ? `Chỉ thêm được ${room} ảnh: một ảnh ghép chứa tối đa ${MAX_PHOTOS} ảnh.` : `Một ảnh ghép chứa tối đa ${MAX_PHOTOS} ảnh.`)
+      },
+
+      deselect: (id) => set((s) => (s.selected.includes(id) ? withSelection(s, s.selected.filter((x) => x !== id)) : {})),
+
+      replaceSelection: (ids) => {
+        const s = get()
+        if (ids.length > MAX_PHOTOS) return s.toast(`Một ảnh ghép chứa tối đa ${MAX_PHOTOS} ảnh.`)
+        // Bắt đầu như một bản ghép mới: khung theo tỉ lệ ảnh đầu tiên, bố cục hợp với số ảnh.
+        set(withSelection({ ...s, selected: [] }, ids))
       },
 
       clearSelection: () => set((s) => withSelection(s, [])),
@@ -814,7 +833,7 @@ export const useStore = create<State>()(
       storage: lazyStorage(),
       // Số hiệu cấu trúc dữ liệu lưu. Đổi cấu trúc theo cách `merge` bên dưới không tự xử lý được thì tăng số này và
       // chuyển dữ liệu cũ trong `migrate`. Hiện mọi bản cũ (kể cả bản chưa có số hiệu) đều đọc được nguyên trạng.
-      version: 3,
+      version: 4,
       migrate: (saved, version): Persisted => {
         let s = saved as Persisted
         // Bản 2: bảng phông chữ mặc định xem dạng danh sách; ai đang để lưới ảnh mẫu từ bản cũ cũng chuyển sang một lần.
@@ -822,6 +841,8 @@ export const useStore = create<State>()(
         // Bản 3: làm nét đầu ra được dò lại theo Lightroom nên các mức cũ không còn cùng nghĩa; ai cũng về mặc định mới
         // (Cao = Screen · High, chất lượng 100%) một lần.
         if (version < 3) s = { ...s, exportSharpen: 'high', exportQuality: 1 }
+        // Bản 4: người dùng chọn mặc định tắt làm nét đầu ra; ai đang dùng cũng chuyển một lần.
+        if (version < 4) s = { ...s, exportSharpen: 'off' }
         return s
       },
       // Lưu cả cài đặt lẫn bản nháp đang ghép, để lần sau mở app làm tiếp được ngay.
@@ -842,6 +863,7 @@ export const useStore = create<State>()(
         panelWidth: s.panelWidth,
         recentFonts: s.recentFonts,
         libraryTipSeen: s.libraryTipSeen,
+        libraryZoom: s.libraryZoom,
         fontView: s.fontView,
         designs: s.designs,
         currentDesignId: s.currentDesignId,

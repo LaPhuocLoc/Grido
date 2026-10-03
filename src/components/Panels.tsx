@@ -1,5 +1,6 @@
-import { ArrowLeftRight, Bookmark, Download, Heart, Image as ImageIcon, LoaderCircle, TriangleAlert, Type, X } from 'lucide-react'
-import { memo, useMemo, useState } from 'react'
+import { ArrowLeftRight, Bookmark, Download, Eye, Folder, Heart, Image as ImageIcon, LoaderCircle, TriangleAlert, Type, X } from 'lucide-react'
+import { memo, useEffect, useMemo, useState } from 'react'
+import { desktop } from '../lib/desktop'
 import { placeImage } from '../lib/geometry'
 import { collageLayout } from '../lib/imaging/exportCollage'
 import { computeLayout } from '../lib/layout/compute'
@@ -612,8 +613,9 @@ export function ExportPanel() {
       <Section title="Làm nét đầu ra">
         <Segmented value={exportSharpen} options={SHARPEN_LEVELS} onChange={(v) => set({ exportSharpen: v })} />
         <p className="text-[13px] leading-relaxed text-soft">
-          Ảnh thu nhỏ luôn mềm đi một chút; bước này bù lại chi tiết như Output Sharpening: Screen của Lightroom (Cao =
-          High). Chỉ áp dụng cho ảnh được thu nhỏ, không đụng tới ảnh bị phóng to hay giữ nguyên cỡ.
+          Tắt: ảnh thu nhỏ giống hệt Lightroom khi không bật Output Sharpening. Bật lên để bù lại chi tiết như Output
+          Sharpening: Screen của Lightroom (Cao = High). Chỉ áp dụng cho ảnh được thu nhỏ, không đụng tới ảnh bị phóng to
+          hay giữ nguyên cỡ.
         </p>
       </Section>
 
@@ -631,11 +633,8 @@ export function ExportPanel() {
               </b>{' '}
               {lockedInCollage > 0 ? (
                 <>
-                  Trình duyệt chưa được phép đọc file gốc của {lockedInCollage} ảnh trong phiên này nên sẽ dùng bản xem trước
-                  2560px.{' '}
-                  <button type="button" className="font-semibold text-coral-dark hover:underline" onClick={() => void state.grantAccess()}>
-                    Cho phép đọc ảnh gốc
-                  </button>
+                  Trình duyệt chưa được phép đọc file gốc của {lockedInCollage} ảnh trong lần mở này; khi bấm xuất, app sẽ hỏi
+                  bạn cho phép.
                 </>
               ) : (
                 <>
@@ -658,15 +657,72 @@ export function ExportPanel() {
         </p>
       )}
 
-      <Button
-        variant="primary"
-        className="h-12 w-full text-[15px]"
-        disabled={!state.tree || progress !== null}
-        onClick={() => void exportToFile()}
-      >
-        {progress !== null ? <LoaderCircle className="size-5 animate-spin" /> : <Download className="size-5" />}
-        {progress !== null ? `Đang xuất… ${Math.round(progress * 100)}%` : 'Xuất ảnh ghép…'}
-      </Button>
+      <div className="space-y-2.5">
+        <ExportFolder busy={progress !== null} />
+        <Button
+          variant="primary"
+          className="h-12 w-full text-[15px]"
+          disabled={!state.tree || progress !== null}
+          onClick={() => void exportToFile()}
+        >
+          {progress !== null ? <LoaderCircle className="size-5 animate-spin" /> : <Download className="size-5" />}
+          {progress !== null ? `Đang xuất… ${Math.round(progress * 100)}%` : desktop.exportFile.folder ? 'Xuất ảnh' : 'Xuất ảnh ghép…'}
+        </Button>
+      </div>
+    </div>
+  )
+}
+
+/**
+ * Bản web: ảnh xuất được lưu thẳng vào một thư mục chọn một lần. Trình duyệt không mở được trình quản lý file, nên ở đây
+ * luôn ghi rõ thư mục đó và file vừa xuất (bấm để xem lại).
+ */
+function ExportFolder({ busy }: { busy: boolean }) {
+  const folder = desktop.exportFile.folder
+  const last = useExportProgress((s) => s.last)
+  const [name, setName] = useState<string | null>(null)
+  useEffect(() => {
+    if (!busy) void folder?.current().then((f) => setName(f?.name ?? null))
+  }, [folder, busy])
+  if (!folder) return null
+  const change = async () => {
+    try {
+      const chosen = await folder.choose()
+      if (chosen) setName(chosen)
+    } catch (err) {
+      useStore.getState().toast((err as Error).message, 'error')
+    }
+  }
+  return (
+    <div className="rounded-2xl border border-line bg-surface px-3.5 py-2.5 text-[13px]">
+      <div className="flex items-center gap-2">
+        <Folder className="size-4 shrink-0 text-muted" />
+        <span className="min-w-0 flex-1 truncate text-soft">
+          {name ? (
+            <>
+              Lưu vào <b className="text-ink">{name}</b>
+            </>
+          ) : (
+            'Lần xuất đầu tiên sẽ hỏi thư mục lưu ảnh'
+          )}
+        </span>
+        <button type="button" disabled={busy} onClick={() => void change()} className="shrink-0 font-semibold text-coral-dark hover:underline">
+          {name ? 'Đổi' : 'Chọn thư mục'}
+        </button>
+      </div>
+      {last && last.folder === name && (
+        <button
+          type="button"
+          onClick={() => void desktop.exportFile.view?.(last.target)}
+          data-tip="Mở ảnh vừa xuất trong tab mới"
+          className="mt-1.5 flex w-full items-center gap-2 text-left text-muted hover:text-ink"
+        >
+          <Eye className="size-4 shrink-0" />
+          <span className="min-w-0 flex-1 truncate">
+            Vừa xuất: <span className="font-medium">{last.file}</span>
+          </span>
+        </button>
+      )}
     </div>
   )
 }

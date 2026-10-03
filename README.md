@@ -136,13 +136,16 @@ tests/                 Bộ test (Vitest)
 - **Resize**: bicubic Catmull-Rom tự viết (`src/lib/imaging/resample.ts`), trộn trên giá trị sRGB như Lightroom / Photoshop, alpha nhân trước. Không dùng `drawImage` để scale ở bất kỳ bước nào. Cách resize và làm nét được dò cho khớp bản xuất của Lightroom trên ~30 cặp ảnh thật.
 - **Thêm ảnh**: file gốc không bị sao chép, resize hay nén lại. App chỉ tạo một bản xem trước cạnh dài 2560px (JPEG q92) để dàn trang cho mượt, và một thumbnail cho thư viện. Ảnh vốn nhỏ hơn 2560px và nhẹ hơn 5MB thì dùng nguyên byte gốc làm bản xem trước.
 - **Xuất**: mỗi ô được cắt từ **file gốc trên đĩa** ở độ phân giải gốc rồi resize **một lần duy nhất** về đúng kích thước pixel của ô; ghép lên canvas ở toạ độ nguyên nên không có nội suy lần hai. Khung lệch tỉ lệ dưới 1px (ảnh 3:2 vào 2048×1365) thì co giãn vừa khít như Lightroom, không cắt mất hàng ảnh gốc. Hệ số 1×–3×.
-- **Làm nét đầu ra** (`sharpen.ts`): unsharp mask σ 0.6px sau khi thu nhỏ, mạnh nhẹ theo độ sáng (vùng tối và gần trắng gần như không làm nét) như Output Sharpening: Screen của Lightroom. 4 mức Tắt / Thấp / Tiêu chuẩn / Cao, mặc định Cao; quầng sáng ở mép rất gắt được hãm như Lightroom; **Cao khớp Screen · High**, Thấp / Tiêu chuẩn là ước lượng cho Low / Standard. Không áp dụng cho ô bị phóng to hoặc giữ nguyên cỡ; ảnh đã xuất (cạnh dài ≤ 3000px, vd. file 2048px từ Lightroom) chỉ được làm nét thêm một phần để không bị làm nét hai lần. Đo đạc: `docs/superpowers/specs/2026-10-03-chat-luong-xuat-anh.md`.
+- **Làm nét đầu ra** (`sharpen.ts`): unsharp mask σ 0.6px sau khi thu nhỏ, mạnh nhẹ theo độ sáng (vùng tối và gần trắng gần như không làm nét) như Output Sharpening: Screen của Lightroom. 4 mức Tắt / Thấp / Tiêu chuẩn / Cao, mặc định Tắt (giống Lightroom không bật Output Sharpening); quầng sáng ở mép rất gắt được hãm như Lightroom; **Cao khớp Screen · High**, Thấp / Tiêu chuẩn là ước lượng cho Low / Standard. Không áp dụng cho ô bị phóng to hoặc giữ nguyên cỡ; ảnh đã xuất (cạnh dài ≤ 3000px, vd. file 2048px từ Lightroom) chỉ được làm nét thêm một phần để không bị làm nét hai lần. Đo đạc: `docs/superpowers/specs/2026-10-03-chat-luong-xuat-anh.md`.
 - **Không lặng lẽ hạ chất lượng**: ô nào phải dựng từ bản xem trước (không đọc được file gốc) hoặc JPEG phải rơi về 4:2:0 (hết bộ nhớ) thì báo ngay sau khi xuất.
 - **JPEG**: mặc định 100%, mã hoá bằng MozJPEG với màu **4:4:4** (bộ mã hoá có sẵn của Chromium luôn dùng 4:2:0, làm nhoè mép màu bão hoà) và gắn hồ sơ màu sRGB. **PNG** được gắn nhãn sRGB.
 - **EXIF như Lightroom "All Metadata"**: lúc nhập, app đọc EXIF (máy, ống kính, thông số, giờ chụp, GPS, giả lập phim Fuji
   từ MakerNote) và giữ cùng ảnh trong thư viện; ảnh nhập từ bản cũ được đọc bù ở nền. Xuất một ảnh thì file mang EXIF của
   ảnh đó, làm sạch như Lightroom (bỏ MakerNote, thumbnail nhúng, cờ xoay; ghi kích thước mới, sRGB); ảnh ghép nhiều ảnh
   chỉ ghi kích thước, giờ xuất, không gian màu. Không chép XMP (thông số chỉnh của Lightroom). Code: `src/lib/imaging/exif.ts`.
+- **Bản web lưu ảnh xuất vào một thư mục chọn một lần** (trình duyệt không mở được trình quản lý file, nên phần Xuất luôn
+  ghi rõ thư mục đó và file vừa xuất, có nút xem lại). Xuất một ảnh thì file mang tên ảnh, trùng tên thì thêm "(2)".
+  Quyền đọc ảnh gốc / ghi thư mục chỉ được hỏi lúc bấm Xuất, bằng một hộp nhắc chọn "Cho phép mỗi lần truy cập".
 - Preview và export dùng chung một hàm hình học (`placeImage`, `collageLayout`) nên file xuất ra khớp với những gì thấy trên màn hình.
 
 ## Hiệu năng

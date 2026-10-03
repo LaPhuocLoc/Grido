@@ -5,7 +5,7 @@
 // Không cần cài thêm gì: script tự mở Chrome đã cài trên máy qua cổng debug (CDP) với một hồ sơ tạm.
 //
 // Không tự động hoá được: hộp thoại chọn file và hộp hỏi quyền của trình duyệt. Thay vào đó file được "thả" vào trang
-// (đi cùng đường xử lý), còn bước bấm "Cho phép" phải thử tay.
+// (đi cùng đường xử lý), còn bước bấm "Cho phép" khi xuất ảnh phải thử tay.
 //
 // Chrome từ chối đọc thư mục nằm trong AppData / Temp, nên ảnh thử đặt ở release/_e2e (đã được git bỏ qua).
 import { spawn } from 'node:child_process'
@@ -145,7 +145,8 @@ try {
   await chrome.goto(APP)
   lib = await chrome.evaluate(LIBRARY)
   check('thư viện còn nguyên sau khi mở lại', lib.tiles === 3)
-  check('ảnh ở trạng thái khoá và có dải "Cho phép"', lib.locked === 3 && lib.banner)
+  // Không còn dải nhắc mỗi lần mở app: quyền chỉ được hỏi lúc bấm Xuất (hộp nhắc của app rồi tới hộp thoại của trình duyệt).
+  check('ảnh ở trạng thái khoá, không hiện dải nhắc lúc mở app', lib.locked === 3 && !lib.banner)
 
   const { identifier } = await chrome.send('Page.addScriptToEvaluateOnNewDocument', { source: 'delete window.showOpenFilePicker; delete Window.prototype.showOpenFilePicker;' })
   await chrome.goto(APP)

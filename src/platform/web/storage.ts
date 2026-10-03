@@ -1,19 +1,19 @@
 /**
  * Chỗ lưu của bản web, tất cả nằm trên máy người dùng:
- *   IndexedDB  chỉ mục thư viện + file handle (chỉ IndexedDB lưu được handle)
+ *   IndexedDB  chỉ mục thư viện + file handle (chỉ IndexedDB lưu được handle), thư mục lưu ảnh xuất
  *   OPFS       thumbnail, bản xem trước, và file gốc của ảnh dán từ clipboard
  */
 
 const DB_NAME = 'tiem-ghep-anh'
-const DB_VERSION = 1
-export type Store = 'photos' | 'roots'
+const DB_VERSION = 2
+export type Store = 'photos' | 'roots' | 'settings'
 
 let db: Promise<IDBDatabase> | undefined
 function open(): Promise<IDBDatabase> {
   db ??= new Promise((resolve, reject) => {
     const req = indexedDB.open(DB_NAME, DB_VERSION)
     req.onupgradeneeded = () => {
-      for (const name of ['photos', 'roots'] as const) if (!req.result.objectStoreNames.contains(name)) req.result.createObjectStore(name, { keyPath: 'id' })
+      for (const name of ['photos', 'roots', 'settings'] as const) if (!req.result.objectStoreNames.contains(name)) req.result.createObjectStore(name, { keyPath: 'id' })
     }
     req.onsuccess = () => resolve(req.result)
     req.onerror = () => reject(req.error)
@@ -31,6 +31,7 @@ async function run<T>(store: Store, mode: IDBTransactionMode, work: (s: IDBObjec
 }
 
 export const getAll = <T>(store: Store) => run<T[]>(store, 'readonly', (s) => s.getAll() as IDBRequest<T[]>)
+export const get = <T>(store: Store, key: string) => run<T | undefined>(store, 'readonly', (s) => s.get(key) as IDBRequest<T | undefined>)
 export const put = (store: Store, value: unknown) => run<void>(store, 'readwrite', (s) => void s.put(value))
 export const removeKeys = (store: Store, keys: string[]) =>
   run<void>(store, 'readwrite', (s) => {

@@ -150,3 +150,64 @@ describe('exporting', () => {
     expect(fake.saved).toHaveLength(1)
   })
 })
+
+describe('exporting on the web (export folder, access prompt)', () => {
+  let folder: { name: string; ready: boolean } | null
+  const choose = vi.fn()
+  const grant = vi.fn()
+  const view = vi.fn()
+
+  beforeEach(() => {
+    folder = null
+    choose.mockReset().mockImplementation(async () => {
+      folder = { name: 'Ảnh đã ghép', ready: true }
+      return folder.name
+    })
+    grant.mockReset().mockImplementation(async () => {
+      if (folder) folder.ready = true
+      return true
+    })
+    view.mockReset()
+    // Bản web: lưu thẳng vào thư mục đã chọn; giá trị `pick` trả về có dạng "số:tên file".
+    Object.assign(window.grido.exportFile, { folder: { current: async () => folder && { ...folder }, choose, grant }, view })
+    fake.state.saveResult = '1:p2.jpg'
+    get().toggleSelect('p2')
+  })
+
+  it('asks for the folder once, names a single-photo export after the photo, and says where it went', async () => {
+    await collage.exportToFile()
+    expect(choose).toHaveBeenCalledTimes(1)
+    expect(fake.saved[0].suggested).toBe('p2.jpg')
+    expect(get().toasts).toMatchObject([{ kind: 'success', message: expect.stringContaining('"p2.jpg"'), action: { label: 'Xem ảnh' } }])
+    expect(get().toasts[0].message).toContain('"Ảnh đã ghép"')
+    get().toasts[0].action!.run()
+    expect(view).toHaveBeenCalledWith('1:p2.jpg')
+    expect(collage.useExportProgress.getState().last).toEqual({ file: 'p2.jpg', folder: 'Ảnh đã ghép', target: '1:p2.jpg' })
+
+    await collage.exportToFile()
+    expect(choose).toHaveBeenCalledTimes(1)
+    expect(fake.saved).toHaveLength(2)
+  })
+
+  it('stops for the access prompt when the folder needs permission again, and goes on after "Cho phép"', async () => {
+    folder = { name: 'Ảnh đã ghép', ready: false }
+    const running = collage.exportToFile()
+    await vi.waitFor(() => expect(collage.useAccessPrompt.getState().open).toBe(true))
+    expect(renderCollage).not.toHaveBeenCalled()
+    await collage.allowAccess()
+    await running
+    expect(grant).toHaveBeenCalled()
+    expect(collage.useAccessPrompt.getState().open).toBe(false)
+    expect(fake.saved).toHaveLength(1)
+  })
+
+  it('exports nothing when the access prompt is closed', async () => {
+    folder = { name: 'Ảnh đã ghép', ready: false }
+    const running = collage.exportToFile()
+    await vi.waitFor(() => expect(collage.useAccessPrompt.getState().open).toBe(true))
+    collage.closeAccess()
+    await running
+    expect(fake.saved).toEqual([])
+    expect(renderCollage).not.toHaveBeenCalled()
+  })
+})

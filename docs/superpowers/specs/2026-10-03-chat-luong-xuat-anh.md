@@ -11,9 +11,9 @@ vẫn làm), với cả ba workflow:
 2. RAW chỉnh trong Lightroom → xuất 2048 / 1350 → đem vào app (với app, đây chính là workflow 3).
 3. Ảnh 2048 / 1350 đã xuất → chèn chữ, chỉnh khung → xuất lại 2048 / 1350 / cỡ khác.
 
-Quyết định đã chốt với người dùng: các mức làm nét là Tắt / Thấp / Tiêu chuẩn / Cao, mặc định **Cao**, chất lượng JPEG
-mặc định **100%**. Ai đang dùng bản cũ cũng được chuyển sang hai mặc định này một lần (settings bản 3), vì các mức làm nét
-cũ không còn cùng nghĩa.
+Quyết định đã chốt với người dùng: các mức làm nét là Tắt / Thấp / Tiêu chuẩn / Cao, chất lượng JPEG mặc định **100%**.
+Làm nét mặc định ban đầu là Cao (settings bản 3); sau đó người dùng chọn mặc định **Tắt** (settings bản 4, ai cũng chuyển
+một lần).
 
 ## Cách đo
 

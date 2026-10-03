@@ -23,6 +23,7 @@ interface Pickers {
 
 const pickers = () => window as unknown as Pickers
 const READ: Mode = { mode: 'read' }
+const WRITE: Mode = { mode: 'readwrite' }
 
 export const hasFileAccess = () => 'showOpenFilePicker' in window && 'showDirectoryPicker' in window && 'showSaveFilePicker' in window
 
@@ -31,11 +32,15 @@ export const isAbort = (err: unknown) => err instanceof DOMException && err.name
 
 export const openFiles = (types: FileType[]) => pickers().showOpenFilePicker({ id: 'photos', multiple: true, types })
 export const openFolder = () => pickers().showDirectoryPicker({ id: 'photos', mode: 'read' })
+/** Chọn thư mục để ghi (nơi lưu ảnh xuất). */
+export const openWritableFolder = () => pickers().showDirectoryPicker({ id: 'export', mode: 'readwrite' })
 export const saveFile = (suggestedName: string, types: FileType[], id = 'export') => pickers().showSaveFilePicker({ id, suggestedName, types })
 /** Chọn đúng một file. */
 export const openOne = async (types: FileType[], id: string) => (await pickers().showOpenFilePicker({ id, multiple: false, types }))[0]
 
 export const canRead = async (handle: FileSystemHandle) => (await (handle as FileSystemHandle & WithPermission).queryPermission(READ)) === 'granted'
+export const canWrite = async (handle: FileSystemHandle) => (await (handle as FileSystemHandle & WithPermission).queryPermission(WRITE)) === 'granted'
+export const askWrite = async (handle: FileSystemHandle) => (await (handle as FileSystemHandle & WithPermission).requestPermission(WRITE)) === 'granted'
 export const askRead = async (handle: FileSystemHandle) => (await (handle as FileSystemHandle & WithPermission).requestPermission(READ)) === 'granted'
 
 /** File và thư mục con trực tiếp của một thư mục. */

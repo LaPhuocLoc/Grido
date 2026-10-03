@@ -72,7 +72,23 @@ export interface Platform {
     /** Nguồn của một ô ảnh khi xuất, theo thứ tự ưu tiên: file gốc (nếu đọc được), rồi bản xem trước. */
     cellSources: (photo: Photo) => Promise<ImageSource[]>
   }
-  exportFile: GridoBridge['exportFile']
+  exportFile: GridoBridge['exportFile'] & {
+    /**
+     * Bản web: ảnh xuất được lưu thẳng vào một thư mục người dùng chọn một lần (trình duyệt không mở được trình quản lý
+     * file, nên app phải luôn cho biết ảnh nằm ở đâu). Khi có mục này, `pick` không mở hộp thoại mà tạo file trong thư
+     * mục đó với tên chưa bị trùng.
+     */
+    folder?: {
+      /** Thư mục đang dùng; `ready` = trình duyệt đang cho ghi vào đó. null = chưa chọn. */
+      current: () => Promise<{ name: string; ready: boolean } | null>
+      /** Mở hộp thoại chọn thư mục. Phải gọi từ một thao tác bấm. Trả về tên thư mục, null nếu huỷ. */
+      choose: () => Promise<string | null>
+      /** Xin lại quyền ghi vào thư mục. Phải gọi từ một thao tác bấm. */
+      grant: () => Promise<boolean>
+    }
+    /** Bản web: mở file vừa xuất (theo giá trị `pick` trả về) trong tab mới để xem. */
+    view?: (path: string) => Promise<void>
+  }
   app: GridoBridge['app']
   updates: GridoBridge['updates']
 }

@@ -699,7 +699,11 @@ describe('original frame', () => {
   it('moves everyone to the new export defaults once, then keeps their own choice', async () => {
     localStorage.setItem('grido-settings', JSON.stringify({ state: { exportSharpen: 'low', exportQuality: 0.8 }, version: 2 }))
     await boot()
-    expect([get().exportSharpen, get().exportQuality]).toEqual(['high', 1])
+    expect([get().exportSharpen, get().exportQuality]).toEqual(['off', 1])
+    // Ai đã ở bản 3 (mặc định Cao) cũng chuyển sang tắt làm nét một lần, chất lượng giữ nguyên.
+    localStorage.setItem('grido-settings', JSON.stringify({ state: { exportSharpen: 'high', exportQuality: 0.95 }, version: 3 }))
+    await boot()
+    expect([get().exportSharpen, get().exportQuality]).toEqual(['off', 0.95])
     get().set({ exportSharpen: 'low', exportQuality: 0.9 })
     window.dispatchEvent(new Event('pagehide'))
     await boot()
@@ -930,6 +934,30 @@ describe('selecting many photos at once', () => {
     get().selectMany(['p1'])
     expect(get().selected).toEqual(['p1'])
     expect(get().designs).toBe(before)
+  })
+})
+
+describe('composing from picked photos', () => {
+  it('starts a new collage with exactly the picked photos, in order', () => {
+    get().toggleSelect('p5')
+    get().replaceSelection(['p2', 'p1', 'p3'])
+    expect(get().selected).toEqual(['p2', 'p1', 'p3'])
+    expect(get().layoutId).not.toBeNull()
+  })
+
+  it('refuses more than the photo limit', () => {
+    get().replaceSelection(ids(13))
+    expect(get().selected).toEqual([])
+    expect(get().toasts.map((t) => t.message)).toEqual(['Một ảnh ghép chứa tối đa 12 ảnh.'])
+  })
+
+  it('takes a single photo out of the collage, even while a cell is active', () => {
+    get().selectMany(['p1', 'p2', 'p3'])
+    get().setActiveCell(0)
+    get().deselect('p2')
+    expect(get().selected).toEqual(['p1', 'p3'])
+    get().deselect('p9')
+    expect(get().selected).toEqual(['p1', 'p3'])
   })
 })
 
