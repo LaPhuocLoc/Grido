@@ -4,8 +4,10 @@ import { createPortal } from 'react-dom'
 import { allowAccess, closeAccess, useAccessPrompt } from '../lib/useCollage'
 import { Button, cx } from './ui'
 
-/** Ba lựa chọn trong hộp thoại xin quyền của Chrome / Edge; mục đầu là mục nên chọn. */
-const BROWSER_CHOICES = ['Cho phép mỗi lần truy cập', 'Cho phép lần này', 'Không cho phép']
+/** Ba lựa chọn trong hộp thoại xin quyền của Chrome / Edge, đúng thứ tự trình duyệt hiện. */
+const BROWSER_CHOICES = ['Cho phép lần này', 'Cho phép mỗi lần truy cập', 'Không cho phép']
+/** Lựa chọn nên bấm: nằm giữa, nên mũi tên chỉ từ bên phải vào chứ không đi xuyên qua dòng khác. */
+const PICK = 1
 
 /**
  * Bản web: hiện ngay trước khi xuất, khi trình duyệt chưa cho đọc lại ảnh gốc / ghi vào thư mục xuất trong lần mở trang
@@ -52,36 +54,46 @@ export function AccessDialog() {
           Để xuất đủ nét, trình duyệt sẽ hỏi quyền đọc ảnh trên máy, với 3 lựa chọn như dưới đây.
         </p>
 
-        {/* Lời nhắc + mũi tên chỉ thẳng vào lựa chọn cần bấm. */}
-        <p className="mt-3 flex items-end justify-end gap-1 pr-3 text-[13px] font-bold leading-tight text-coral-dark">
-          <span className="pb-1 text-right">Nhớ chọn dòng này để ảnh xuất ra nét nhất</span>
-          <svg viewBox="0 0 32 34" fill="none" stroke="currentColor" strokeWidth={2.4} strokeLinecap="round" strokeLinejoin="round" className="size-8 shrink-0 animate-bob" aria-hidden>
-            <path d="M3 5c13-2 22 6 21 24" />
-            <path d="m17.5 23.5 6.5 6.5 5.5-7.5" />
-          </svg>
-        </p>
-        {/* Bản vẽ lại hộp thoại của trình duyệt, chỉ để minh hoạ (không bấm được). */}
-        <ol aria-hidden className="space-y-1 rounded-2xl border border-line bg-surface p-1.5 text-[13px]">
-          {BROWSER_CHOICES.map((label, i) => (
-            <li
-              key={label}
-              className={cx(
-                'flex h-9 items-center gap-2.5 rounded-xl px-3',
-                i === 0 ? 'bg-blush font-semibold text-ink ring-2 ring-coral' : 'text-muted',
-              )}
-            >
-              <span
+        {/* Lời nhắc ở trên, mũi tên cong vòng bên phải rồi chỉ thẳng vào dòng giữa (lựa chọn cần bấm). */}
+        <p className="mt-3 pb-1.5 pr-3 text-right text-[13px] font-bold leading-tight text-coral-dark">Nhớ chọn dòng này để ảnh xuất ra nét nhất</p>
+        <div className="relative pr-9">
+          {/* Bản vẽ lại hộp thoại của trình duyệt, chỉ để minh hoạ (không bấm được). */}
+          <ol aria-hidden className="space-y-1 rounded-2xl border border-line bg-surface p-1.5 text-[13px]">
+            {BROWSER_CHOICES.map((label, i) => (
+              <li
+                key={label}
                 className={cx(
-                  'grid size-4 shrink-0 place-items-center rounded-full border-2',
-                  i === 0 ? 'border-coral bg-coral text-white' : 'border-edge',
+                  'flex h-9 items-center gap-2.5 rounded-xl px-3',
+                  i === PICK ? 'bg-blush font-semibold text-ink ring-2 ring-coral' : 'text-muted',
                 )}
               >
-                {i === 0 && <Check className="size-2.5" strokeWidth={4} />}
-              </span>
-              {label}
-            </li>
-          ))}
-        </ol>
+                <span
+                  className={cx(
+                    'grid size-4 shrink-0 place-items-center rounded-full border-2',
+                    i === PICK ? 'border-coral bg-coral text-white' : 'border-edge',
+                  )}
+                >
+                  {i === PICK && <Check className="size-2.5" strokeWidth={4} />}
+                </span>
+                {label}
+              </li>
+            ))}
+          </ol>
+          {/* Đầu mũi tên nằm ngang tâm dòng giữa: 1px viền + 6px đệm + dòng 36px + 4px cách + nửa dòng 18px = 65px. */}
+          <svg
+            viewBox="0 0 36 80"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth={2.4}
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            className="absolute -top-2 right-0 h-20 w-9 text-coral-dark"
+            aria-hidden
+          >
+            <path d="M24 2c11 18 12 50-19 71" />
+            <path d="m6 64-1.5 9.5 9.5 1" />
+          </svg>
+        </div>
         <p className="mt-2.5 text-xs leading-relaxed text-muted">Hỏi một lần cho cả thư viện. Ảnh vẫn nằm trên máy bạn, không tải đi đâu.</p>
 
         <Button
