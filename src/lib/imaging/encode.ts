@@ -1,4 +1,4 @@
-import { pngWithSrgb, withIccFrom } from './metadata'
+import { pngWithSrgb, withExif, withIccFrom } from './metadata'
 import { encodeJpeg } from './tasks'
 
 function canvasBytes(canvas: HTMLCanvasElement, type: string, quality?: number): Promise<Uint8Array> {
@@ -28,8 +28,14 @@ function srgbProfileSource(): Promise<Uint8Array> {
  *  - JPEG: MozJPEG, màu 4:4:4, gắn hồ sơ màu sRGB — ngang với "Export" của Lightroom / "Save for Web" của Photoshop.
  *  - PNG: không mất dữ liệu, gắn nhãn sRGB.
  *  - WebP: bộ mã hoá của Chromium.
+ * `exif`: khối EXIF (xem `exportExif`) gắn vào file; chỉ thêm phần đầu file, dữ liệu ảnh giữ nguyên từng byte.
  */
-export async function encodeCanvas(canvas: HTMLCanvasElement, type: string, quality: number): Promise<Uint8Array> {
+export async function encodeCanvas(canvas: HTMLCanvasElement, type: string, quality: number, exif?: Uint8Array): Promise<Uint8Array> {
+  const bytes = await encodePixels(canvas, type, quality)
+  return exif ? withExif(bytes, type, exif, canvas.width, canvas.height) : bytes
+}
+
+async function encodePixels(canvas: HTMLCanvasElement, type: string, quality: number): Promise<Uint8Array> {
   if (type === 'image/png') return pngWithSrgb(await canvasBytes(canvas, type))
   if (type !== 'image/jpeg') return canvasBytes(canvas, type, quality)
   try {

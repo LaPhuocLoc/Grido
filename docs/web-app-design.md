@@ -13,7 +13,7 @@ chỉ tự giữ bản xem trước + thumbnail, và xuất ra file mới. Khôn
 
 | Phần | Vị trí | Ghi chú |
 |---|---|---|
-| Xử lý ảnh: giải mã, cắt, Lanczos3, làm nét, MozJPEG (WASM) | `src/lib/imaging/*` | Chạy hoàn toàn trong Web Worker + `OffscreenCanvas`. Electron không đụng tới pixel nào. |
+| Xử lý ảnh: giải mã, cắt, resize bicubic, làm nét, MozJPEG (WASM) | `src/lib/imaging/*` | Chạy hoàn toàn trong Web Worker + `OffscreenCanvas`. Electron không đụng tới pixel nào. |
 | Bố cục, chữ, khung, undo/redo, thiết kế đã lưu, album | `src/store.ts`, `src/lib/*` | Thuần JS, lưu bằng `localStorage` (khoá `grido-settings`). |
 | Giao diện | `src/components/*`, `src/App.tsx` | Đã có sẵn layout cho cửa sổ hẹp (< 1024px): khung ảnh 44dvh + bảng công cụ + thanh tab đáy. |
 | Font | `public/fonts`, `src/fonts.generated.css` | `@font-face` riêng từng font, trình duyệt chỉ tải font được dùng. Thumbnail đã `loading="lazy"`. |
@@ -292,5 +292,5 @@ So với bản desktop (2026-10-02, máy 20 nhân / 32 GB, Chrome 154, 200 ảnh
 | Xuất 9 ảnh | 6,8 s | 6,7 s | 5,5 s |
 
 Hai bản chạy cùng một mã xử lý ảnh nên ngang nhau (đạt ngưỡng 10% ở mục 6); file xuất giống nhau từng byte trước và sau khi tăng số
-worker. Một lần nhập mất khoảng 1,45 giây mỗi ảnh trên một worker: giải mã 0,2 s, đọc pixel 0,3 s, thu nhỏ Lanczos 0,9 s.
+worker. Một lần nhập mất khoảng 1,45 giây mỗi ảnh trên một worker: giải mã 0,2 s, đọc pixel 0,3 s, thu nhỏ Lanczos 0,9 s (số đo khi còn dùng Lanczos3; nay là bicubic, ít điểm lấy mẫu hơn).
 Lưu ý: khi tab bị trình duyệt coi là chạy nền thì mọi thứ chậm đi gần gấp đôi (đo được 183 s cho cùng 200 ảnh với 3 worker).

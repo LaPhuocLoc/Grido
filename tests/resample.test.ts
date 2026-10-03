@@ -36,12 +36,13 @@ describe('resample', () => {
     expect(px(out, 0, 9)).toEqual([200, 100, 50, 255])
   })
 
-  // Trộn 50% đen + 50% trắng theo ánh sáng thật cho ra xám sRGB 188, không phải 128 (trộn trong gamma làm ảnh tối đi).
-  it('averages fine detail in linear light', () => {
+  // Như Lightroom / Photoshop: trộn trên giá trị sRGB nên 50% đen + 50% trắng ra xám 128 (trộn theo ánh sáng thật sẽ ra 188,
+  // làm chi tiết nhỏ sáng và nhạt đi so với bản Lightroom xuất).
+  it('averages fine detail on sRGB values, like Lightroom', () => {
     const out = resample(raster(64, 4, (x) => (x % 2 ? [255, 255, 255, 255] : [0, 0, 0, 255])), 8, 1)
     for (let x = 1; x < 7; x++) {
       const [r] = px(out, x, 0)
-      expect(Math.abs(r - 188), `pixel ${x} = ${r}`).toBeLessThanOrEqual(3)
+      expect(Math.abs(r - 128), `pixel ${x} = ${r}`).toBeLessThanOrEqual(2)
     }
   })
 

@@ -11,7 +11,7 @@ type Library = typeof import('../electron/library')
 let lib: Library
 let photos: string
 
-const meta = { width: 100, height: 50, sourceWidth: 4000, sourceHeight: 2000, thumbType: 'image/webp' }
+const meta = { width: 100, height: 50, sourceWidth: 4000, sourceHeight: 2000, thumbType: 'image/webp', exif: null }
 const bytes = (text: string) => new TextEncoder().encode(text).buffer as ArrayBuffer
 
 async function fresh(): Promise<Library> {

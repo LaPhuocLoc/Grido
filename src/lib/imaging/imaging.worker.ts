@@ -1,11 +1,13 @@
 /**
- * Mọi việc nặng về ảnh chạy ở đây, ngoài luồng giao diện: đọc file, giải mã, cắt, resize Lanczos3, làm nét, mã hoá.
+ * Mọi việc nặng về ảnh chạy ở đây, ngoài luồng giao diện: đọc file, giải mã, cắt, resize bicubic, làm nét, mã hoá.
  * Luồng giao diện chỉ gửi yêu cầu và nhận kết quả nên không bao giờ bị khựng, kể cả với file 40–60MP.
  */
+import type { PhotoExif } from '../../../shared/types'
 import type { CellAdjust } from '../geometry'
 import { sourceCrop } from './crop'
+import { readExif } from './exif'
 import { resample, type Raster } from './resample'
-import { sharpen } from './sharpen'
+import { sharpen, sharpenFactor } from './sharpen'
 
 /** Nguồn ảnh: địa chỉ để fetch (bản desktop) hoặc chính file / blob (bản web, đọc thẳng từ đĩa qua file handle). */
 export type ImageSource = string | Blob
@@ -24,9 +26,12 @@ export interface PreparedImport {
   /** Kích thước file gốc sau khi áp hướng xoay EXIF. */
   sourceWidth: number
   sourceHeight: number
+  /** Thông tin chụp + khối EXIF để gắn lại khi xuất (xem `exif.ts`). */
+  exif: PhotoExif | null
+  exifData?: string
 }
 
-export type ImagingResult = PreparedImport | { buffer: ArrayBuffer }
+export type ImagingResult = PreparedImport | { buffer: ArrayBuffer; fromPreview?: boolean }
 export type ImagingResponse = { id: number; result: ImagingResult } | { id: number; error: string }
 
 const THUMB_EDGE = 480
@@ -105,6 +110,7 @@ function encode(raster: Raster, type: string, quality: number): Promise<Blob> {
 
 async function prepare(source: ImageSource): Promise<PreparedImport> {
   const { blob, bitmap } = await load(source)
+  const meta = await readExif(blob)
   const sourceWidth = bitmap.width
   const sourceHeight = bitmap.height
   const scale = Math.min(1, PREVIEW_EDGE / Math.max(sourceWidth, sourceHeight))
@@ -119,10 +125,10 @@ async function prepare(source: ImageSource): Promise<PreparedImport> {
   const tScale = Math.min(1, THUMB_EDGE / Math.max(width, height))
   const thumbRaster = resample(main, Math.max(1, Math.round(width * tScale)), Math.max(1, Math.round(height * tScale)))
   const thumb = await encode(thumbRaster, 'image/webp', 0.82)
-  return { preview, thumb, width, height, sourceWidth, sourceHeight }
+  return { preview, thumb, width, height, sourceWidth, sourceHeight, ...meta }
 }
 
-async function cell(req: Extract<ImagingRequest, { kind: 'cell' }>): Promise<{ buffer: ArrayBuffer }> {
+async function cell(req: Extract<ImagingRequest, { kind: 'cell' }>): Promise<{ buffer: ArrayBuffer; fromPreview: boolean }> {
   let failure: unknown
   // Thử lần lượt: file gốc trước, không đọc được (đã bị dời đi, quá lớn so với sức máy) thì dùng bản xem trước.
   for (const source of req.sources) {
@@ -130,12 +136,13 @@ async function cell(req: Extract<ImagingRequest, { kind: 'cell' }>): Promise<{ b
       const { bitmap } = await load(source)
       try {
         const { sx, sy, sw, sh } = sourceCrop(bitmap.width, bitmap.height, { w: req.width, h: req.height }, req.adjust)
+        // Bản xem trước (dùng khi không đọc được file gốc) là ảnh app tự thu nhỏ, chưa làm nét: tính như file gốc.
+        const edge = source === req.sources[0] ? Math.max(bitmap.width, bitmap.height) : Infinity
         // Cắt ở độ phân giải gốc rồi mới resize MỘT lần duy nhất về đúng kích thước ô → không mất nét do resize nhiều lần.
         const crop = readPixels(bitmap, sx, sy, sw, sh, req.adjust.rot ?? 0, req.adjust.flip)
         const sized = resample(crop, req.width, req.height)
-        // Chỉ làm nét khi thu nhỏ; ảnh bị phóng to mà làm nét thì chỉ lộ thêm răng cưa.
-        const out = sw >= req.width && sh >= req.height ? sharpen(sized, req.sharpen) : sized
-        return { buffer: out.data.buffer as ArrayBuffer }
+        const out = sharpen(sized, req.sharpen * sharpenFactor(Math.min(sw / req.width, sh / req.height), edge))
+        return { buffer: out.data.buffer as ArrayBuffer, fromPreview: source !== req.sources[0] }
       } finally {
         bitmap.close()
       }

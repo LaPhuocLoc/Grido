@@ -282,6 +282,8 @@ export async function createLibrary() {
       order: now * 1000 + (seq++ % 1000),
       previewExt: input.preview ? 'jpg' : ext,
       thumbExt: TYPE_EXT[input.thumbType] ?? 'jpg',
+      exif: input.exif,
+      ...(input.exifData && { exifData: input.exifData }),
       ...(handle ? { handle, rootId, relPath } : { originalExt: ext }),
     }
     // File gốc đủ nhỏ thì dùng luôn byte gốc làm bản xem trước (không nén lại lần hai).
@@ -311,7 +313,10 @@ export async function createLibrary() {
       lastModified: file.lastModified,
       previewExt: input.preview ? 'jpg' : extOf(file.name),
       thumbExt: TYPE_EXT[input.thumbType] ?? 'jpg',
+      exif: input.exif,
+      exifData: input.exifData,
     })
+    if (!input.exifData) delete entry.exifData
     delete entry.needsCache
     await writeFile('cache', cacheName(entry, 'preview'), input.preview ?? file)
     await writeFile('cache', cacheName(entry, 'thumb'), input.thumb)
@@ -320,6 +325,17 @@ export async function createLibrary() {
     stale.delete(id)
     forgetUrls(id)
     notify()
+    return toPhoto(entry)
+  }
+
+  /** Ghi EXIF đọc bù cho ảnh nhập từ bản chưa đọc EXIF. */
+  async function setExif(id: string, meta: Pick<Photo, 'exif' | 'exifData'>): Promise<Photo> {
+    const entry = byId(id)
+    if (!entry) throw new Error('Ảnh này không còn trong thư viện.')
+    entry.exif = meta.exif ?? null
+    if (meta.exifData) entry.exifData = meta.exifData
+    else delete entry.exifData
+    await put('photos', entry)
     return toPhoto(entry)
   }
 
@@ -462,6 +478,7 @@ export async function createLibrary() {
     reveal: async () => {},
     grantAccess,
     refresh,
+    setExif,
   }
 
   const images: Platform['images'] = {

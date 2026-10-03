@@ -25,6 +25,7 @@ const input = (token: string, preview = true): NewPhoto => ({
   preview: preview ? new ArrayBuffer(4) : null,
   thumb: new ArrayBuffer(2),
   thumbType: 'image/webp',
+  exif: null,
 })
 
 /** Đưa mọi ảnh vừa được nhận vào thư viện, như giao diện làm sau khi tạo xong bản xem trước. */
@@ -212,6 +213,25 @@ describe('reading originals', () => {
     await pickFiles(trip.file('a.jpg'))
     trip.items.delete('a.jpg')
     expect(await lib.library.list()).toMatchObject([{ missing: true, locked: false }])
+  })
+})
+
+describe('EXIF', () => {
+  it('keeps what was read on import, and what is read later for photos imported before', async () => {
+    const trip = disk('trip')
+    picker.files = [trip.file('a.jpg'), trip.file('b.jpg')]
+    const [a, b] = (await lib.library.pick()).candidates
+    await lib.library.add({ ...input(a.token), exif: { model: 'X-T5' }, exifData: 'SUkq' })
+    await lib.library.add(input(b.token))
+    await open()
+    const [pb, pa] = await lib.library.list()
+    expect(pa).toMatchObject({ exif: { model: 'X-T5' }, exifData: 'SUkq' })
+    expect(pb.exif).toBeNull()
+    expect(pb).not.toHaveProperty('exifData')
+
+    await lib.library.setExif!(pb.id, { exif: { iso: 100 }, exifData: 'TU0A' })
+    await open()
+    expect((await lib.library.list())[0]).toMatchObject({ exif: { iso: 100 }, exifData: 'TU0A' })
   })
 })
 

@@ -44,6 +44,8 @@ export interface Platform {
     grantAccess?: () => Promise<void>
     /** Bản web: thay bản xem trước + thumbnail của một ảnh `stale` bằng bản vừa dựng lại từ file gốc. */
     refresh?: (id: string, photo: Omit<NewPhoto, 'token'>) => Promise<Photo>
+    /** Bản web: lưu EXIF đọc bù cho ảnh nhập từ trước khi app biết đọc EXIF. */
+    setExif?: (id: string, meta: Pick<Photo, 'exif' | 'exifData'>) => Promise<Photo>
   }
   /** Bản web: dữ liệu của app nằm trong trình duyệt nên cần chỗ xem dung lượng và sao lưu ra file. */
   data?: {

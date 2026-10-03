@@ -552,16 +552,16 @@ const FORMATS: { value: ExportFormat; label: string }[] = [
 
 const FORMAT_NOTES: Record<ExportFormat, string> = {
   'image/jpeg':
-    'Hợp nhất để đăng mạng xã hội. Màu giữ đủ độ phân giải (4:4:4) và gắn hồ sơ màu sRGB như khi xuất từ Lightroom / Photoshop. Mức 90–95% là điểm cân bằng tốt giữa độ nét và dung lượng.',
+    'Hợp nhất để đăng mạng xã hội. Màu giữ đủ độ phân giải (4:4:4) và gắn hồ sơ màu sRGB như khi xuất từ Lightroom / Photoshop. Mức 100% giữ trọn chi tiết như bản Lightroom; 90–95% nhẹ hơn nhiều nhưng ảnh nhiều lá, cỏ sẽ mất chi tiết nhỏ.',
   'image/png': 'Không nén mất dữ liệu, nét tuyệt đối nhưng file nặng. Mạng xã hội thường sẽ tự nén lại.',
   'image/webp': 'File nhẹ hơn JPEG ở cùng chất lượng. Một số nền tảng cũ chưa nhận WebP.',
 }
 
 const SHARPEN_LEVELS: { value: ExportSharpen; label: string }[] = [
   { value: 'off', label: 'Tắt' },
-  { value: 'low', label: 'Nhẹ' },
-  { value: 'standard', label: 'Chuẩn' },
-  { value: 'high', label: 'Mạnh' },
+  { value: 'low', label: 'Thấp' },
+  { value: 'standard', label: 'Tiêu chuẩn' },
+  { value: 'high', label: 'Cao' },
 ]
 
 export function ExportPanel() {
@@ -612,8 +612,8 @@ export function ExportPanel() {
       <Section title="Làm nét đầu ra">
         <Segmented value={exportSharpen} options={SHARPEN_LEVELS} onChange={(v) => set({ exportSharpen: v })} />
         <p className="text-[13px] leading-relaxed text-soft">
-          Ảnh thu nhỏ luôn mềm đi một chút; bước này bù lại chi tiết giống Output Sharpening của Lightroom. Chỉ áp dụng
-          cho ảnh được thu nhỏ, không đụng tới ảnh đang bị phóng to.
+          Ảnh thu nhỏ luôn mềm đi một chút; bước này bù lại chi tiết như Output Sharpening: Screen của Lightroom (Cao =
+          High). Chỉ áp dụng cho ảnh được thu nhỏ, không đụng tới ảnh bị phóng to hay giữ nguyên cỡ.
         </p>
       </Section>
 

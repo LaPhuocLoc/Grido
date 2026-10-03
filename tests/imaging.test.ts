@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { sourceCrop } from '../src/lib/imaging/crop'
 import { jpegSubsampling, pngWithSrgb, withIccFrom } from '../src/lib/imaging/metadata'
-import { sharpen } from '../src/lib/imaging/sharpen'
+import { sharpen, sharpenFactor } from '../src/lib/imaging/sharpen'
 import { DEFAULT_ADJUST } from '../src/lib/geometry'
 
 describe('sourceCrop', () => {
@@ -17,6 +17,11 @@ describe('sourceCrop', () => {
 
   it('works in rotated coordinates for a photo turned 90°', () => {
     expect(sourceCrop(4000, 2000, cell, { ...DEFAULT_ADJUST, rot: 90 })).toEqual({ sx: 0, sy: 1000, sw: 2000, sh: 2000 })
+  })
+
+  it('keeps the whole photo when the frame is off by less than an output pixel, like Lightroom', () => {
+    expect(sourceCrop(7008, 4672, { w: 2048, h: 1365 }, DEFAULT_ADJUST)).toEqual({ sx: 0, sy: 0, sw: 7008, sh: 4672 })
+    expect(sourceCrop(4672, 7008, { w: 900, h: 1350 }, DEFAULT_ADJUST)).toEqual({ sx: 0, sy: 0, sw: 4672, sh: 7008 })
   })
 
   it('never reaches outside the photo, whatever the rounding', () => {
@@ -42,9 +47,23 @@ describe('sharpen', () => {
     expect(greys(sharpen(row([90, 90, 90, 90]), 1))).toEqual([90, 90, 90, 90])
   })
 
-  it('adds contrast on both sides of an edge in proportion to the amount', () => {
-    expect(greys(sharpen(row([100, 100, 100, 200, 200]), 1))).toEqual([100, 100, 75, 225, 200])
-    expect(greys(sharpen(row([100, 100, 100, 200, 200]), 0.4))).toEqual([100, 100, 90, 210, 200])
+  it('adds contrast on both sides of a mid-tone edge in proportion to the amount', () => {
+    expect(greys(sharpen(row([100, 100, 100, 200, 200]), 1))).toEqual([100, 100, 81, 215, 200])
+    expect(greys(sharpen(row([100, 100, 100, 200, 200]), 0.5))).toEqual([100, 100, 90, 208, 200])
+  })
+
+  // Như Lightroom: tăng gấp ba thì quầng sáng ở mép gắt đậm thêm ít hơn gấp ba.
+  it('reins in the halo on a very hard edge', () => {
+    const [, , dark] = greys(sharpen(row([70, 70, 70, 190, 190]), 1))
+    const [, , darker] = greys(sharpen(row([70, 70, 70, 190, 190]), 3))
+    expect(70 - darker).toBeLessThan(0.9 * 3 * (70 - dark))
+    expect(darker).toBeLessThan(dark)
+  })
+
+  // Như Lightroom: vùng tối không bị đẩy noise lên, vùng gần trắng không bị cháy.
+  it('leaves deep shadows and near-white highlights alone', () => {
+    expect(greys(sharpen(row([10, 10, 10, 30, 30]), 1))).toEqual([10, 10, 10, 30, 30])
+    expect(greys(sharpen(row([235, 235, 250, 250]), 1))).toEqual([235, 235, 250, 250])
   })
 
   it('does nothing at amount 0', () => {
@@ -57,12 +76,36 @@ describe('sharpen', () => {
 
   it('sharpens along columns as well as rows', () => {
     const col = { data: new Uint8ClampedArray([100, 100, 200, 200].flatMap((v) => [v, v, v, 255])), width: 1, height: 4 }
-    expect(greys(sharpen(col, 1))).toEqual([100, 75, 225, 200])
+    expect(greys(sharpen(col, 1))).toEqual([100, 81, 215, 200])
   })
 
   it('keeps transparency as it was', () => {
     const out = sharpen(row([100, 100, 200, 200], 128), 1)
     expect([...out.data].filter((_, i) => i % 4 === 3)).toEqual([128, 128, 128, 128])
+  })
+})
+
+describe('sharpenFactor', () => {
+  it('skips cells that are enlarged or kept at their own size, so a sharpened 2048px file is not sharpened twice', () => {
+    for (const edge of [2048, 7728]) {
+      expect(sharpenFactor(0.5, edge)).toBe(0)
+      expect(sharpenFactor(1, edge)).toBe(0)
+    }
+  })
+
+  it('sharpens a camera original fully from 1.5× down', () => {
+    expect(sharpenFactor(1.25, 7728)).toBeCloseTo(0.5)
+    expect(sharpenFactor(1.5, 7728)).toBe(1)
+    expect(sharpenFactor(5, 7728)).toBe(1)
+  })
+
+  // Bản 2048 của Lightroom đã làm nét sẵn: thu về 1350 chỉ cần khoảng nửa mức, thu nhỏ nhiều mới cần gần đủ.
+  it('sharpens an already exported file only partly, more as it is shrunk further', () => {
+    expect(sharpenFactor(1.025, 2048)).toBeCloseTo(0.21, 2)
+    expect(sharpenFactor(1.05, 2048)).toBeCloseTo(0.43, 2)
+    expect(sharpenFactor(2048 / 1350, 2048)).toBeCloseTo(0.5, 1)
+    expect(sharpenFactor(3, 2048)).toBeCloseTo(0.72, 2)
+    expect(sharpenFactor(6, 2048)).toBe(1)
   })
 })
 

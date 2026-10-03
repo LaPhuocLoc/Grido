@@ -5,6 +5,8 @@ import { fakeBridge, photo } from './helpers/bridge'
 // Dựng và mã hoá ảnh cần canvas thật + Web Worker; ở đây kiểm tra luồng xuất file quanh hai bước đó.
 const renderCollage = vi.fn()
 const encodeCanvas = vi.fn()
+const exportExif = vi.fn()
+vi.mock('../src/lib/imaging/exif', () => ({ exportExif }))
 vi.mock('../src/lib/imaging/exportCollage', () => ({ renderCollage, collageLayout: vi.fn() }))
 vi.mock('../src/lib/imaging/encode', () => ({ encodeCanvas }))
 vi.mock('../src/lib/imaging/tasks', () => ({ POOL_SIZE: 2, prepareImport: vi.fn() }))
@@ -24,6 +26,7 @@ beforeEach(async () => {
   await get().loadPhotos()
   renderCollage.mockReset().mockResolvedValue({ width: 0, height: 0 })
   encodeCanvas.mockReset().mockResolvedValue(new Uint8Array([1, 2, 3]))
+  exportExif.mockReset().mockReturnValue(new Uint8Array([7]))
 })
 afterEach(() => vi.useRealTimers())
 
@@ -81,11 +84,43 @@ describe('exporting', () => {
   it('passes the chosen format, quality and sharpening on to the encoder and renderer', async () => {
     get().set({ exportFormat: 'image/jpeg', exportQuality: 0.9, exportSharpen: 'off' })
     await collage.exportToFile()
-    expect(encodeCanvas.mock.calls[0].slice(1)).toEqual(['image/jpeg', 0.9])
+    expect(encodeCanvas.mock.calls[0].slice(1)).toEqual(['image/jpeg', 0.9, new Uint8Array([7])])
     expect(renderCollage.mock.calls[0][1]).toBe(0)
     get().set({ exportSharpen: 'high' })
     await collage.exportToFile()
     expect(renderCollage.mock.calls[1][1]).toBeGreaterThan(0)
+  })
+
+  it("carries the photo's EXIF when it is exported alone, only size/time/colour space for a collage", async () => {
+    store.useStore.setState((s) => ({ photos: s.photos.map((p) => ({ ...p, exifData: `exif-${p.id}` })) }))
+    get().set({ presetId: 'custom', customW: 2048, customH: 1365 })
+    await collage.exportToFile()
+    expect(exportExif).toHaveBeenLastCalledWith(undefined, 2048, 1365)
+    get().clearSelection()
+    get().toggleSelect('p2')
+    await collage.exportToFile()
+    const { width, height } = renderCollage.mock.lastCall![0]
+    expect(exportExif).toHaveBeenLastCalledWith('exif-p2', width, height)
+  })
+
+  it('says so when a photo had to be built from its preview instead of the original', async () => {
+    renderCollage.mockImplementation(async (_spec, _sharpen, _progress, onPreview) => {
+      onPreview('IMG_1.jpg')
+      return { width: 0, height: 0 }
+    })
+    await collage.exportToFile()
+    expect(get().toasts.map((t) => t.kind)).toEqual(['success', 'error'])
+    expect(get().toasts[1].message).toMatch(/"IMG_1\.jpg".*bản xem trước/)
+  })
+
+  it('says so when a JPEG fell back to halved colour', async () => {
+    // Đoạn SOF của JPEG 3 kênh, kênh sáng lấy mẫu 2×2 (= 4:2:0).
+    const sof = [0xff, 0xc0, 0, 17, 8, 0, 16, 0, 16, 3, 1, 0x22, 0, 2, 0x11, 1, 3, 0x11, 1]
+    encodeCanvas.mockResolvedValue(new Uint8Array([0xff, 0xd8, ...sof, 0xff, 0xda, 0, 2]))
+    get().set({ exportFormat: 'image/jpeg' })
+    await collage.exportToFile()
+    expect(get().toasts.map((t) => t.kind)).toEqual(['success', 'error'])
+    expect(get().toasts[1].message).toMatch(/4:2:0/)
   })
 
   it('exports at exactly the frame size, ignoring a scale saved by an older version', async () => {

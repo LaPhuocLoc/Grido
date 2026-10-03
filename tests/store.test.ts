@@ -696,6 +696,16 @@ describe('original frame', () => {
     expect(size()).toEqual({ width: 6000, height: 4000 })
   })
 
+  it('moves everyone to the new export defaults once, then keeps their own choice', async () => {
+    localStorage.setItem('grido-settings', JSON.stringify({ state: { exportSharpen: 'low', exportQuality: 0.8 }, version: 2 }))
+    await boot()
+    expect([get().exportSharpen, get().exportQuality]).toEqual(['high', 1])
+    get().set({ exportSharpen: 'low', exportQuality: 0.9 })
+    window.dispatchEvent(new Event('pagehide'))
+    await boot()
+    expect([get().exportSharpen, get().exportQuality]).toEqual(['low', 0.9])
+  })
+
   it('moves a draft that used a retired frame to the same custom size', async () => {
     localStorage.setItem('grido-settings', JSON.stringify({ state: { presetId: 'a4' }, version: 0 }))
     await boot()

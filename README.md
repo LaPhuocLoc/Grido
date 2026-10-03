@@ -24,7 +24,7 @@ Tải bộ cài ở trang Releases của repo rồi chạy:
 | --- | --- |
 | Vỏ desktop | Electron (main process + preload, `electron/`) |
 | Giao diện | React 19 + TypeScript + Vite + Tailwind v4 + zustand (`src/`) |
-| Xử lý ảnh | Web Worker: Lanczos3 linear-light, làm nét đầu ra, MozJPEG (WebAssembly) |
+| Xử lý ảnh | Web Worker: bicubic Catmull-Rom (như Lightroom), làm nét đầu ra, MozJPEG (WebAssembly) |
 | Thư viện ảnh | File trên đĩa + `index.json` trong thư mục dữ liệu của app |
 | Đóng gói | electron-builder → NSIS (Windows), dmg + zip (macOS), AppImage (Linux) |
 | Cập nhật | electron-updater + GitHub Releases |
@@ -55,7 +55,7 @@ npm run dist        # đóng gói bộ cài vào release/
 | --- | --- |
 | `tests/layout.test.ts` | DSL bố cục, tính toạ độ ô, kéo đường chia, toàn bộ bố cục có sẵn không hở / không chồng |
 | `tests/geometry.test.ts`, `tests/imaging.test.ts` | Đặt ảnh trong ô, vùng cắt khi xuất, làm nét, hồ sơ màu JPEG / PNG |
-| `tests/resample.test.ts` | Lanczos3: giữ màu phẳng, trộn trong linear light, không lem màu qua vùng trong suốt |
+| `tests/resample.test.ts` | Resize: giữ màu phẳng, trộn trong gamma sRGB như Lightroom, không lem màu qua vùng trong suốt |
 | `tests/store.test.ts`, `tests/export.test.ts` | Chọn ảnh, undo / redo, nhập ảnh, lưu nháp, luồng xuất file |
 | `tests/library.test.ts` | Thư viện trên đĩa thật (thư mục tạm): nhập, gỡ, file gốc mất, file chỉ mục hỏng |
 | `tests/updates.test.ts` | Các trạng thái tự cập nhật |
@@ -108,7 +108,7 @@ electron/updates.ts    Tự cập nhật (electron-updater)
 electron/preload.ts    Cầu nối window.grido (contextBridge)
 shared/types.ts        Kiểu dữ liệu dùng chung main ↔ giao diện
 src/lib/desktop.ts     Phía giao diện của cầu nối + URL ảnh
-src/lib/imaging/       Worker xử lý ảnh: resize Lanczos3, làm nét, MozJPEG, tạo bản xem trước, xuất ảnh ghép
+src/lib/imaging/       Worker xử lý ảnh: resize bicubic, làm nét, MozJPEG, tạo bản xem trước, xuất ảnh ghép
 src/lib/layout/        Layout engine: DSL, tính toạ độ, generators, registry
 src/components/        UI
 src/store.ts           State toàn app (zustand)
@@ -133,11 +133,16 @@ tests/                 Bộ test (Vitest)
 
 ## Chất lượng ảnh
 
-- **Resize**: Lanczos3 tự viết (`src/lib/imaging/resample.ts`), tính trong không gian ánh sáng tuyến tính (linear light), alpha nhân trước. Không dùng `drawImage` để scale ở bất kỳ bước nào.
+- **Resize**: bicubic Catmull-Rom tự viết (`src/lib/imaging/resample.ts`), trộn trên giá trị sRGB như Lightroom / Photoshop, alpha nhân trước. Không dùng `drawImage` để scale ở bất kỳ bước nào. Cách resize và làm nét được dò cho khớp bản xuất của Lightroom trên ~30 cặp ảnh thật.
 - **Thêm ảnh**: file gốc không bị sao chép, resize hay nén lại. App chỉ tạo một bản xem trước cạnh dài 2560px (JPEG q92) để dàn trang cho mượt, và một thumbnail cho thư viện. Ảnh vốn nhỏ hơn 2560px và nhẹ hơn 5MB thì dùng nguyên byte gốc làm bản xem trước.
-- **Xuất**: mỗi ô được cắt từ **file gốc trên đĩa** ở độ phân giải gốc rồi resize **một lần duy nhất** về đúng kích thước pixel của ô; ghép lên canvas ở toạ độ nguyên nên không có nội suy lần hai. Hệ số 1×–3×.
-- **Làm nét đầu ra** (`sharpen.ts`): unsharp mask bán kính nhỏ sau khi thu nhỏ, 4 mức Tắt / Nhẹ / Chuẩn / Mạnh — tương đương Output Sharpening của Lightroom. Không áp dụng cho ô đang bị phóng to.
-- **JPEG**: mã hoá bằng MozJPEG với màu **4:4:4** (bộ mã hoá có sẵn của Chromium luôn dùng 4:2:0, làm nhoè mép màu bão hoà) và gắn hồ sơ màu sRGB. **PNG** được gắn nhãn sRGB.
+- **Xuất**: mỗi ô được cắt từ **file gốc trên đĩa** ở độ phân giải gốc rồi resize **một lần duy nhất** về đúng kích thước pixel của ô; ghép lên canvas ở toạ độ nguyên nên không có nội suy lần hai. Khung lệch tỉ lệ dưới 1px (ảnh 3:2 vào 2048×1365) thì co giãn vừa khít như Lightroom, không cắt mất hàng ảnh gốc. Hệ số 1×–3×.
+- **Làm nét đầu ra** (`sharpen.ts`): unsharp mask σ 0.6px sau khi thu nhỏ, mạnh nhẹ theo độ sáng (vùng tối và gần trắng gần như không làm nét) như Output Sharpening: Screen của Lightroom. 4 mức Tắt / Thấp / Tiêu chuẩn / Cao, mặc định Cao; quầng sáng ở mép rất gắt được hãm như Lightroom; **Cao khớp Screen · High**, Thấp / Tiêu chuẩn là ước lượng cho Low / Standard. Không áp dụng cho ô bị phóng to hoặc giữ nguyên cỡ; ảnh đã xuất (cạnh dài ≤ 3000px, vd. file 2048px từ Lightroom) chỉ được làm nét thêm một phần để không bị làm nét hai lần. Đo đạc: `docs/superpowers/specs/2026-10-03-chat-luong-xuat-anh.md`.
+- **Không lặng lẽ hạ chất lượng**: ô nào phải dựng từ bản xem trước (không đọc được file gốc) hoặc JPEG phải rơi về 4:2:0 (hết bộ nhớ) thì báo ngay sau khi xuất.
+- **JPEG**: mặc định 100%, mã hoá bằng MozJPEG với màu **4:4:4** (bộ mã hoá có sẵn của Chromium luôn dùng 4:2:0, làm nhoè mép màu bão hoà) và gắn hồ sơ màu sRGB. **PNG** được gắn nhãn sRGB.
+- **EXIF như Lightroom "All Metadata"**: lúc nhập, app đọc EXIF (máy, ống kính, thông số, giờ chụp, GPS, giả lập phim Fuji
+  từ MakerNote) và giữ cùng ảnh trong thư viện; ảnh nhập từ bản cũ được đọc bù ở nền. Xuất một ảnh thì file mang EXIF của
+  ảnh đó, làm sạch như Lightroom (bỏ MakerNote, thumbnail nhúng, cờ xoay; ghi kích thước mới, sRGB); ảnh ghép nhiều ảnh
+  chỉ ghi kích thước, giờ xuất, không gian màu. Không chép XMP (thông số chỉnh của Lightroom). Code: `src/lib/imaging/exif.ts`.
 - Preview và export dùng chung một hàm hình học (`placeImage`, `collageLayout`) nên file xuất ra khớp với những gì thấy trên màn hình.
 
 ## Hiệu năng

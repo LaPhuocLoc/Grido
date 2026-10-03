@@ -20,6 +20,33 @@ export interface Photo {
   locked?: boolean
   /** Bản web: file gốc đã đổi từ lần nhập (hoặc ảnh vừa được nối lại) → bản xem trước cần dựng lại. */
   stale?: boolean
+  /** Thông tin chụp đọc từ EXIF lúc nhập. null = file không có EXIF; không có trường này = chưa đọc (ảnh nhập từ bản cũ). */
+  exif?: PhotoExif | null
+  /** Khối EXIF (TIFF, base64) đã làm sạch như Lightroom, để gắn lại vào file xuất khi ảnh được xuất một mình. */
+  exifData?: string
+}
+
+/** Thông tin chụp của một ảnh, đọc từ EXIF. Trường nào file không ghi thì không có. */
+export interface PhotoExif {
+  make?: string
+  model?: string
+  lens?: string
+  /** Tiêu cự thật và quy đổi 35mm (mm). */
+  focalLength?: number
+  focalLength35?: number
+  fNumber?: number
+  /** Tốc độ màn trập (giây). */
+  exposureTime?: number
+  iso?: number
+  /** Bù sáng (EV). */
+  exposureBias?: number
+  /** Giờ chụp theo đồng hồ máy, dạng ISO: "2026-09-18T21:31:29+09:00" (không có múi giờ nếu máy không ghi). */
+  takenAt?: string
+  artist?: string
+  copyright?: string
+  gps?: { lat: number; lon: number; alt?: number }
+  /** Giả lập phim của Fuji (Classic Chrome, Acros + R…), đọc từ MakerNote — bản xuất từ Lightroom không còn thông tin này. */
+  filmSimulation?: string
 }
 
 /** Một file đã được main process chấp nhận, chờ giao diện tạo bản xem trước rồi đưa vào thư viện. */
@@ -46,6 +73,8 @@ export interface NewPhoto {
   preview: ArrayBuffer | null
   thumb: ArrayBuffer
   thumbType: string
+  exif: PhotoExif | null
+  exifData?: string
 }
 
 export type ThemeSource = 'system' | 'light' | 'dark'

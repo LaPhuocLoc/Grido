@@ -162,6 +162,8 @@ export async function addPhoto(input: NewPhoto): Promise<Photo> {
     createdAt: Date.now(),
     previewExt,
     thumbExt,
+    exif: input.exif,
+    ...(input.exifData && { exifData: input.exifData }),
   }
   entries.unshift(entry)
   await save()

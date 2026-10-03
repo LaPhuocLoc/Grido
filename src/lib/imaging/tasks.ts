@@ -69,10 +69,10 @@ export interface CellJob {
   sharpen: number
 }
 
-/** Dựng một ô ảnh ở đúng kích thước pixel đầu ra. */
-export async function renderCell(job: CellJob): Promise<Raster> {
-  const { buffer } = await submit<{ buffer: ArrayBuffer }>({ kind: 'cell', ...job })
-  return { data: new Uint8ClampedArray(buffer), width: job.width, height: job.height }
+/** Dựng một ô ảnh ở đúng kích thước pixel đầu ra. `fromPreview`: không đọc được file gốc nên đã dùng bản xem trước. */
+export async function renderCell(job: CellJob): Promise<Raster & { fromPreview: boolean }> {
+  const { buffer, fromPreview } = await submit<{ buffer: ArrayBuffer; fromPreview: boolean }>({ kind: 'cell', ...job })
+  return { data: new Uint8ClampedArray(buffer), width: job.width, height: job.height, fromPreview }
 }
 
 /** Mã hoá JPEG bằng MozJPEG, lấy mẫu màu 4:4:4. `quality` 0..1. */

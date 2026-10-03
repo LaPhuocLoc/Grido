@@ -3,6 +3,7 @@ import { persist, type PersistStorage, type StorageValue } from 'zustand/middlew
 import type { ImportCandidate, Photo, StageResult } from '../shared/types'
 import { desktop } from './lib/desktop'
 import { DEFAULT_ADJUST, type CellAdjust } from './lib/geometry'
+import { readExif } from './lib/imaging/exif'
 import { POOL_SIZE, prepareImport } from './lib/imaging/tasks'
 import { countCells, parseLayout } from './lib/layout/dsl'
 import { getLayouts, MAX_PHOTOS } from './lib/layout/registry'
@@ -390,8 +391,8 @@ export const useStore = create<State>()(
       radius: 0,
       bg: '#ffffff',
       exportFormat: 'image/jpeg',
-      exportQuality: 0.95,
-      exportSharpen: 'standard',
+      exportQuality: 1,
+      exportSharpen: 'high',
       theme: 'system',
       leftCollapsed: false,
       panelWidth: PANEL_WIDTH,
@@ -813,9 +814,16 @@ export const useStore = create<State>()(
       storage: lazyStorage(),
       // Số hiệu cấu trúc dữ liệu lưu. Đổi cấu trúc theo cách `merge` bên dưới không tự xử lý được thì tăng số này và
       // chuyển dữ liệu cũ trong `migrate`. Hiện mọi bản cũ (kể cả bản chưa có số hiệu) đều đọc được nguyên trạng.
-      version: 2,
-      // Bản 2: bảng phông chữ mặc định xem dạng danh sách; ai đang để lưới ảnh mẫu từ bản cũ cũng chuyển sang một lần.
-      migrate: (saved, version): Persisted => (version < 2 ? { ...(saved as Persisted), fontView: 'list' } : (saved as Persisted)),
+      version: 3,
+      migrate: (saved, version): Persisted => {
+        let s = saved as Persisted
+        // Bản 2: bảng phông chữ mặc định xem dạng danh sách; ai đang để lưới ảnh mẫu từ bản cũ cũng chuyển sang một lần.
+        if (version < 2) s = { ...s, fontView: 'list' }
+        // Bản 3: làm nét đầu ra được dò lại theo Lightroom nên các mức cũ không còn cùng nghĩa; ai cũng về mặc định mới
+        // (Cao = Screen · High, chất lượng 100%) một lần.
+        if (version < 3) s = { ...s, exportSharpen: 'high', exportQuality: 1 }
+        return s
+      },
       // Lưu cả cài đặt lẫn bản nháp đang ghép, để lần sau mở app làm tiếp được ngay.
       partialize: (s): Persisted => ({
         ...snapshot(s),
@@ -968,7 +976,8 @@ async function importOne({ token }: ImportCandidate): Promise<Photo> {
 let refreshing = false
 /**
  * Bản web: ảnh có file gốc đã bị sửa sau khi nhập (hoặc vừa được nối lại từ file sao lưu) thì dựng lại bản xem trước +
- * thumbnail ở nền, từng ảnh một. Lỗi ở ảnh nào thì bỏ qua ảnh đó, lần mở sau thử lại.
+ * thumbnail ở nền, từng ảnh một. Ảnh nhập từ bản chưa biết đọc EXIF thì đọc bù EXIF từ file gốc (chỉ phần đầu file).
+ * Lỗi ở ảnh nào thì bỏ qua ảnh đó, lần mở sau thử lại.
  */
 async function refreshStale(): Promise<void> {
   const { refresh } = desktop.library
@@ -981,6 +990,17 @@ async function refreshStale(): Promise<void> {
         if (!source) continue
         const { preview, thumb, ...size } = await prepareImport(source)
         const next = await refresh(photo.id, { ...size, preview: preview && (await preview.arrayBuffer()), thumb: await thumb.arrayBuffer(), thumbType: thumb.type })
+        useStore.setState((s) => ({ photos: s.photos.map((p) => (p.id === next.id ? next : p)) }))
+      } catch {
+        // bỏ qua ảnh này
+      }
+    }
+    const { setExif } = desktop.library
+    for (const photo of setExif ? useStore.getState().photos.filter((p) => p.exif === undefined && !p.missing && !p.stale) : []) {
+      try {
+        const [source] = await desktop.images.cellSources(photo)
+        if (!(source instanceof Blob)) continue
+        const next = await setExif!(photo.id, await readExif(source))
         useStore.setState((s) => ({ photos: s.photos.map((p) => (p.id === next.id ? next : p)) }))
       } catch {
         // bỏ qua ảnh này
