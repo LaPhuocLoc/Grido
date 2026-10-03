@@ -21,8 +21,6 @@ import {
 } from 'lucide-react'
 import { memo, useEffect, useMemo, useState, type CSSProperties, type ReactNode } from 'react'
 import { desktop } from '../lib/desktop'
-import { placeImage } from '../lib/geometry'
-import { collageLayout } from '../lib/imaging/exportCollage'
 import { computeLayout } from '../lib/layout/compute'
 import { countCells, parseLayout } from '../lib/layout/dsl'
 import { getLayouts, layoutLook, MAX_PHOTOS, suggestLayouts } from '../lib/layout/registry'
@@ -40,15 +38,15 @@ import {
   type Orientation,
   type Platform,
 } from '../lib/presets'
-import { buildSpec, canExportMany, exportToFile, useExportProgress } from '../lib/useCollage'
-import { canvasSize, originalCanvasOf, pctToPx, currentDesign, photosIn, slotAspects, useStore, type ExportFormat, type ExportSharpen } from '../store'
+import { canExportMany, exportToFile, useExportProgress } from '../lib/useCollage'
+import { canvasSize, originalCanvasOf, pctToPx, currentDesign, photosIn, PLAIN_STYLE, slotAspects, useStore, type ExportFormat, type ExportSharpen } from '../store'
 import { openBatchExport, useExportableCount } from './BatchExport'
 import { BrandIcon } from './BrandIcon'
 import { FontPicker } from './FontPicker'
 import { PresetArt } from './PresetArt'
 import { styleTexts } from './TextLayer'
 import { TemplatePicker } from './TemplatePicker'
-import { Button, cx, Section, Segmented, Slider } from './ui'
+import { Button, cx, EyeDropperButton, Section, Segmented, Slider } from './ui'
 
 /* ───────────── Khung ảnh ───────────── */
 
@@ -568,6 +566,8 @@ export function StylePanel() {
   const { margin, gap, radius, bg, set } = state
   const { width, height } = canvasSize(state)
   const px = (pct: number) => `${pctToPx(pct, width, height)} px`
+  // Ảnh sát nhau, không viền, không bo góc, nền trắng.
+  const plain = margin === PLAIN_STYLE.margin && gap === PLAIN_STYLE.gap && radius === PLAIN_STYLE.radius && bg.toLowerCase() === PLAIN_STYLE.bg
 
   return (
     <div className="space-y-6">
@@ -608,8 +608,18 @@ export function StylePanel() {
               className="absolute inset-0 size-full cursor-pointer opacity-0"
             />
           </label>
+          <EyeDropperButton onPick={(color) => set({ bg: color })} />
         </div>
       </Section>
+
+      <Button
+        data-tip="Viền, khoảng cách và bo góc về 0, nền trắng"
+        disabled={plain}
+        className="h-9 w-full text-[13px]"
+        onClick={() => set(PLAIN_STYLE)}
+      >
+        Đặt lại
+      </Button>
 
       <p className="rounded-2xl bg-sand p-4 text-[13px] leading-relaxed text-soft">
         <b className="text-ink">Mẹo:</b> bấm vào một ảnh trong khung để zoom, xoay, lật hoặc thay ảnh khác. Kéo
@@ -687,12 +697,6 @@ const FORMATS: { value: ExportFormat; label: string }[] = [
   { value: 'image/png', label: 'PNG' },
 ]
 
-/** Một dòng ngắn dưới bảng cài đặt: định dạng này hợp cho việc gì. */
-const FORMAT_NOTES: Record<ExportFormat, string> = {
-  'image/jpeg': 'Đăng mạng xã hội · sRGB, giữ EXIF như Lightroom',
-  'image/png': 'Không nén mất dữ liệu · file nặng',
-}
-
 const SHARPEN_LEVELS: { value: ExportSharpen; label: string }[] = [
   { value: 'off', label: 'Tắt' },
   { value: 'low', label: 'Thấp' },
@@ -737,20 +741,6 @@ export function ExportPanel({ onLeave }: { onLeave?: () => void } = {}) {
   const batch = useExportProgress((s) => s.batch)
   const exportable = useExportableCount()
   const size = canvasSize(state)
-
-  // Đếm số ảnh sẽ bị phóng to quá độ phân giải gốc ở kích thước khung hiện tại.
-  const upscaled = useMemo(() => {
-    const spec = buildSpec(state)
-    if (!spec) return 0
-    return collageLayout(spec).cells.filter((rect, i) => {
-      const cell = spec.cells[i]
-      if (!cell) return false
-      // Còn file gốc trên đĩa thì tính theo độ phân giải gốc, không phải bản xem trước.
-      const { photo } = cell
-      const [width, height] = photo.missing ? [photo.width, photo.height] : [photo.sourceWidth, photo.sourceHeight]
-      return placeImage(width, height, rect.w, rect.h, cell.adjust).scale > 1.08
-    }).length
-  }, [state])
 
   // Ảnh mất file gốc (bị dời / xoá) phải xuất từ bản xem trước. Ảnh chỉ đang chờ trình duyệt cho phép đọc thì không
   // tính: lúc bấm xuất app sẽ hỏi.
@@ -798,18 +788,12 @@ export function ExportPanel({ onLeave }: { onLeave?: () => void } = {}) {
           <Segmented small value={exportSharpen} options={SHARPEN_LEVELS} onChange={(v) => set({ exportSharpen: v })} />
         </ExportRow>
       </div>
-      <p className="-mt-1.5 px-1 text-xs leading-relaxed text-muted">{FORMAT_NOTES[exportFormat]}</p>
 
-      {(upscaled > 0 || missing > 0 || emptyCells > 0) && (
+      {(missing > 0 || emptyCells > 0) && (
         <ul className="space-y-1.5">
           {emptyCells > 0 && (
             <ExportWarning tip="Ô chưa có ảnh sẽ chỉ có màu nền của khung. Bấm vào ô trống rồi chọn ảnh trong thư viện, hoặc chọn bố cục ít ô hơn.">
               Còn {emptyCells} ô trống
-            </ExportWarning>
-          )}
-          {upscaled > 0 && (
-            <ExportWarning tip="Ảnh bị phóng to quá độ phân giải của chính nó nên có thể hơi mềm. Giảm zoom ảnh trong ô hoặc chọn khung nhỏ hơn.">
-              {upscaled} ảnh bị phóng to quá cỡ gốc
             </ExportWarning>
           )}
           {missing > 0 && (

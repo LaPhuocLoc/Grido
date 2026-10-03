@@ -349,6 +349,12 @@ const hasCollage = (s: Pick<State, 'tree' | 'selected'>) => !!s.tree && s.select
 const BLANK = { selected: [], layoutId: null, tree: null, adjust: {}, texts: [], activeCell: null, activeText: null, editingText: null }
 
 /**
+ * Viền mặc định: ảnh sát nhau, không viền ngoài, không bo góc, nền trắng. Dùng cho lần mở app đầu tiên, cho mỗi thiết kế
+ * mới (viền của thiết kế trước không đi theo) và cho nút "Đặt lại" ở mục Viền.
+ */
+export const PLAIN_STYLE = { margin: 0, gap: 0, radius: 0, bg: '#ffffff' }
+
+/**
  * Thiết kế còn thứ đáng giữ: có ảnh, hoặc đã bỏ hết ảnh nhưng còn chữ (khung, viền, chữ vẫn nguyên, chỉ chờ chọn ảnh khác).
  * Bố cục toàn ô trống thì chưa phải thứ đáng giữ.
  * Bỏ hết ảnh không làm mất thiết kế: nó vẫn đang mở cho tới khi người dùng tạo / mở thiết kế khác hoặc tự tay xoá.
@@ -486,10 +492,7 @@ export const useStore = create<State>()(
       presetId: DEFAULT_PRESET_ID,
       customW: 1080,
       customH: 1350,
-      margin: 2,
-      gap: 1.2,
-      radius: 0,
-      bg: '#ffffff',
+      ...PLAIN_STYLE,
       exportFormat: 'image/jpeg',
       exportQuality: 1,
       exportSharpen: 'off',
@@ -747,11 +750,12 @@ export const useStore = create<State>()(
         if (!put) {
           // Có thể còn sót một thiết kế trống trơn bên dưới (vừa chọn ảnh rồi bỏ, hoặc bố cục toàn ô trống): dọn luôn.
           if (s.currentDesignId || s.tree) load({ ...BLANK, currentDesignId: null, designs: withoutEmpty(s.designs, null) })
-          set({ tab: 'library', leftCollapsed: false })
+          set({ ...PLAIN_STYLE, tab: 'library', leftCollapsed: false })
           return s.toast('Khung đang trống sẵn. Chọn ảnh trong thư viện để bắt đầu thiết kế mới.')
         }
         const designs = withoutEmpty(s.designs, null)
-        load({ ...BLANK, currentDesignId: null, designs, tab: 'library', leftCollapsed: false })
+        // Thiết kế mới bắt đầu với viền mặc định, không mang viền / màu nền của thiết kế vừa cất sang.
+        load({ ...BLANK, ...PLAIN_STYLE, currentDesignId: null, designs, tab: 'library', leftCollapsed: false })
         // Nói rõ thiết kế vừa rời khỏi khung đã đi đâu, kèm đường quay lại.
         if (put && designs.includes(put))
           s.toast(`Đã cất “${designTitle(put.name, put.snapshot.texts)}” vào mục Thiết kế. Chọn ảnh để bắt đầu thiết kế mới.`, 'success', {
@@ -985,7 +989,8 @@ export const useStore = create<State>()(
         if (ids.length !== SAMPLE_COLLAGE.cells.length || s.selected.length) return
         s.replaceSelection(ids)
         const size = SIZE_PRESETS.find((p) => p.id === SAMPLE_COLLAGE.preset)
-        set({ layoutId: SAMPLE_COLLAGE.layout, tree: parseLayout(SAMPLE_COLLAGE.layout), ...(size && { presetId: size.id }) })
+        // Ảnh ghép mẫu có viền trắng mảnh để người mới thấy luôn mục Viền làm được gì.
+        set({ layoutId: SAMPLE_COLLAGE.layout, tree: parseLayout(SAMPLE_COLLAGE.layout), ...(size && { presetId: size.id }), ...PLAIN_STYLE, margin: 2, gap: 1.2 })
         const group = `g${Date.now().toString(36)}${seq++}`
         set({ texts: SAMPLE_COLLAGE.texts.map((t) => normalizeText({ ...t, id: `t${Date.now().toString(36)}${seq++}`, group })) })
       },

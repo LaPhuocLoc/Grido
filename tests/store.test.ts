@@ -114,7 +114,7 @@ describe('undo / redo', () => {
     pause()
     get().set({ gap: 5 })
     get().undo()
-    expect(get()).toMatchObject({ gap: 1.2, selected: ['p1', 'p2'] })
+    expect(get()).toMatchObject({ gap: 0, selected: ['p1', 'p2'] })
     get().undo()
     expect(get().selected).toEqual(['p1'])
     get().redo()
@@ -130,7 +130,7 @@ describe('undo / redo', () => {
       vi.advanceTimersByTime(50)
     }
     get().undo()
-    expect(get().gap).toBe(1.2)
+    expect(get().gap).toBe(0)
   })
 
   it('does not record changes that are not part of the collage', () => {
@@ -1094,6 +1094,19 @@ describe('designs', () => {
     get().toggleSelect('p3')
     expect(get().currentDesignId).not.toBe(first)
     expect(titles()).toEqual(['p3', 'p1+p2'])
+  })
+
+  it('starts with no border at all, and gives every new design that plain style again', () => {
+    const plain = { margin: 0, gap: 0, radius: 0, bg: '#ffffff' }
+    expect(get()).toMatchObject(plain)
+    get().toggleSelect('p1')
+    get().set({ margin: 3, gap: 2, radius: 4, bg: '#2b2622' })
+    const first = get().currentDesignId!
+    get().newDesign()
+    expect(get()).toMatchObject(plain)
+    // Thiết kế vừa cất vẫn giữ viền của nó.
+    get().openDesign(first)
+    expect(get()).toMatchObject({ margin: 3, gap: 2, radius: 4, bg: '#2b2622' })
   })
 
   it('switches between designs, restoring each one exactly and resetting undo', () => {

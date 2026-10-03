@@ -53,7 +53,7 @@ import {
 import { moveGroup, rotateGroup, scaleGroup } from '../lib/textGroup'
 import { selectionOf, styleTargets, useStore } from '../store'
 import type { Guide } from './Stage'
-import { cx, IconButton } from './ui'
+import { cx, EyeDropperButton, IconButton } from './ui'
 
 /** Khoảng (px màn hình) mà chữ tự hít vào giữa khung. */
 const SNAP = 6
@@ -1054,6 +1054,7 @@ export function TextToolbar({ item, unit }: { item: TextItem; unit: number }) {
                     className="absolute inset-0 size-full cursor-pointer opacity-0"
                   />
                 </label>
+                <EyeDropperButton className="!size-8" onPick={(color) => set({ color })} />
                 <HexInput value={item.color} onChange={(color) => set({ color })} />
               </div>
             </Popover>

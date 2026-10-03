@@ -1,4 +1,4 @@
-import { CircleAlert, CircleCheck, Info, Moon, Sun } from 'lucide-react'
+import { CircleAlert, CircleCheck, Info, Moon, Pipette, Sun } from 'lucide-react'
 import { useEffect, useLayoutEffect, useRef, useState, type ButtonHTMLAttributes, type CSSProperties, type MouseEvent, type ReactNode } from 'react'
 import { createPortal, flushSync } from 'react-dom'
 import { isDark } from '../lib/theme'
@@ -56,6 +56,39 @@ export function IconButton({
       )}
     >
       {children}
+    </button>
+  )
+}
+
+declare global {
+  interface Window {
+    /** EyeDropper API của Chromium: người dùng bấm vào một điểm bất kỳ trên màn hình để lấy màu ở đó. */
+    EyeDropper?: new () => { open: () => Promise<{ sRGBHex: string }> }
+  }
+}
+
+/**
+ * Nút hút màu: bấm rồi chỉ vào một điểm trên ảnh (hay bất cứ đâu trên màn hình) để lấy đúng màu ở đó. Trình duyệt không
+ * có EyeDropper API thì nút không hiện.
+ */
+export function EyeDropperButton({ onPick, className }: { onPick: (color: string) => void; className?: string }) {
+  const Dropper = window.EyeDropper
+  if (!Dropper) return null
+  return (
+    <button
+      type="button"
+      aria-label="Hút màu từ ảnh"
+      data-tip="Hút màu từ ảnh"
+      className={cx('grid size-9 shrink-0 place-items-center rounded-full border border-line text-soft transition-colors hover:bg-sand hover:text-ink', className)}
+      onClick={() =>
+        void new Dropper()
+          .open()
+          .then(({ sRGBHex }) => /^#[0-9a-f]{6}$/i.test(sRGBHex) && onPick(sRGBHex.toLowerCase()))
+          // Người dùng bấm Esc để thôi hút màu: không phải lỗi.
+          .catch(() => {})
+      }
+    >
+      <Pipette className="size-4" />
     </button>
   )
 }

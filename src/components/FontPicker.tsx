@@ -6,7 +6,7 @@ import { desktop } from '../lib/desktop'
 import { useStore } from '../store'
 import { cx } from './ui'
 
-/** Bản web tải font qua mạng: font Nhật / Hàn nặng 0,5–2 MB mỗi file nên chỉ tải khi người dùng thật sự chọn. */
+/** Bản web tải font qua mạng: font Nhật / Hàn nặng 0,5–2 MB mỗi file nên không tải sẵn khi con trỏ chỉ lướt qua (dừng hẳn trên font mới tải để xem thử). */
 const heavy = (font: FontInfo) => desktop.platform === 'web' && !isSystemFont(font.id) && !font.langs.includes('vi')
 
 // Tải sẵn file font khi rê chuột tới, để lúc bấm chọn chữ trên ảnh đổi ngay.
@@ -51,6 +51,8 @@ const GRID_COLUMNS = 'repeat(auto-fill, minmax(max(130px, calc((100% - 32px) / 5
 const LIST_COLUMNS = 'repeat(auto-fill, minmax(250px, 1fr))'
 /** Con trỏ phải dừng trên một font bấy lâu (ms) thì dòng chữ trên ảnh mới đổi tạm sang font đó. */
 const CANVAS_PREVIEW_DELAY = 90
+/** Font nặng (Nhật / Hàn ở bản web): dừng lâu hơn mới tải file về để xem thử, lướt ngang qua thì không tải gì. */
+const HEAVY_PREVIEW_DELAY = 280
 
 export const chip = (on: boolean) =>
   cx(
@@ -298,9 +300,22 @@ export function FontPicker({
     if (id === previewing.current) return
     previewing.current = id
     clearTimeout(previewTimer.current)
-    // Font nặng (bản web) không xem thử khi rê chuột: xem thử là phải tải cả file.
-    if (id === null || heavy(fontInfo(id))) return onPreview?.(null)
-    previewTimer.current = window.setTimeout(() => onPreview?.(id), CANVAS_PREVIEW_DELAY)
+    if (id === null) return onPreview?.(null)
+    const font = fontInfo(id)
+    if (!heavy(font)) {
+      previewTimer.current = window.setTimeout(() => onPreview?.(id), CANVAS_PREVIEW_DELAY)
+      return
+    }
+    // Font nặng: tải xong file rồi mới đổi chữ trên ảnh (đổi trước thì chữ hiện bằng font dự phòng trong lúc chờ). Con
+    // trỏ đã sang font khác trong lúc tải thì thôi. File tải rồi được giữ lại nên lần sau hiện ngay.
+    previewTimer.current = window.setTimeout(
+      () =>
+        void document.fonts
+          .load(`500 16px ${font.family}`)
+          .then(() => previewing.current === id && onPreview?.(id))
+          .catch(() => {}),
+      HEAVY_PREVIEW_DELAY,
+    )
   }
   useEffect(
     () => () => {
