@@ -2,14 +2,15 @@ import { Check, Images, X } from 'lucide-react'
 import { useEffect, useMemo, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { create } from 'zustand'
-import { designTitle, frameLabel } from '../lib/designs'
+import { designTitle, sizeLabel } from '../lib/designs'
 import { buildSpec, exportDesigns, hasPhotos } from '../lib/useCollage'
-import { canvasSize, useStore, type ExportFormat } from '../store'
+import { outputSize, useStore, type ExportFormat } from '../store'
 import { DesignThumb, THUMB_H } from './Designs'
 import { Button, cx } from './ui'
 
-const useBatchExport = create<{ open: boolean }>(() => ({ open: false }))
-export const openBatchExport = () => useBatchExport.setState({ open: true })
+const useBatchExport = create<{ open: boolean; only: string[] | null }>(() => ({ open: false, only: null }))
+/** Mở hộp xuất nhiều thiết kế. `only`: chỉ tích sẵn những thiết kế này (vd. loạt ảnh vừa đóng khung) thay vì tất cả. */
+export const openBatchExport = (only?: string[]) => useBatchExport.setState({ open: true, only: only ?? null })
 const close = () => useBatchExport.setState({ open: false })
 
 const FORMAT_NAME: Record<ExportFormat, string> = { 'image/jpeg': 'JPEG', 'image/png': 'PNG' }
@@ -36,10 +37,11 @@ export function BatchExportDialog() {
   const ready = useMemo(() => designs.filter((d) => hasPhotos(buildSpec({ ...d.snapshot, photos }))), [designs, photos])
   const [picked, setPicked] = useState<Set<string>>(new Set())
 
-  // Mỗi lần mở: chọn sẵn tất cả.
+  // Mỗi lần mở: chọn sẵn tất cả, hoặc đúng những thiết kế được yêu cầu.
   useEffect(() => {
     if (!open) return
-    setPicked(new Set(ready.map((d) => d.id)))
+    const { only } = useBatchExport.getState()
+    setPicked(new Set(ready.map((d) => d.id).filter((id) => !only || only.includes(id))))
     const key = (e: KeyboardEvent) => e.key === 'Escape' && close()
     window.addEventListener('keydown', key)
     return () => window.removeEventListener('keydown', key)
@@ -99,7 +101,7 @@ export function BatchExportDialog() {
           {ready.map((d) => {
             const on = picked.has(d.id)
             const title = designTitle(d.name, d.snapshot.texts)
-            const size = canvasSize(d.snapshot)
+            const size = outputSize(d.snapshot)
             return (
               <li key={d.id}>
                 <button
@@ -128,7 +130,7 @@ export function BatchExportDialog() {
                     </span>
                   </span>
                   <span className="block truncate px-0.5 pt-1.5 text-[13px] font-semibold text-ink">{title}</span>
-                  <span className="block truncate px-0.5 text-[11px] text-muted">{frameLabel(d.snapshot.presetId, size.width, size.height)}</span>
+                  <span className="block truncate px-0.5 text-[11px] text-muted">{sizeLabel(d.snapshot.presetId, size.width, size.height)}</span>
                 </button>
               </li>
             )

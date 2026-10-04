@@ -2,7 +2,10 @@ import { create } from 'zustand'
 import { persist, type PersistStorage, type StorageValue } from 'zustand/middleware'
 import type { ImportCandidate, Photo, StageResult } from '../shared/types'
 import { desktop } from './lib/desktop'
-import { DEFAULT_ADJUST, type CellAdjust } from './lib/geometry'
+import { frameGeometry, remapTexts, type FrameGeometry, type Placement } from './lib/frames/geometry'
+import type { FrameValues } from './lib/frames/info'
+import { FRAMES, frameTemplate, type FrameTemplate } from './lib/frames/templates'
+import { DEFAULT_ADJUST, isSideways, type CellAdjust } from './lib/geometry'
 import { readExif } from './lib/imaging/exif'
 import { POOL_SIZE, prepareImport } from './lib/imaging/tasks'
 import { countCells, parseLayout } from './lib/layout/dsl'
@@ -73,6 +76,23 @@ const TOAST_EXIT_MS = 220
 
 export type Theme = 'system' | 'light' | 'dark'
 
+/** Khung thông số đang chọn cho thiết kế một ảnh (lib/frames). */
+export interface FrameChoice {
+  /** Id mẫu khung. */
+  id: string
+  /** Độ dày: bội số của số đo trong mẫu (1 = đúng như mẫu). */
+  scale: number
+  /** Chữ người dùng tự gõ thay cho thông tin đọc từ ảnh. */
+  values: FrameValues
+  /** Ảnh mà `values` được gõ cho: đổi sang ảnh khác thì những chữ đó không còn áp dụng (xem `frameValues`). */
+  photo?: string | null
+  /** Màu chữ: tự động theo mẫu và màu khung, hoặc ép đen / trắng cho hợp với ảnh. */
+  ink?: FrameInk
+  /** Cỡ cố định: ảnh lấp đầy phần còn lại (bị cắt bớt) thay vì nằm vừa khít bên trong. */
+  fill?: boolean
+}
+export type FrameInk = 'auto' | 'dark' | 'light'
+
 export type ExportFormat = 'image/jpeg' | 'image/png'
 const EXPORT_FORMATS: ExportFormat[] = ['image/jpeg', 'image/png']
 /** Mức làm nét đầu ra khi xuất (bù phần chi tiết mềm đi sau khi thu nhỏ). */
@@ -87,6 +107,11 @@ interface Settings {
   gap: number
   radius: number
   bg: string
+  /**
+   * Khung thông số; null = không dùng. Chỉ có hiệu lực khi thiết kế có đúng một ảnh (xem `activeFrame`): ghép thêm ảnh
+   * thì khung tạm nghỉ, bỏ bớt còn một ảnh thì khung trở lại.
+   */
+  frame: FrameChoice | null
   exportFormat: ExportFormat
   exportQuality: number
   exportSharpen: ExportSharpen
@@ -118,6 +143,7 @@ const EDIT_KEYS = [
   'gap',
   'radius',
   'bg',
+  'frame',
   'presetId',
   'customW',
   'customH',
@@ -278,6 +304,20 @@ interface State extends Settings {
   setEditingText: (id: string | null) => void
   undo: () => void
   redo: () => void
+  /** Chọn mẫu khung thông số (null = bỏ khung). Chữ đang có trên ảnh được giữ đúng chỗ của nó trên ảnh. */
+  setFrame: (id: string | null) => void
+  /** Đổi độ dày khung, hoặc chữ người dùng tự gõ thay cho thông tin đọc từ ảnh. */
+  updateFrame: (patch: Partial<Pick<FrameChoice, 'scale' | 'values' | 'ink' | 'fill'>>) => void
+  /**
+   * Đổi tỉ lệ rộng / cao của file xuất ngay trong mục Khung, giữ độ phân giải của ảnh (null = theo ảnh gốc). Muốn một cỡ
+   * cụ thể của mạng xã hội thì chọn ở mục Cỡ.
+   */
+  setFrameRatio: (ratio: number | null) => void
+  /**
+   * Đóng khung nhiều ảnh một lượt: mỗi ảnh thành một thiết kế riêng với khung, màu và cỡ đang dùng (chưa dùng khung nào
+   * thì lấy mẫu đầu tiên). Thiết kế đang mở giữ nguyên. Trả về id các thiết kế vừa tạo.
+   */
+  frameMany: (ids: string[]) => string[]
   set: (patch: Partial<Settings>) => void
   /** Người dùng vừa làm được (hoặc đóng) một gợi ý thao tác: không hiện lại nữa. */
   markHint: (hint: Hint) => void
@@ -349,10 +389,10 @@ const hasCollage = (s: Pick<State, 'tree' | 'selected'>) => !!s.tree && s.select
 const BLANK = { selected: [], layoutId: null, tree: null, adjust: {}, texts: [], activeCell: null, activeText: null, editingText: null }
 
 /**
- * Viền mặc định: ảnh sát nhau, không viền ngoài, không bo góc, nền trắng. Dùng cho lần mở app đầu tiên, cho mỗi thiết kế
+ * Viền mặc định: ảnh sát nhau, không viền ngoài, không bo góc, nền trắng, không khung thông số. Dùng cho lần mở app đầu tiên, cho mỗi thiết kế
  * mới (viền của thiết kế trước không đi theo) và cho nút "Đặt lại" ở mục Viền.
  */
-export const PLAIN_STYLE = { margin: 0, gap: 0, radius: 0, bg: '#ffffff' }
+export const PLAIN_STYLE = { margin: 0, gap: 0, radius: 0, bg: '#ffffff', frame: null }
 
 /**
  * Thiết kế còn thứ đáng giữ: có ảnh, hoặc đã bỏ hết ảnh nhưng còn chữ (khung, viền, chữ vẫn nguyên, chỉ chờ chọn ảnh khác).
@@ -385,7 +425,7 @@ function pruneSnapshot(snap: Snapshot, alive: (id: string) => boolean): Snapshot
   const selected = snap.selected.filter(kept)
   const adjust = Object.fromEntries(Object.entries(snap.adjust).filter(([id]) => alive(id)))
   if (!selected.length) return { ...snap, selected, adjust, layoutId: null, tree: null }
-  const layoutId = getLayouts(selected.length, frameAspect(snap))[0].id
+  const layoutId = getLayouts(selected.length, canvasAspect(snap))[0].id
   return { ...snap, selected, adjust, layoutId, tree: parseLayout(layoutId) }
 }
 
@@ -429,7 +469,7 @@ function freshSelection(state: State, ids: string[]): Partial<State> {
   const frame = { presetId: state.presetId, customW: state.customW, customH: state.customH }
   if (!ids.length) return { ...next, ...frame }
   // Bố cục phải hợp với khung được giữ lại, không phải khung "Ảnh gốc" vừa tính tạm ở trên.
-  const layoutId = defaultLayout(slotAspects(state.photos, ids), frameAspect(frame))
+  const layoutId = defaultLayout(slotAspects(state.photos, ids), canvasAspect(frame))
   return { ...next, ...frame, layoutId, tree: parseLayout(layoutId) }
 }
 
@@ -449,7 +489,7 @@ function withSelection(state: State, selected: Slot[]): Partial<State> {
   if (selected.length === state.selected.length && state.tree) return { selected, activeCell: null }
   // Bản ghép mới bắt đầu bằng khung đúng tỉ lệ / độ phân giải gốc của ảnh đầu tiên.
   const size = state.selected.length === 0 ? originalSize(state, photosIn(selected)[0]) : {}
-  const layoutId = defaultLayout(slotAspects(state.photos, selected), frameAspect({ ...state, ...size }))
+  const layoutId = defaultLayout(slotAspects(state.photos, selected), canvasAspect({ ...state, ...size }))
   return { selected, layoutId, tree: parseLayout(layoutId), activeCell: null, ...size }
 }
 
@@ -751,7 +791,7 @@ export const useStore = create<State>()(
           // Có thể còn sót một thiết kế trống trơn bên dưới (vừa chọn ảnh rồi bỏ, hoặc bố cục toàn ô trống): dọn luôn.
           if (s.currentDesignId || s.tree) load({ ...BLANK, currentDesignId: null, designs: withoutEmpty(s.designs, null) })
           set({ ...PLAIN_STYLE, tab: 'library', leftCollapsed: false })
-          return s.toast('Khung đang trống sẵn. Chọn ảnh trong thư viện để bắt đầu thiết kế mới.')
+          return s.toast('Vùng làm việc đang trống sẵn. Chọn ảnh trong thư viện để bắt đầu thiết kế mới.')
         }
         const designs = withoutEmpty(s.designs, null)
         // Thiết kế mới bắt đầu với viền mặc định, không mang viền / màu nền của thiết kế vừa cất sang.
@@ -840,7 +880,7 @@ export const useStore = create<State>()(
       randomLayout: () => {
         const s = get()
         // Rút trong những bố cục đang bày ở mục Bố cục: gợi ý theo ảnh và danh sách của khung hiện tại.
-        const frame = frameAspect(s)
+        const frame = canvasAspect(s)
         const options = [...suggestLayouts(slotAspects(s.photos, s.selected), frame), ...getLayouts(s.selected.length, frame)].filter((l) => l.id !== s.layoutId)
         if (options.length) s.setLayout(options[Math.floor(Math.random() * options.length)].id)
       },
@@ -913,7 +953,7 @@ export const useStore = create<State>()(
       },
 
       insertTemplate: (template) => {
-        const { width, height } = canvasSize(get())
+        const { width, height } = outputSize(get())
         const placed = placeTemplate(template, width, height)
         if (!placed.length) return
         const group = placed.length > 1 ? `g${Date.now().toString(36)}${seq++}` : null
@@ -962,6 +1002,69 @@ export const useStore = create<State>()(
 
       setEditingText: (editingText) =>
         set(editingText === null ? { editingText } : { editingText, soloText: editingText, activeText: editingText, activeCell: null, tab: 'text' }),
+
+      setFrame: (id) => {
+        const s = get()
+        const template = id === null ? null : frameTemplate(id)
+        if (!template) return set(reframe(s, null))
+        const previous = s.frame && frameTemplate(s.frame.id)
+        // Màu khung đi theo mẫu, trừ khi người dùng đã tự chọn màu khác cho khung đang dùng.
+        const recolour = !previous || s.bg.toLowerCase() === previous.bg
+        set({ ...reframe(s, { ...s.frame, id: template.id, scale: s.frame?.scale ?? 1, values: s.frame?.values ?? {} }), ...(recolour && { bg: template.bg }) })
+      },
+
+      updateFrame: (patch) => {
+        const s = get()
+        if (!s.frame) return
+        // Chữ gõ tay thuộc về ảnh đang mở: gõ cho ảnh khác thì bắt đầu lại từ thông tin của ảnh đó.
+        const typed = patch.values ? { photo: s.selected[0] ?? null } : {}
+        set(reframe(s, { ...s.frame, ...patch, ...typed }))
+      },
+
+      setFrameRatio: (ratio) => {
+        const s = get()
+        const frame = activeFrame(s)
+        const photo = s.photos.find((p) => p.id === s.selected[0])
+        if (!frame || !photo) return
+        if (ratio === null) return s.applyOriginalSize()
+        // Lấy file khi theo ảnh gốc rồi nới cạnh còn thiếu cho đủ tỉ lệ: ảnh gần như không phải thu nhỏ.
+        const loose = frameGeometry(frame.template, frame.choice.scale, originalCanvasOf(photo), false, 1)
+        const width = Math.max(loose.width, loose.height * ratio)
+        const fit = Math.min(1, MAX_CANVAS / Math.max(width, width / ratio))
+        set({ presetId: CUSTOM_PRESET_ID, customW: Math.round(width * fit), customH: Math.round((width / ratio) * fit) })
+      },
+
+      frameMany: (ids) => {
+        const s = get()
+        const frame: FrameChoice = s.frame ? { ...s.frame, values: {}, photo: null } : { id: FRAMES[0].id, scale: 1, values: {} }
+        const made = ids.flatMap((id): Design[] => {
+          const photo = s.photos.find((p) => p.id === id)
+          if (!photo) return []
+          // Cỡ đang theo ảnh gốc thì mỗi thiết kế theo ảnh của nó; cỡ cố định thì dùng chung.
+          const original = originalCanvasOf(photo)
+          const size =
+            s.presetId === ORIGINAL_PRESET_ID
+              ? { presetId: ORIGINAL_PRESET_ID, customW: original.width, customH: original.height }
+              : { presetId: s.presetId, customW: s.customW, customH: s.customH }
+          const layoutId = defaultLayout(slotAspects(s.photos, [id]), canvasAspect(size))
+          const snap: Snapshot = {
+            selected: [id],
+            layoutId,
+            tree: parseLayout(layoutId),
+            adjust: {},
+            texts: [],
+            margin: 0,
+            gap: 0,
+            radius: s.radius,
+            bg: s.frame ? s.bg : FRAMES[0].bg,
+            frame,
+            ...size,
+          }
+          return [{ id: designId(), name: null, updatedAt: Date.now(), snapshot: snap }]
+        })
+        if (made.length) set({ designs: [...made, ...s.designs] })
+        return made.map((d) => d.id)
+      },
 
       undo: () => step('past', 'future'),
       redo: () => step('future', 'past'),
@@ -1037,6 +1140,7 @@ export const useStore = create<State>()(
         gap: s.gap,
         radius: s.radius,
         bg: s.bg,
+        frame: s.frame,
         exportFormat: s.exportFormat,
         exportQuality: s.exportQuality,
         exportSharpen: s.exportSharpen,
@@ -1069,7 +1173,11 @@ export const useStore = create<State>()(
           // WebP không còn là định dạng xuất (kể cả trong file sao lưu cũ).
           ...(!EXPORT_FORMATS.includes(persisted.exportFormat as ExportFormat) && { exportFormat: current.exportFormat }),
           texts: (persisted.texts ?? []).map(normalizeText),
-          designs: (persisted.designs ?? []).map((d) => ({ ...d, snapshot: { ...d.snapshot, texts: d.snapshot.texts.map(normalizeText) } })),
+          // Thiết kế lưu từ bản chưa có khung thông số: coi như không khung, kẻo mở lên lại dính khung của thiết kế đang mở.
+          designs: (persisted.designs ?? []).map((d) => ({
+            ...d,
+            snapshot: { ...d.snapshot, texts: d.snapshot.texts.map(normalizeText), frame: d.snapshot.frame ?? null },
+          })),
         }
       },
     },
@@ -1303,8 +1411,72 @@ export function canvasSize(s: Pick<State, 'presetId' | 'customW' | 'customH'>): 
   return { width: fit(s.customW), height: fit(s.customH) }
 }
 
+type FrameSource = Pick<State, 'presetId' | 'customW' | 'customH' | 'frame' | 'selected'> & Partial<Pick<State, 'photos' | 'adjust'>>
+
+/** Khung thông số đang có hiệu lực: thiết kế phải có đúng một ô và ô đó có ảnh. */
+export function activeFrame(s: Pick<State, 'frame' | 'selected'>): { choice: FrameChoice; template: FrameTemplate } | null {
+  if (!s.frame || s.selected.length !== 1 || s.selected[0] === null) return null
+  const template = frameTemplate(s.frame.id)
+  return template && { choice: s.frame, template }
+}
+
+/**
+ * Khung thông số dàn quanh ảnh ở hệ số `scale` (1 = cỡ xuất); null nếu không có khung nào đang có hiệu lực. Cỡ "Ảnh gốc"
+ * thì file xuất nở thêm phần lề, cỡ khác thì ảnh nằm vừa bên trong (cần `photos` để biết tỉ lệ ảnh).
+ */
+export function frameLayout(s: FrameSource, scale = 1): (FrameGeometry & { choice: FrameChoice; template: FrameTemplate }) | null {
+  const frame = activeFrame(s)
+  if (!frame) return null
+  const base = canvasSize(s)
+  const photo = s.photos?.find((p) => p.id === s.selected[0])
+  const sideways = !!photo && isSideways({ ...DEFAULT_ADJUST, ...s.adjust?.[photo.id] })
+  const aspect = !photo ? base.width / base.height : sideways ? photo.height / photo.width : photo.width / photo.height
+  const size = { width: Math.round(base.width * scale), height: Math.round(base.height * scale) }
+  return { ...frame, ...frameGeometry(frame.template, frame.choice.scale, size, s.presetId !== ORIGINAL_PRESET_ID, aspect, frame.choice.fill) }
+}
+
+/** Chữ người dùng đã gõ cho ảnh đang nằm trong khung; gõ cho ảnh khác thì không tính. */
+export function frameValues(s: Pick<State, 'frame' | 'selected'>): FrameValues {
+  const { frame } = s
+  return frame && frame.photo === s.selected[0] ? frame.values : {}
+}
+
+/** Các tỉ lệ chọn được ngay trong mục Khung (rộng / cao). */
+export const FRAME_RATIOS = [
+  { label: '1:1', value: 1 },
+  { label: '4:5', value: 4 / 5 },
+  { label: '9:16', value: 9 / 16 },
+  { label: '16:9', value: 16 / 9 },
+]
+
+/** Tỉ lệ đang dùng trong số `FRAME_RATIOS`; null = theo ảnh gốc; undefined = một cỡ khác chọn ở mục Cỡ. */
+export function frameRatio(s: Pick<State, 'presetId' | 'customW' | 'customH'>): number | null | undefined {
+  if (s.presetId === ORIGINAL_PRESET_ID) return null
+  const { width, height } = canvasSize(s)
+  return FRAME_RATIOS.find((r) => Math.abs(width / height / r.value - 1) < 0.005)?.value
+}
+
+/** Kích thước file xuất: cỡ đã chọn, cộng phần lề của khung thông số khi cỡ đi theo ảnh gốc. */
+export function outputSize(s: FrameSource): { width: number; height: number } {
+  const { width, height } = frameLayout(s) ?? canvasSize(s)
+  return { width, height }
+}
+
+/** File xuất và chỗ của ảnh (cả bản ghép khi không có khung thông số) trong đó. */
+function placement(s: FrameSource): Placement {
+  const framed = frameLayout(s)
+  if (framed) return framed
+  const { width, height } = canvasSize(s)
+  return { width, height, photo: { x: 0, y: 0, w: width, h: height } }
+}
+
+/** Đổi khung thông số, dời chữ theo để chữ vẫn nằm đúng chỗ cũ trên ảnh. */
+function reframe(s: State, frame: FrameChoice | null): Partial<State> {
+  return { frame, texts: remapTexts(s.texts, placement(s), placement({ ...s, frame })) }
+}
+
 /** Tỉ lệ rộng/cao của khung: bố cục đẹp hay không là tuỳ khung dọc hay ngang. */
-export function frameAspect(s: Pick<State, 'presetId' | 'customW' | 'customH'>): number {
+export function canvasAspect(s: Pick<State, 'presetId' | 'customW' | 'customH'>): number {
   const { width, height } = canvasSize(s)
   return width / height
 }

@@ -19,8 +19,8 @@ export function autoName(texts: Pick<TextItem, 'text'>[]): string | null {
 /** Tên hiển thị: tên người dùng tự đặt, không thì lấy theo chữ trên ảnh, không có chữ thì "Thiết kế không tên". */
 export const designTitle = (name: string | null, texts: Pick<TextItem, 'text'>[]) => name ?? autoName(texts) ?? UNTITLED
 
-/** Dòng mô tả khung của thiết kế, vd "Instagram · Bài đăng dọc (4:5)" hoặc "4672 × 7008 px". */
-export function frameLabel(presetId: string, width: number, height: number): string {
+/** Dòng mô tả cỡ ảnh của thiết kế, vd "Instagram · Bài đăng dọc (4:5)" hoặc "4672 × 7008 px". */
+export function sizeLabel(presetId: string, width: number, height: number): string {
   const preset = presetId === CUSTOM_PRESET_ID || presetId === ORIGINAL_PRESET_ID ? undefined : SIZE_PRESETS.find((p) => p.id === presetId)
   if (!preset) return `${width} × ${height} px`
   return `${PLATFORMS.find((p) => p.id === preset.platform)?.label} · ${preset.label} (${preset.ratio})`

@@ -1357,3 +1357,236 @@ describe('font picker memory', () => {
     expect(get()).toMatchObject({ recentFonts: ['serif'], panelWidth: 520, previewFont: null })
   })
 })
+
+describe('photo frame', () => {
+  const texts = () => get().texts.map((t) => ({ x: t.x, y: t.y }))
+
+  it('wraps the only photo in the chosen frame and takes the colour of that frame', () => {
+    get().toggleSelect('p1')
+    get().setFrame('hai-ben')
+    expect(get()).toMatchObject({ frame: { id: 'hai-ben', scale: 1, values: {} }, bg: '#ffffff' })
+    get().setFrame('dai-day')
+    expect(get()).toMatchObject({ frame: { id: 'dai-day' }, bg: '#000000' })
+  })
+
+  it('keeps a colour the user picked when they switch to another frame', () => {
+    get().toggleSelect('p1')
+    get().setFrame('hai-ben')
+    get().set({ bg: '#f1e4d3' })
+    get().setFrame('dai-day')
+    expect(get().bg).toBe('#f1e4d3')
+  })
+
+  it('makes the exported file larger than the photo by the borders of the frame', () => {
+    get().toggleSelect('p1')
+    expect(mod.outputSize(get())).toEqual({ width: 6000, height: 4000 })
+    get().setFrame('hai-ben')
+    // Lề 3% hai bên và trên, 13% dưới, tính theo cạnh ngắn 4000px.
+    expect(mod.outputSize(get())).toEqual({ width: 6240, height: 4640 })
+    get().updateFrame({ scale: 2 })
+    expect(mod.outputSize(get())).toEqual({ width: 6480, height: 5280 })
+  })
+
+  it('leaves a fixed size as it is', () => {
+    get().toggleSelect('p1')
+    get().set({ presetId: 'ig-portrait' })
+    get().setFrame('hai-ben')
+    expect(mod.outputSize(get())).toEqual({ width: 1080, height: 1350 })
+  })
+
+  it('ignores an unknown frame', () => {
+    get().toggleSelect('p1')
+    get().setFrame('no-such-frame')
+    expect(get().frame).toBeNull()
+  })
+
+  it('sleeps while the collage has more than one photo and comes back with a single photo', () => {
+    get().toggleSelect('p1')
+    get().setFrame('hai-ben')
+    get().toggleSelect('p2')
+    expect(mod.activeFrame(get())).toBeNull()
+    expect(mod.outputSize(get())).toEqual({ width: 6000, height: 4000 })
+    get().toggleSelect('p2')
+    expect(mod.activeFrame(get())?.template.id).toBe('hai-ben')
+    expect(mod.outputSize(get())).toEqual({ width: 6240, height: 4640 })
+  })
+
+  it('is one undo step, and is saved with the design', () => {
+    get().toggleSelect('p1')
+    pause()
+    get().setFrame('hai-ben')
+    expect(get().designs[0].snapshot.frame).toMatchObject({ id: 'hai-ben' })
+    get().undo()
+    expect(get()).toMatchObject({ frame: null, selected: ['p1'] })
+    get().redo()
+    expect(get().frame).toMatchObject({ id: 'hai-ben' })
+  })
+
+  it('keeps a caption on the same spot of the photo when the frame is added and removed', () => {
+    get().toggleSelect('p1')
+    get().addText()
+    get().updateText(get().texts[0].id, { x: 0.5, y: 0.5 })
+    get().setFrame('hai-ben')
+    // Ảnh 6000×4000 nằm tại (120, 120) trong file 6240×4640.
+    expect(texts()[0].x).toBeCloseTo(0.5)
+    expect(texts()[0].y).toBeCloseTo((120 + 2000) / 4640)
+    get().setFrame(null)
+    expect(texts()[0].y).toBeCloseTo(0.5)
+  })
+
+  it('remembers what the user typed over the camera data, and can forget it', () => {
+    get().toggleSelect('p1')
+    get().setFrame('hai-ben')
+    get().updateFrame({ values: { model: 'X100VI' } })
+    get().setFrame('giua')
+    expect(get().frame).toMatchObject({ id: 'giua', values: { model: 'X100VI' } })
+    get().updateFrame({ values: {} })
+    expect(get().frame!.values).toEqual({})
+  })
+
+  it('does not follow the user into a new design, nor into an older design saved before frames existed', () => {
+    get().toggleSelect('p1')
+    get().setFrame('hai-ben')
+    const framed = get().currentDesignId!
+    get().newDesign()
+    expect(get().frame).toBeNull()
+    get().toggleSelect('p2')
+    const plain = get().currentDesignId!
+    get().openDesign(framed)
+    expect(get().frame).toMatchObject({ id: 'hai-ben' })
+    get().openDesign(plain)
+    expect(get().frame).toBeNull()
+  })
+
+  it('puts the photo cell exactly where the frame leaves room for it, whatever the plain border was', async () => {
+    const { buildSpec } = await import('../src/lib/useCollage')
+    const { collageLayout } = await import('../src/lib/imaging/exportCollage')
+    get().toggleSelect('p1')
+    get().set({ margin: 5 })
+    get().setFrame('hai-ben')
+    const spec = buildSpec(get())!
+    expect(spec).toMatchObject({ width: 6240, height: 4640, frame: { unit: 40, pad: { top: 120, side: 120, bottom: 520 } } })
+    expect(collageLayout(spec).cells).toEqual([{ x: 120, y: 120, w: 6000, h: 4000 }])
+  })
+
+  it('fits the whole photo inside a fixed size, also when the photo is turned on its side', async () => {
+    const { buildSpec } = await import('../src/lib/useCollage')
+    get().toggleSelect('p1')
+    get().set({ presetId: 'ig-square' })
+    get().setFrame('dien-anh')
+    // Dải đen 12% trên dưới: vùng ảnh 1080 × 820, ảnh 3:2 nằm vừa bề ngang.
+    expect(buildSpec(get())!.frame!.photo).toEqual({ x: 0, y: 180, w: 1080, h: 720 })
+    get().setAdjust('p1', { rot: 90 })
+    expect(buildSpec(get())!.frame!.photo).toEqual({ x: 267, y: 130, w: 547, h: 820 })
+  })
+
+  it('prints the camera data of the photo, with what the user typed on top', async () => {
+    const { buildSpec } = await import('../src/lib/useCollage')
+    mod.useStore.setState({ photos: get().photos.map((p) => (p.id === 'p1' ? { ...p, exif: { make: 'FUJIFILM', model: 'X-T5', iso: 160 } } : p)) })
+    get().toggleSelect('p1')
+    get().setFrame('hai-ben')
+    get().updateFrame({ values: { model: 'X100VI' } })
+    expect(buildSpec(get())!.frame!.info).toMatchObject({ brand: 'FUJIFILM', model: 'X100VI', settings: 'ISO 160' })
+  })
+
+  it('has no frame in the spec of a collage of several photos', async () => {
+    const { buildSpec } = await import('../src/lib/useCollage')
+    get().toggleSelect('p1')
+    get().setFrame('hai-ben')
+    get().toggleSelect('p2')
+    expect(buildSpec(get())).toMatchObject({ width: 6000, height: 4000, frame: null })
+  })
+
+  it('applies what the user typed only to the photo it was typed for', async () => {
+    const { buildSpec } = await import('../src/lib/useCollage')
+    mod.useStore.setState({ photos: get().photos.map((p) => ({ ...p, exif: { make: 'FUJIFILM', model: 'X-T5' } })) })
+    get().toggleSelect('p1')
+    get().setFrame('hai-ben')
+    get().updateFrame({ values: { model: 'X100VI' } })
+    expect(mod.frameValues(get())).toEqual({ model: 'X100VI' })
+    get().replaceSelection(['p2'])
+    expect(mod.frameValues(get())).toEqual({})
+    expect(buildSpec(get())!.frame!.info.model).toBe('X-T5')
+    get().replaceSelection(['p1'])
+    expect(buildSpec(get())!.frame!.info.model).toBe('X100VI')
+  })
+
+  it('lets the user force the colour of the words', async () => {
+    const { buildSpec } = await import('../src/lib/useCollage')
+    get().toggleSelect('p1')
+    get().setFrame('hai-ben')
+    expect(buildSpec(get())!.frame!.ink).toBeNull()
+    get().updateFrame({ ink: 'light' })
+    expect(buildSpec(get())!.frame!.ink).toBe('#ffffff')
+    get().updateFrame({ ink: 'dark' })
+    expect(buildSpec(get())!.frame!.ink).toBe('#111111')
+  })
+
+  it('changes the shape of the file from the frame tab, keeping the resolution of the photo', async () => {
+    const { buildSpec } = await import('../src/lib/useCollage')
+    get().toggleSelect('p1')
+    get().setFrame('hai-ben')
+    expect(mod.frameRatio(get())).toBeNull()
+    get().setFrameRatio(1)
+    // File 6240 × 4640 khi theo ảnh; vuông thì lấy cạnh dài nhất để ảnh không phải thu nhỏ.
+    expect(mod.outputSize(get())).toEqual({ width: 6240, height: 6240 })
+    expect(mod.frameRatio(get())).toBe(1)
+    const { photo } = buildSpec(get())!.frame!
+    expect(photo.w / photo.h).toBeCloseTo(1.5, 2)
+    get().setFrameRatio(4 / 5)
+    expect(mod.outputSize(get())).toEqual({ width: 6240, height: 7800 })
+    get().setFrameRatio(null)
+    expect(get().presetId).toBe('original')
+    expect(mod.outputSize(get())).toEqual({ width: 6240, height: 4640 })
+  })
+
+  it('can fill a fixed size with the photo instead of fitting it', async () => {
+    const { buildSpec } = await import('../src/lib/useCollage')
+    get().toggleSelect('p1')
+    get().set({ presetId: 'ig-square' })
+    get().setFrame('dien-anh')
+    get().updateFrame({ fill: true })
+    expect(buildSpec(get())!.frame!.photo).toEqual({ x: 0, y: 130, w: 1080, h: 820 })
+  })
+
+  it('frames many photos at once: one design per photo, with the frame in use and nothing typed for another photo', () => {
+    get().toggleSelect('p1')
+    get().setFrame('dai-day')
+    get().updateFrame({ scale: 1.5, values: { model: 'X100VI' } })
+    get().set({ radius: 2 })
+    const before = get().designs.length
+    const made = get().frameMany(['p2', 'p3', 'gone'])
+    expect(made).toHaveLength(2)
+    expect(get().designs).toHaveLength(before + 2)
+    const design = get().designs.find((d) => d.id === made[0])!
+    expect(design.snapshot).toMatchObject({
+      selected: ['p2'],
+      bg: '#000000',
+      radius: 2,
+      texts: [],
+      presetId: 'original',
+      customW: 6000,
+      customH: 4000,
+      frame: { id: 'dai-day', scale: 1.5, values: {} },
+    })
+    // Thiết kế đang mở không bị đụng tới.
+    expect(get()).toMatchObject({ selected: ['p1'], frame: { values: { model: 'X100VI' } } })
+  })
+
+  it('frames many photos with the first frame when none is in use', () => {
+    const made = get().frameMany(['p1'])
+    expect(get().designs.find((d) => d.id === made[0])!.snapshot).toMatchObject({ frame: { id: 'giua' }, bg: '#ffffff' })
+  })
+
+  it('reads designs saved before frames existed as designs without a frame', async () => {
+    get().toggleSelect('p1')
+    vi.advanceTimersByTime(1000)
+    const saved = JSON.parse(localStorage.getItem('grido-settings')!)
+    delete saved.state.frame
+    for (const d of saved.state.designs) delete d.snapshot.frame
+    localStorage.setItem('grido-settings', JSON.stringify(saved))
+    await boot()
+    expect(get().frame).toBeNull()
+    expect(get().designs[0].snapshot.frame).toBeNull()
+  })
+})

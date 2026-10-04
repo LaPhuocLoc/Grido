@@ -143,7 +143,7 @@ try {
 
   const first = await chrome.evaluate(FIRST_RUN)
   check('lần đầu mở: lời mời thả ảnh, nút thử ảnh mẫu, nút Xuất ảnh còn khoá', /Thả ảnh vào đây/.test(first.text) && first.samples && first.exportDisabled, JSON.stringify(first))
-  check('dải công cụ theo thứ tự làm việc, không còn mục Xuất', first.rail.join(' ') === 'Ảnh Bố cục Khung Viền Chữ Thiết kế', first.rail.join(' '))
+  check('dải công cụ theo thứ tự làm việc, không còn mục Xuất', first.rail.join(' ') === 'Ảnh Bố cục Cỡ Khung Chữ Thiết kế', first.rail.join(' '))
 
   // Chọn bố cục trước khi có ảnh: khung hiện các ô trống, chưa xuất được.
   const layoutFirst = await chrome.evaluate(`
@@ -160,7 +160,7 @@ try {
       exportDisabled: [...document.querySelectorAll('header button')].find((b) => b.textContent.includes('Xuất ảnh')).disabled,
     }
     // Công tắc chiều khung ngay trên danh sách bố cục: đổi khung dọc sang ngang rồi trả lại.
-    const turn = (label) => [...document.querySelectorAll('[aria-label="Chiều khung"] [role=radio]')].find((b) => b.textContent.trim() === label).click()
+    const turn = (label) => [...document.querySelectorAll('[aria-label="Chiều ảnh"] [role=radio]')].find((b) => b.textContent.trim() === label).click()
     const frame = () => document.querySelector('main [data-frame]').getBoundingClientRect()
     seen.portrait = frame().width < frame().height
     turn('Ngang')

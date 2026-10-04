@@ -1,9 +1,10 @@
 import { create } from 'zustand'
 import type { Photo } from '../../shared/types'
-import { canvasSize, pctToPx, useStore, type ExportFormat, type ExportSharpen } from '../store'
+import { canvasSize, frameLayout, frameValues, pctToPx, useStore, type ExportFormat, type ExportSharpen } from '../store'
 import { autoName } from './designs'
 import { desktop } from './desktop'
 import { DEFAULT_ADJUST } from './geometry'
+import { frameInfo } from './frames/info'
 import { encodeCanvas } from './imaging/encode'
 import { exportExif } from './imaging/exif'
 import { renderCollage, type CollageCell, type CollageSpec } from './imaging/exportCollage'
@@ -12,15 +13,17 @@ import { jpegSubsampling } from './imaging/metadata'
 type StoreState = ReturnType<typeof useStore.getState>
 export type SpecSource = Pick<
   StoreState,
-  'tree' | 'photos' | 'selected' | 'adjust' | 'texts' | 'bg' | 'margin' | 'gap' | 'radius' | 'presetId' | 'customW' | 'customH'
+  'tree' | 'photos' | 'selected' | 'adjust' | 'texts' | 'bg' | 'margin' | 'gap' | 'radius' | 'frame' | 'presetId' | 'customW' | 'customH'
 >
 
 /** Dựng thông số ảnh ghép ở hệ số `scale` (1 = kích thước khung gốc). Null nếu chưa chọn ảnh. */
 export function buildSpec(s: SpecSource, scale = 1): CollageSpec | null {
   if (!s.tree) return null
   const base = canvasSize(s)
-  const width = Math.round(base.width * scale)
-  const height = Math.round(base.height * scale)
+  // Khung thông số (thiết kế một ảnh): file xuất và chỗ của ảnh do khung quyết định, thay cho viền đều bốn cạnh.
+  const framed = frameLayout(s, scale)
+  const width = framed?.width ?? Math.round(base.width * scale)
+  const height = framed?.height ?? Math.round(base.height * scale)
   const byId = new Map(s.photos.map((p) => [p.id, p]))
   const cells = s.selected.map((id) => {
     // Ô trống, hoặc ảnh không còn trong thư viện: ô đó để trống, các ô khác giữ nguyên chỗ.
@@ -38,6 +41,16 @@ export function buildSpec(s: SpecSource, scale = 1): CollageSpec | null {
     tree: s.tree,
     cells,
     texts: s.texts,
+    frame: framed && {
+      template: framed.template,
+      photo: framed.photo,
+      pad: framed.pad,
+      card: framed.card,
+      text: framed.text,
+      unit: framed.unit,
+      info: frameInfo(cells[0]?.photo.exif, frameValues(s)),
+      ink: framed.choice.ink === 'dark' ? '#111111' : framed.choice.ink === 'light' ? '#ffffff' : null,
+    },
   }
 }
 
@@ -164,7 +177,7 @@ function warnQuality(fromPreview: string[], bytes: Uint8Array | null) {
     )
   const chroma = bytes && s.exportFormat === 'image/jpeg' ? jpegSubsampling(bytes) : null
   if (chroma && chroma !== '4:4:4')
-    s.toast('Ảnh quá lớn so với bộ nhớ nên màu được nén 4:2:0 (mép màu đậm hơi nhoè). Giảm kích thước khung để giữ màu đầy đủ.', 'error')
+    s.toast('Ảnh quá lớn so với bộ nhớ nên màu được nén 4:2:0 (mép màu đậm hơi nhoè). Chọn cỡ nhỏ hơn ở mục Cỡ để giữ màu đầy đủ.', 'error')
 }
 
 const stamp = () => new Date().toISOString().slice(0, 19).replace(/[-:]/g, '').replace('T', '-')

@@ -2,14 +2,15 @@ import { Check, Copy, Download, Pencil, Plus, Search, Trash2 } from 'lucide-reac
 import { memo, useMemo, useRef, useState } from 'react'
 import type { Photo } from '../../shared/types'
 import { thumbUrl, useUrlVersion } from '../lib/desktop'
-import { designTitle, frameLabel } from '../lib/designs'
+import { designTitle, sizeLabel } from '../lib/designs'
 import { placeImage } from '../lib/geometry'
 import { collageLayout } from '../lib/imaging/exportCollage'
 import { textLayoutStyle } from '../lib/text'
 import { buildSpec, canExportMany, useExportProgress } from '../lib/useCollage'
 import { openBatchExport, useExportableCount } from './BatchExport'
-import { canvasSize, isKeeper, photosIn, useStore, type Design, type Snapshot } from '../store'
-import { imageStyle } from './Stage'
+import { isKeeper, outputSize, photosIn, useStore, type Design, type Snapshot } from '../store'
+import { FrameBackdrop, FrameLayer } from './FrameLayer'
+import { imageStyle } from './imageStyle'
 import { Button, cx } from './ui'
 
 /** Vùng dành cho ảnh thu nhỏ trong thẻ thiết kế (px); ảnh ghép nằm gọn bên trong, giữ đúng tỉ lệ khung. */
@@ -24,18 +25,29 @@ const plain = (s: string) =>
     .replace(/đ/gi, 'd')
     .toLowerCase()
 
-/** Ảnh thu nhỏ của một thiết kế, dựng từ thumbnail trong thư viện theo đúng bố cục, viền và chữ đã lưu. */
-export const DesignThumb = memo(function DesignThumb({ snapshot, photos }: { snapshot: Snapshot; photos: Photo[] }) {
+/** Ảnh thu nhỏ của một thiết kế, dựng từ thumbnail trong thư viện theo đúng bố cục, khung và chữ đã lưu; nằm gọn trong `width` × `height`. */
+export const DesignThumb = memo(function DesignThumb({
+  snapshot,
+  photos,
+  width = THUMB_W,
+  height = THUMB_H,
+}: {
+  snapshot: Snapshot
+  photos: Photo[]
+  width?: number
+  height?: number
+}) {
   useUrlVersion()
   const spec = useMemo(() => buildSpec({ ...snapshot, photos }), [snapshot, photos])
   const layout = useMemo(() => (spec ? collageLayout(spec) : null), [spec])
   if (!spec || !layout) return null
-  const k = Math.min(THUMB_W / spec.width, THUMB_H / spec.height)
+  const k = Math.min(width / spec.width, height / spec.height)
   return (
     <span
       className="relative block overflow-hidden rounded-[3px] shadow-[0_2px_10px_rgb(0_0_0/0.28)]"
       style={{ width: spec.width * k, height: spec.height * k, background: spec.bg }}
     >
+      <FrameBackdrop spec={spec} k={k} />
       {spec.cells.map((cell, i) => {
         const rect = layout.cells[i]
         if (!rect || !cell) return null
@@ -64,6 +76,7 @@ export const DesignThumb = memo(function DesignThumb({ snapshot, photos }: { sna
           </span>
         )
       })}
+      <FrameLayer spec={spec} k={k} />
       {spec.texts.map((t) => (
         <span
           key={t.id}
@@ -119,7 +132,7 @@ function DesignCard({ design, photos, current }: { design: Design; photos: Photo
   const [renaming, setRenaming] = useState(false)
   const { snapshot } = design
   const title = designTitle(design.name, snapshot.texts)
-  const size = canvasSize(snapshot)
+  const size = outputSize(snapshot)
   const count = photosIn(snapshot.selected).length
 
   return (
@@ -186,7 +199,7 @@ function DesignCard({ design, photos, current }: { design: Design; photos: Photo
           </p>
         )}
         <p className="truncate text-[11px] text-muted">
-          {frameLabel(snapshot.presetId, size.width, size.height)} · {count ? `${count} ảnh` : 'chưa có ảnh'}
+          {sizeLabel(snapshot.presetId, size.width, size.height)} · {count ? `${count} ảnh` : 'chưa có ảnh'}
         </p>
       </div>
     </div>
@@ -221,7 +234,7 @@ export function DesignsPanel() {
             data-tip="Xuất nhiều thiết kế cùng lúc"
             disabled={exporting}
             className="h-11 w-11 shrink-0 px-0"
-            onClick={openBatchExport}
+            onClick={() => openBatchExport()}
           >
             <Download className="size-[18px]" />
           </Button>

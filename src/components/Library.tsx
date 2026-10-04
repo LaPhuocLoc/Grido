@@ -11,6 +11,7 @@ import {
   Grid3x3,
   ImagePlus,
   ListChecks,
+  PanelBottom,
   Search,
   Square,
   Trash2,
@@ -22,10 +23,13 @@ import { createPortal } from 'react-dom'
 import type { Photo } from '../../shared/types'
 import { groupByAlbum, UNCATEGORIZED, type Album } from '../lib/albums'
 import { desktop, prefetchFile, thumbUrl, usePhotoUrl } from '../lib/desktop'
+import { FRAMES, frameTemplate } from '../lib/frames/templates'
 import { MAX_PHOTOS } from '../lib/layout/registry'
 import { justify, searchPhotos, tileAspect } from '../lib/libraryView'
 import { stageDropAt, type StageDrop } from '../lib/stageDrop'
+import { canExportMany } from '../lib/useCollage'
 import { photosIn, useStore, type ImportItem } from '../store'
+import { openBatchExport } from './BatchExport'
 import { Menu, type MenuItem, type MenuState } from './Menu'
 import { Button, cx } from './ui'
 
@@ -568,7 +572,7 @@ export function Library() {
       items.push({ label: 'Chọn ảnh để xoá…', run: startPicking })
       if (inFrame.length)
         items.push({
-          label: inFrame.length > 1 ? `Xoá ${inFrame.length} ảnh trong bản ghép` : 'Xoá ảnh đang ở trong khung',
+          label: inFrame.length > 1 ? `Xoá ${inFrame.length} ảnh trong bản ghép` : 'Xoá ảnh đang ở trong bản ghép',
           run: () => setDoomed([...inFrame]),
         })
     }
@@ -894,6 +898,20 @@ export function Library() {
     stopPicking()
   }
 
+  /** Đóng khung thông số cho từng ảnh đang chọn: mỗi ảnh thành một thiết kế, rồi mở luôn hộp xuất cả loạt (bản web). */
+  const frameAll = () => {
+    const s = useStore.getState()
+    const made = s.frameMany(pickedInOrder())
+    stopPicking()
+    if (!made.length) return
+    const label = (s.frame && frameTemplate(s.frame.id)?.label) ?? FRAMES[0].label
+    if (canExportMany()) openBatchExport(made)
+    toast(`Đã đóng khung "${label}" cho ${made.length} ảnh, mỗi ảnh một thiết kế.`, 'success', {
+      label: 'Xem thiết kế',
+      run: () => useStore.setState({ tab: 'designs', leftCollapsed: false }),
+    })
+  }
+
   return (
     <div className="relative flex h-full flex-col">
       {/* Một hàng công cụ gọn; hướng dẫn chi tiết nằm ở trạng thái trống, tooltip và nút "?" để nhường chỗ cho ảnh. */}
@@ -1214,6 +1232,13 @@ export function Library() {
             onClick={() => setPicked(allPicked ? new Set() : new Set([...(picked ?? []), ...order]))}
           >
             <CheckCheck className="size-4.5" />
+          </BarButton>
+          <BarButton
+            label="Đóng khung thông số cho từng ảnh (dùng khung của thiết kế đang mở)"
+            disabled={!pickedCount}
+            onClick={frameAll}
+          >
+            <PanelBottom className="size-4.5" />
           </BarButton>
           <BarButton
             label="Chuyển vào album"

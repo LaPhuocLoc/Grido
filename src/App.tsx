@@ -15,11 +15,11 @@ import {
   LayoutGrid,
   LoaderCircle,
   MonitorDown,
+  PanelBottom,
   Plus,
   RefreshCw,
   RotateCw,
   Settings,
-  SlidersHorizontal,
   Type,
   type LucideIcon,
 } from 'lucide-react'
@@ -50,8 +50,8 @@ type TabItem = { id: Tab; label: string; icon: LucideIcon }
 const STEPS: TabItem[] = [
   { id: 'library', label: 'Ảnh', icon: Images },
   { id: 'layout', label: 'Bố cục', icon: LayoutGrid },
-  { id: 'size', label: 'Khung', icon: Crop },
-  { id: 'style', label: 'Viền', icon: SlidersHorizontal },
+  { id: 'size', label: 'Cỡ', icon: Crop },
+  { id: 'style', label: 'Khung', icon: PanelBottom },
   { id: 'text', label: 'Chữ', icon: Type },
 ]
 /** Kho thiết kế đã lưu: không phải một bước làm việc nên đứng riêng ở cuối. */

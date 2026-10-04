@@ -1,5 +1,6 @@
 import type { Photo } from '../../../shared/types'
 import { desktop } from '../desktop'
+import { drawBackdrop, drawFrame, hasBackdrop, loadFrameFonts, type FrameSpec } from '../frames/draw'
 import type { CellAdjust } from '../geometry'
 import { computeLayout } from '../layout/compute'
 import type { LayoutNode } from '../layout/types'
@@ -23,11 +24,13 @@ export interface CollageSpec {
   /** Theo thứ tự ô của `tree`; null = ô còn trống (chỉ thấy màu nền). */
   cells: (CollageCell | null)[]
   texts: TextItem[]
+  /** Khung thông số của thiết kế một ảnh: ảnh nằm đúng trong `frame.photo`, `margin` không còn tác dụng. */
+  frame?: FrameSpec | null
 }
 
-export function collageLayout(spec: Pick<CollageSpec, 'width' | 'height' | 'margin' | 'gap' | 'tree'>) {
+export function collageLayout(spec: Pick<CollageSpec, 'width' | 'height' | 'margin' | 'gap' | 'tree' | 'frame'>) {
   const m = spec.margin
-  return computeLayout(spec.tree, { x: m, y: m, w: spec.width - 2 * m, h: spec.height - 2 * m }, spec.gap)
+  return computeLayout(spec.tree, spec.frame?.photo ?? { x: m, y: m, w: spec.width - 2 * m, h: spec.height - 2 * m }, spec.gap)
 }
 
 /**
@@ -70,6 +73,12 @@ export async function renderCollage(
       })
       if (raster.fromPreview) onPreview?.(photo.name)
       const image = new ImageData(raster.data as Uint8ClampedArray<ArrayBuffer>, rect.w, rect.h)
+      // Khung có lớp nằm dưới ảnh (nền là chính ảnh đó làm mờ, tấm nền): vẽ trước khi dán ảnh lên.
+      if (spec.frame && hasBackdrop(spec.frame)) {
+        const source = await createImageBitmap(image)
+        drawBackdrop(ctx, spec.frame, spec, source)
+        source.close()
+      }
       const r = Math.min(spec.radius, rect.w / 2, rect.h / 2)
       if (r <= 0) ctx.putImageData(image, rect.x, rect.y)
       else {
@@ -86,6 +95,10 @@ export async function renderCollage(
       onProgress?.(++done, total)
     }),
   )
+  if (spec.frame) {
+    await loadFrameFonts(spec.frame.info)
+    drawFrame(ctx, spec.frame, spec)
+  }
   const unit = Math.min(spec.width, spec.height) / 100
   for (const item of spec.texts)
     if (item.text.trim())

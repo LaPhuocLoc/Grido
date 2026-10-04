@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { autoName, copyName, designTitle, frameLabel, UNTITLED } from '../src/lib/designs'
+import { autoName, copyName, designTitle, sizeLabel, UNTITLED } from '../src/lib/designs'
 
 describe('design names', () => {
   it('uses the first non-empty line of the first caption with text', () => {
@@ -25,10 +25,10 @@ describe('design names', () => {
   })
 })
 
-describe('frameLabel', () => {
+describe('sizeLabel', () => {
   it('names the platform frame, or gives the pixel size for original / custom frames', () => {
-    expect(frameLabel('ig-portrait', 1080, 1350)).toBe('Instagram · Bài đăng dọc (4:5)')
-    expect(frameLabel('original', 4672, 7008)).toBe('4672 × 7008 px')
-    expect(frameLabel('custom', 800, 600)).toBe('800 × 600 px')
+    expect(sizeLabel('ig-portrait', 1080, 1350)).toBe('Instagram · Bài đăng dọc (4:5)')
+    expect(sizeLabel('original', 4672, 7008)).toBe('4672 × 7008 px')
+    expect(sizeLabel('custom', 800, 600)).toBe('800 × 600 px')
   })
 })

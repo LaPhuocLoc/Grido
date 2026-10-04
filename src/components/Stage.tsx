@@ -38,14 +38,16 @@ import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties, 
 import { flushSync } from 'react-dom'
 import { useShallow } from 'zustand/react/shallow'
 import { fileUrl, thumbUrl, useUrlVersion } from '../lib/desktop'
-import { clamp, DEFAULT_ADJUST, isSideways, MAX_ZOOM, placeImage, type CellAdjust, type Rotation } from '../lib/geometry'
+import { clamp, DEFAULT_ADJUST, MAX_ZOOM, placeImage, type CellAdjust, type Rotation } from '../lib/geometry'
 import { collageLayout, type CollageSpec } from '../lib/imaging/exportCollage'
 import { MIN_SHARE, moveDivider } from '../lib/layout/compute'
 import type { Divider, LayoutNode, Rect } from '../lib/layout/types'
 import { nextHint, type Hint } from '../lib/onboarding'
 import { buildSpec } from '../lib/useCollage'
 import { clampPan, clampViewZoom, MAX_VIEW_ZOOM, MIN_VIEW_ZOOM, zoomByWheel } from '../lib/view'
-import { canvasSize, currentDesign, selectionOf, useStore } from '../store'
+import { canvasSize, currentDesign, outputSize, selectionOf, useStore } from '../store'
+import { FrameBackdrop, FrameLayer } from './FrameLayer'
+import { imageStyle } from './imageStyle'
 import { Menu, type MenuItem, type MenuState } from './Menu'
 import { contrast, TextLayer, TextToolbar, toggleGroup } from './TextLayer'
 import { Button, cx, IconButton } from './ui'
@@ -84,16 +86,6 @@ interface ZoomDrag {
 const hitCell = (cells: Rect[], x: number, y: number) =>
   cells.findIndex((c) => x >= c.x && x < c.x + c.w && y >= c.y && y < c.y + c.h)
 
-/** Kích thước + transform của thẻ img (trước khi xoay) sao cho vùng ảnh đã xoay nằm đúng `placed`. */
-export function imageStyle(placed: ReturnType<typeof placeImage>, adjust: CellAdjust): CSSProperties {
-  const w = isSideways(adjust) ? placed.dh : placed.dw
-  const h = isSideways(adjust) ? placed.dw : placed.dh
-  return {
-    width: w,
-    height: h,
-    transform: `translate(${placed.left + (placed.dw - w) / 2}px, ${placed.top + (placed.dh - h) / 2}px) rotate(${adjust.rot}deg) scaleX(${adjust.flip ? -1 : 1})`,
-  }
-}
 
 export function Stage() {
   useUrlVersion()
@@ -109,6 +101,7 @@ export function Stage() {
       gap: s.gap,
       radius: s.radius,
       bg: s.bg,
+      frame: s.frame,
       presetId: s.presetId,
       customW: s.customW,
       customH: s.customH,
@@ -128,7 +121,8 @@ export function Stage() {
   const { setAdjust, setActiveCell, setActiveText, swapCells, setTree, shuffle, randomLayout, toggleSelect, removeActiveCell, undo, redo, markHint } =
     useStore.getState()
   const { selected, tree } = source
-  const size = canvasSize(source)
+  // Cỡ file xuất: cỡ đã chọn, cộng phần lề khi có khung thông số.
+  const size = outputSize(source)
 
   const root = useRef<HTMLDivElement>(null)
   const wrap = useRef<HTMLDivElement>(null)
@@ -597,8 +591,8 @@ export function Stage() {
     <span className="flex items-center rounded-full bg-card pl-3 shadow-sm">
       <input
         type="range"
-        aria-label="Thu phóng khung làm việc"
-        data-tip="Thu phóng khung làm việc (Ctrl + lăn chuột)"
+        aria-label="Thu phóng vùng làm việc"
+        data-tip="Thu phóng vùng làm việc (Ctrl + lăn chuột)"
         className="hidden w-20 lg:block"
         min={MIN_VIEW_ZOOM}
         max={MAX_VIEW_ZOOM}
@@ -614,7 +608,7 @@ export function Stage() {
         {Math.round(k * 100)}%
       </span>
       <IconButton
-        label="Vừa khung"
+        label="Vừa màn hình"
         disabled={viewZoom === 1 && pan.x === 0 && pan.y === 0}
         onClick={() => {
           bump()
@@ -753,6 +747,8 @@ export function Stage() {
                   </div>
                 </div>
               )}
+              {/* Khung thông số có nền ảnh mờ / tấm nền: lớp này nằm dưới ảnh. */}
+              <FrameBackdrop spec={spec} k={k} />
               {order.map((i) => {
                 const rect = layout.cells[i]
                 const cell = spec.cells[i]
@@ -840,6 +836,8 @@ export function Stage() {
                   </button>
                 )
               })}
+              {/* Chữ của khung thông số: nằm trên ảnh (có mẫu in đè lên ảnh), dưới chữ người dùng tự chèn. */}
+              <FrameLayer spec={spec} k={k} />
               {tree &&
                 !live &&
                 layout.dividers.map((divider) => (
@@ -1212,7 +1210,7 @@ function HintChip({ hint, onClose }: { hint: Hint; onClose: () => void }) {
 /** Bốn bước làm một ảnh ghép, bằng icon; chi tiết từng bước nằm trong chú thích khi rê chuột. */
 const FLOW: { icon: LucideIcon; label: string; tip: string }[] = [
   { icon: Images, label: 'Thêm ảnh', tip: 'Chọn ảnh hoặc kéo thả cả thư mục. Ảnh dùng ngay tại chỗ, không tải đi đâu cả' },
-  { icon: LayoutGrid, label: 'Ghép', tip: 'Bấm lần lượt các ảnh muốn ghép (tối đa 10). Bố cục tự gợi ý theo ảnh, khung đúng cỡ Facebook, Instagram, TikTok' },
+  { icon: LayoutGrid, label: 'Ghép', tip: 'Bấm lần lượt các ảnh muốn ghép (tối đa 10). Bố cục tự gợi ý theo ảnh, đúng cỡ Facebook, Instagram, TikTok' },
   { icon: Type, label: 'Chữ', tip: 'Hơn 400 mẫu chữ và 500 phông tiếng Việt, gõ thẳng trên ảnh' },
   { icon: Download, label: 'Xuất', tip: 'Xuất nét như Lightroom, lấy thẳng từ ảnh gốc. Xuất được nhiều thiết kế một lượt' },
 ]

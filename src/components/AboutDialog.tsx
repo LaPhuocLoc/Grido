@@ -53,7 +53,7 @@ export function AboutDialog({ version, onClose }: { version: string; onClose: ()
             Lấy thẳng từ ảnh gốc, giữ đúng màu và độ nét.
           </Feature>
           <Feature icon={<LayoutDashboard />} title="Bố cục tự hợp với ảnh">
-            Ghép tới 10 ảnh, khung chuẩn Facebook, Instagram, TikTok.
+            Ghép tới 10 ảnh, cỡ chuẩn Facebook, Instagram, TikTok.
           </Feature>
           <Feature icon={<Type />} title="Hơn 500 phông chữ">
             Kèm hơn 400 mẫu chữ đẹp sẵn, bấm là dùng.

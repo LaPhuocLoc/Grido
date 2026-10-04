@@ -4,7 +4,7 @@ import { useShallow } from 'zustand/react/shallow'
 import { captureTemplate, type Box, type TextTemplate } from '../lib/templates'
 import { countByGroup, searchFonts } from '../lib/fontSearch'
 import { FONT_GROUPS, FONT_LANGS, fontInfo, FONTS, isSystemFont, type FontGroup, type FontLang, type TextItem } from '../lib/text'
-import { canvasSize, useStore } from '../store'
+import { outputSize, useStore } from '../store'
 import { chip, LangSelect } from './FontPicker'
 import { Button, cx } from './ui'
 
@@ -176,9 +176,9 @@ function SaveTemplate({ templates }: { templates: TextTemplate[] }) {
 
   const save = async () => {
     const s = useStore.getState()
-    const { width, height } = canvasSize(s)
+    const { width, height } = outputSize(s)
     const boxes = members.map((t) => textBox(t.id, width))
-    if (boxes.some((b) => !b)) return s.toast('Không đo được vị trí chữ trên khung.', 'error')
+    if (boxes.some((b) => !b)) return s.toast('Không đo được vị trí chữ trên ảnh.', 'error')
     const bg = templates.find((t) => t.font === font)?.bg ?? '#f3ece4'
     const template = captureTemplate(members, boxes as Box[], width, height, font, bg)
     const res = await fetch('/__dev/template', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(template) }).catch(() => null)

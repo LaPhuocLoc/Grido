@@ -11,7 +11,7 @@ const GROUPS: { title: string; rows: [keys: string[], action: string][] }[] = [
       [['Ctrl', 'E'], 'Xuất ảnh'],
       [['Ctrl', 'Z'], 'Hoàn tác'],
       [['Ctrl', 'Shift', 'Z'], 'Làm lại'],
-      [['Ctrl', 'Lăn chuột'], 'Thu phóng khung làm việc'],
+      [['Ctrl', 'Lăn chuột'], 'Thu phóng vùng làm việc'],
       [['Esc'], 'Bỏ chọn'],
     ],
   },

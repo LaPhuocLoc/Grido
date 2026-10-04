@@ -20,7 +20,11 @@ import {
   type LucideIcon,
 } from 'lucide-react'
 import { memo, useEffect, useMemo, useState, type CSSProperties, type ReactNode } from 'react'
+import { useShallow } from 'zustand/react/shallow'
+import type { Photo } from '../../shared/types'
 import { desktop } from '../lib/desktop'
+import { frameInfo, type FrameField, type FrameValues } from '../lib/frames/info'
+import { frameFields, FRAMES, type FrameTemplate } from '../lib/frames/templates'
 import { computeLayout } from '../lib/layout/compute'
 import { countCells, parseLayout } from '../lib/layout/dsl'
 import { getLayouts, layoutLook, MAX_PHOTOS, suggestLayouts } from '../lib/layout/registry'
@@ -39,9 +43,27 @@ import {
   type Platform,
 } from '../lib/presets'
 import { canExportMany, exportToFile, useExportProgress } from '../lib/useCollage'
-import { canvasSize, originalCanvasOf, pctToPx, currentDesign, photosIn, PLAIN_STYLE, slotAspects, useStore, type ExportFormat, type ExportSharpen } from '../store'
+import {
+  activeFrame,
+  canvasSize,
+  currentDesign,
+  FRAME_RATIOS,
+  frameRatio,
+  frameValues,
+  originalCanvasOf,
+  outputSize,
+  pctToPx,
+  photosIn,
+  PLAIN_STYLE,
+  slotAspects,
+  useStore,
+  type ExportFormat,
+  type ExportSharpen,
+  type FrameInk,
+} from '../store'
 import { openBatchExport, useExportableCount } from './BatchExport'
 import { BrandIcon } from './BrandIcon'
+import { DesignThumb } from './Designs'
 import { FontPicker } from './FontPicker'
 import { PresetArt } from './PresetArt'
 import { styleTexts } from './TextLayer'
@@ -120,7 +142,7 @@ export function SizePanel() {
         )}
       </button>
 
-      <Section title="Khung theo nền tảng">
+      <Section title="Cỡ theo nền tảng">
         {/* Tab đang mở hiện cả tên; các tab khác chỉ còn icon (rê chuột để xem tên) để cả hàng vừa một dòng. */}
         <div className="flex gap-1.5">
           {PRESET_GROUPS.map((g) => {
@@ -187,7 +209,7 @@ export function SizePanel() {
                   <button
                     type="button"
                     aria-pressed={fav}
-                    aria-label={fav ? `Bỏ thích khung ${p.label}` : `Thích khung ${p.label}`}
+                    aria-label={fav ? `Bỏ thích cỡ ${p.label}` : `Thích cỡ ${p.label}`}
                     data-tip={fav ? 'Bỏ khỏi Yêu thích' : 'Thêm vào Yêu thích'}
                     onClick={() => toggleFavoritePreset(p.id)}
                     className={cx(
@@ -203,7 +225,7 @@ export function SizePanel() {
           </div>
         ) : (
           <p className="rounded-2xl bg-sand p-4 text-[13px] leading-relaxed text-soft">
-            Chưa có khung yêu thích nào. Bấm biểu tượng <Heart className="inline size-3.5 align-[-2px]" /> ở góc một khung để thêm vào đây.
+            Chưa có cỡ yêu thích nào. Bấm biểu tượng <Heart className="inline size-3.5 align-[-2px]" /> ở góc một cỡ để thêm vào đây.
           </p>
         )}
       </Section>
@@ -409,7 +431,7 @@ export function LayoutPanel() {
   return (
     <div className="space-y-5">
       <Section
-        title="Chiều khung"
+        title="Chiều ảnh"
         hint={
           <button
             type="button"
@@ -422,7 +444,7 @@ export function LayoutPanel() {
           </button>
         }
       >
-        <div role="radiogroup" aria-label="Chiều khung" className="flex gap-1 rounded-full bg-sand p-1">
+        <div role="radiogroup" aria-label="Chiều ảnh" className="flex gap-1 rounded-full bg-sand p-1">
           {ORIENTATIONS.map(({ id, label, icon: Icon }) => (
             <button
               key={id}
@@ -559,70 +581,281 @@ export function LayoutPanel() {
   )
 }
 
-/* ───────────── Tinh chỉnh ───────────── */
+/* ───────────── Khung ───────────── */
+
+/** Vùng dành cho ảnh mẫu của một khung trong bảng chọn (px). */
+const FRAME_THUMB = { width: 92, height: 72 }
+
+const FIELD_LABELS: Record<FrameField, string> = {
+  brand: 'Hãng',
+  model: 'Máy',
+  lens: 'Ống kính',
+  settings: 'Thông số',
+  film: 'Giả lập phim',
+  date: 'Ngày chụp',
+  note: 'Ghi chú',
+}
+
+/** Bảng chọn khung thông số: mỗi mẫu được dựng bằng chính ảnh và thông tin chụp của ảnh đang mở. */
+function FramePicker() {
+  const photos = useStore((s) => s.photos)
+  const base = useStore(
+    useShallow((s) => ({
+      selected: s.selected,
+      layoutId: s.layoutId,
+      tree: s.tree,
+      adjust: s.adjust,
+      margin: s.margin,
+      gap: s.gap,
+      radius: s.radius,
+      bg: s.bg,
+      frame: s.frame,
+      presetId: s.presetId,
+      customW: s.customW,
+      customH: s.customH,
+    })),
+  )
+  const options = useMemo(() => {
+    // Chữ người dùng tự chèn không nằm trong ảnh mẫu: ở đây chỉ để so các kiểu khung với nhau.
+    const snapshot = { ...base, texts: [] }
+    const current = base.frame
+    return [
+      { id: null, label: 'Không', snapshot: { ...snapshot, frame: null } },
+      ...FRAMES.map((t) => ({
+        id: t.id,
+        label: t.label,
+        // Mẫu đang dùng hiện đúng màu và độ dày người dùng đã chỉnh; các mẫu khác hiện như lúc vừa chọn.
+        snapshot: current?.id === t.id ? snapshot : { ...snapshot, bg: t.bg, frame: { values: {}, ...current, id: t.id, scale: 1 } },
+      })),
+    ]
+  }, [base])
+  const chosen = activeFrame(base)?.template.id ?? null
+
+  return (
+    <div className="grid grid-cols-[repeat(auto-fill,minmax(100px,1fr))] gap-1.5">
+      {options.map((o) => {
+        const on = o.id === chosen
+        return (
+          <button
+            key={o.id ?? 'none'}
+            type="button"
+            aria-pressed={on}
+            onClick={() => useStore.getState().setFrame(o.id)}
+            className={cx(
+              'grid justify-items-center gap-1 rounded-2xl border px-1.5 pb-1.5 pt-2 transition-all',
+              on ? 'border-coral bg-blush shadow-sm' : 'border-line bg-sand hover:border-edge hover:shadow-sm',
+            )}
+          >
+            <span className="grid place-items-center" style={{ height: FRAME_THUMB.height }}>
+              <DesignThumb snapshot={o.snapshot} photos={photos} width={FRAME_THUMB.width} height={FRAME_THUMB.height} />
+            </span>
+            <span className={cx('text-[11px] font-semibold', on ? 'text-coral-dark' : 'text-soft')}>{o.label}</span>
+          </button>
+        )
+      })}
+    </div>
+  )
+}
+
+/** Các mục chữ mà khung đang dùng có in: điền sẵn theo ảnh, gõ đè để sửa, xoá trắng để ẩn. */
+function FrameFields({ photo, values, template }: { photo: Photo | undefined; values: FrameValues; template: FrameTemplate }) {
+  // Ảnh không có thông tin chụp (ảnh tải từ mạng xã hội, ảnh chụp màn hình): mở sẵn để người dùng tự điền.
+  const [open, setOpen] = useState(() => !photo?.exif)
+  const fields = frameFields(template)
+  if (!fields.length) return null
+  const read = frameInfo(photo?.exif, {})
+  const edited = Object.keys(values).length > 0
+  const type = (field: FrameField, text: string) => {
+    const next = { ...values }
+    if (text === read[field]) delete next[field]
+    else next[field] = text
+    useStore.getState().updateFrame({ values: next })
+  }
+
+  return (
+    <section>
+      <button
+        type="button"
+        aria-expanded={open}
+        onClick={() => setOpen(!open)}
+        className="flex w-full items-center gap-1.5 font-display text-[15px] font-bold text-ink"
+      >
+        <ChevronRight className={cx('size-4 text-soft transition-transform duration-200', open && 'rotate-90')} />
+        Sửa thông tin
+        {!photo?.exif && <span className="ml-auto text-xs font-normal text-muted">Ảnh không có thông tin chụp</span>}
+      </button>
+      {open && (
+        <div className="mt-3 animate-fade space-y-2">
+          {fields.map((field) => (
+            <label key={field} className="flex items-center gap-2">
+              <span className="w-[88px] shrink-0 text-[13px] font-medium text-soft">{FIELD_LABELS[field]}</span>
+              <input
+                type="text"
+                value={values[field] ?? read[field]}
+                maxLength={80}
+                onChange={(e) => type(field, e.target.value)}
+                // Phím gõ không được lọt ra phím tắt toàn cục (Delete bỏ ảnh…).
+                onKeyDown={(e) => e.stopPropagation()}
+                className="h-9 min-w-0 flex-1 rounded-xl border border-line bg-surface px-3 text-[13px] focus:border-coral focus:outline-none"
+              />
+            </label>
+          ))}
+          <div className="flex justify-end pt-0.5">
+            <button
+              type="button"
+              disabled={!edited}
+              data-tip="Bỏ những gì đã sửa, lấy lại thông tin đọc từ ảnh"
+              onClick={() => useStore.getState().updateFrame({ values: {} })}
+              className="text-xs font-semibold text-coral-dark hover:underline disabled:text-muted disabled:no-underline"
+            >
+              Lấy lại từ ảnh
+            </button>
+          </div>
+        </div>
+      )}
+    </section>
+  )
+}
 
 export function StylePanel() {
   const state = useStore()
   const { margin, gap, radius, bg, set } = state
   const { width, height } = canvasSize(state)
   const px = (pct: number) => `${pctToPx(pct, width, height)} px`
-  // Ảnh sát nhau, không viền, không bo góc, nền trắng.
-  const plain = margin === PLAIN_STYLE.margin && gap === PLAIN_STYLE.gap && radius === PLAIN_STYLE.radius && bg.toLowerCase() === PLAIN_STYLE.bg
+  const photo = state.selected.length === 1 ? state.photos.find((p) => p.id === state.selected[0]) : undefined
+  const framed = activeFrame(state)
+  const ratio = frameRatio(state)
+  // Ảnh sát nhau, không viền, không bo góc, nền trắng, không khung thông số.
+  const plain = margin === PLAIN_STYLE.margin && gap === PLAIN_STYLE.gap && radius === PLAIN_STYLE.radius && bg.toLowerCase() === PLAIN_STYLE.bg && !state.frame
 
   return (
     <div className="space-y-6">
-      <Section title="Viền & khoảng cách">
-        <div className="space-y-4">
-          <Slider label="Viền ngoài" value={margin} min={0} max={10} step={0.1} display={px(margin)} onChange={(v) => set({ margin: v })} />
-          <Slider label="Khoảng cách giữa ảnh" value={gap} min={0} max={8} step={0.1} display={px(gap)} onChange={(v) => set({ gap: v })} />
-          <Slider label="Bo góc ảnh" value={radius} min={0} max={12} step={0.1} display={px(radius)} onChange={(v) => set({ radius: v })} />
-        </div>
+      <Section title="Khung thông số">
+        {photo ? (
+          <FramePicker />
+        ) : (
+          <p className="rounded-2xl bg-sand p-4 text-[13px] leading-relaxed text-soft">
+            In tên máy, ống kính và thông số chụp quanh ảnh. Dùng được khi thiết kế có <b className="text-ink">một ảnh</b>.
+          </p>
+        )}
       </Section>
 
-      <Section title="Màu nền">
-        <div className="flex flex-wrap items-center gap-2">
-          {BACKGROUNDS.map((color) => (
-            <button
-              key={color}
-              type="button"
-              aria-label={`Màu nền ${color}`}
-              aria-pressed={bg === color}
-              onClick={() => set({ bg: color })}
-              className={cx(
-                'size-9 rounded-full border border-black/10 transition-transform hover:scale-110',
-                bg === color && 'ring-2 ring-coral ring-offset-2 ring-offset-card',
-              )}
-              style={{ background: color }}
+      {framed && (
+        <Section title="Tỉ lệ">
+          <Segmented
+            small
+            value={ratio === null ? 'photo' : (FRAME_RATIOS.find((r) => r.value === ratio)?.label ?? '')}
+            options={[{ value: 'photo', label: 'Theo ảnh' }, ...FRAME_RATIOS.map((r) => ({ value: r.label, label: r.label }))]}
+            onChange={(v) => state.setFrameRatio(FRAME_RATIOS.find((r) => r.label === v)?.value ?? null)}
+          />
+          {/* Cỡ cố định: ảnh nằm trọn bên trong, hoặc lấp đầy phần còn lại rồi kéo ảnh để chọn phần giữ lại. */}
+          {ratio !== null && (
+            <Segmented
+              small
+              value={framed.choice.fill ? 'fill' : 'fit'}
+              options={[
+                { value: 'fit', label: 'Ảnh vừa khít' },
+                { value: 'fill', label: 'Ảnh lấp đầy' },
+              ]}
+              onChange={(v) => state.updateFrame({ fill: v === 'fill' })}
             />
-          ))}
-          <label
-            className="relative grid size-9 cursor-pointer place-items-center overflow-hidden rounded-full border border-black/10 text-xs font-bold text-white"
-            style={{ background: 'conic-gradient(#f2603c, #ffb23e, #8fe0a8, #6aa8ff, #c58bff, #f2603c)' }}
-            data-tip="Chọn màu khác"
-          >
-            <input
-              type="color"
-              aria-label="Chọn màu nền khác"
-              value={bg}
-              onChange={(e) => set({ bg: e.target.value })}
-              className="absolute inset-0 size-full cursor-pointer opacity-0"
+          )}
+        </Section>
+      )}
+
+      {framed ? (
+        <Section title="Độ dày & bo góc">
+          <div className="space-y-4">
+            <Slider
+              label="Độ dày khung"
+              value={framed.choice.scale}
+              min={0.5}
+              max={2}
+              step={0.05}
+              display={`${Math.round(framed.choice.scale * 100)}%`}
+              onChange={(v) => state.updateFrame({ scale: v })}
             />
-          </label>
-          <EyeDropperButton onPick={(color) => set({ bg: color })} />
-        </div>
-      </Section>
+            <Slider label="Bo góc ảnh" value={radius} min={0} max={12} step={0.1} display={px(radius)} onChange={(v) => set({ radius: v })} />
+          </div>
+        </Section>
+      ) : (
+        <Section title="Viền & khoảng cách">
+          <div className="space-y-4">
+            <Slider label="Viền ngoài" value={margin} min={0} max={10} step={0.1} display={px(margin)} onChange={(v) => set({ margin: v })} />
+            <Slider label="Khoảng cách giữa ảnh" value={gap} min={0} max={8} step={0.1} display={px(gap)} onChange={(v) => set({ gap: v })} />
+            <Slider label="Bo góc ảnh" value={radius} min={0} max={12} step={0.1} display={px(radius)} onChange={(v) => set({ radius: v })} />
+          </div>
+        </Section>
+      )}
+
+      {framed && framed.template.blocks.length > 0 && (
+        <Section title="Màu chữ">
+          <Segmented
+            small
+            value={framed.choice.ink ?? 'auto'}
+            options={[
+              { value: 'auto', label: 'Tự động' },
+              { value: 'dark', label: 'Đen' },
+              { value: 'light', label: 'Trắng' },
+            ]}
+            onChange={(ink: FrameInk) => state.updateFrame({ ink })}
+          />
+        </Section>
+      )}
+
+      {/* Mẫu có nền là ảnh làm mờ mà không có tấm nền thì không còn chỗ nào mang màu khung. */}
+      {(!framed || !framed.template.backdrop || framed.template.card) && (
+        <Section title={framed ? 'Màu khung' : 'Màu nền'}>
+          <div className="flex flex-wrap items-center gap-2">
+            {BACKGROUNDS.map((color) => (
+              <button
+                key={color}
+                type="button"
+                aria-label={`Màu ${color}`}
+                aria-pressed={bg === color}
+                onClick={() => set({ bg: color })}
+                className={cx(
+                  'size-9 rounded-full border border-black/10 transition-transform hover:scale-110',
+                  bg === color && 'ring-2 ring-coral ring-offset-2 ring-offset-card',
+                )}
+                style={{ background: color }}
+              />
+            ))}
+            <label
+              className="relative grid size-9 cursor-pointer place-items-center overflow-hidden rounded-full border border-black/10 text-xs font-bold text-white"
+              style={{ background: 'conic-gradient(#f2603c, #ffb23e, #8fe0a8, #6aa8ff, #c58bff, #f2603c)' }}
+              data-tip="Chọn màu khác"
+            >
+              <input
+                type="color"
+                aria-label="Chọn màu khác"
+                value={bg}
+                onChange={(e) => set({ bg: e.target.value })}
+                className="absolute inset-0 size-full cursor-pointer opacity-0"
+              />
+            </label>
+            <EyeDropperButton onPick={(color) => set({ bg: color })} />
+          </div>
+        </Section>
+      )}
+
+      {framed && <FrameFields key={`${photo?.id}/${framed.template.id}`} photo={photo} values={frameValues(state)} template={framed.template} />}
 
       <Button
-        data-tip="Viền, khoảng cách và bo góc về 0, nền trắng"
+        data-tip="Bỏ khung thông số; viền, khoảng cách và bo góc về 0, nền trắng"
         disabled={plain}
         className="h-9 w-full text-[13px]"
-        onClick={() => set(PLAIN_STYLE)}
+        onClick={() => {
+          // Bỏ khung trước để chữ trên ảnh được dời về đúng chỗ, rồi mới đặt lại viền.
+          state.setFrame(null)
+          set(PLAIN_STYLE)
+        }}
       >
         Đặt lại
       </Button>
 
       <p className="rounded-2xl bg-sand p-4 text-[13px] leading-relaxed text-soft">
-        <b className="text-ink">Mẹo:</b> bấm vào một ảnh trong khung để zoom, xoay, lật hoặc thay ảnh khác. Kéo
+        <b className="text-ink">Mẹo:</b> bấm vào một ảnh để zoom, xoay, lật hoặc thay ảnh khác. Kéo
         đường viền giữa các ảnh để đổi kích thước ô.
       </p>
     </div>
@@ -740,7 +973,7 @@ export function ExportPanel({ onLeave }: { onLeave?: () => void } = {}) {
   const progress = useExportProgress((s) => s.progress)
   const batch = useExportProgress((s) => s.batch)
   const exportable = useExportableCount()
-  const size = canvasSize(state)
+  const size = outputSize(state)
 
   // Ảnh mất file gốc (bị dời / xoá) phải xuất từ bản xem trước. Ảnh chỉ đang chờ trình duyệt cho phép đọc thì không
   // tính: lúc bấm xuất app sẽ hỏi.
@@ -792,7 +1025,7 @@ export function ExportPanel({ onLeave }: { onLeave?: () => void } = {}) {
       {(missing > 0 || emptyCells > 0) && (
         <ul className="space-y-1.5">
           {emptyCells > 0 && (
-            <ExportWarning tip="Ô chưa có ảnh sẽ chỉ có màu nền của khung. Bấm vào ô trống rồi chọn ảnh trong thư viện, hoặc chọn bố cục ít ô hơn.">
+            <ExportWarning tip="Ô chưa có ảnh sẽ chỉ có màu nền. Bấm vào ô trống rồi chọn ảnh trong thư viện, hoặc chọn bố cục ít ô hơn.">
               Còn {emptyCells} ô trống
             </ExportWarning>
           )}
